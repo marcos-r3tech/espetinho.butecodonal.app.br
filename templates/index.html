@@ -818,6 +818,23 @@
             line-height: 1.2;
         }
 
+        /* Controle de Estoque */
+        .estoque-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .estoque-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .estoque-buttons .btn {
+            flex: 1;
+        }
+
         .conteudo-relatorios {
             min-height: 300px;
             background: rgba(255, 255, 255, 0.03);
@@ -1158,6 +1175,103 @@
                 font-size: 0.8rem;
             }
             
+            /* Melhorias para abas em mobile */
+            .tabs {
+                flex-wrap: wrap;
+                gap: 5px;
+                margin-bottom: 15px;
+            }
+            
+            .tab {
+                flex: 1;
+                min-width: 80px;
+                font-size: 0.7rem;
+                padding: 8px 4px;
+                text-align: center;
+            }
+            
+            .tab i {
+                font-size: 0.8rem;
+                margin-right: 4px;
+            }
+            
+            /* Formulários em mobile */
+            .form-group[style*="grid-template-columns"] {
+                display: block !important;
+            }
+            
+            .form-group[style*="grid-template-columns"] > div {
+                margin-bottom: 15px;
+            }
+            
+            /* Controle de estoque específico */
+            .venda-form[style*="display: grid"] {
+                display: block !important;
+            }
+            
+            .venda-form[style*="display: grid"] > div {
+                margin-bottom: 15px;
+            }
+            
+            /* Botões de estoque em mobile */
+            .venda-form .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            .venda-form .btn + .btn {
+                margin-left: 0;
+            }
+            
+            /* Botões em mobile */
+            .btn + .btn {
+                margin-left: 0;
+                margin-top: 10px;
+            }
+            
+            /* Lista de itens em mobile */
+            .venda-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .venda-actions {
+                width: 100%;
+                justify-content: flex-end;
+                margin-top: 10px;
+            }
+            
+            /* Relatórios em mobile */
+            .relatorio-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+            
+            .relatorios-botoes {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .relatorio-btn {
+                padding: 12px;
+                font-size: 0.9rem;
+            }
+            
+            /* Controle de estoque em mobile */
+            .estoque-controls {
+                display: block !important;
+            }
+            
+            .estoque-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .estoque-buttons .btn {
+                width: 100%;
+            }
+            
             .tabs {
                 margin-bottom: 15px;
                 padding: 3px;
@@ -1368,6 +1482,12 @@
             <div class="tab" onclick="mostrarAba('despesas')">
                 <i class="fas fa-receipt"></i> Despesas
             </div>
+            <div class="tab" onclick="mostrarAba('vendas-registradas')">
+                <i class="fas fa-list-alt"></i> Vendas
+            </div>
+            <div class="tab" onclick="mostrarAba('estoque')">
+                <i class="fas fa-boxes"></i> Estoque
+            </div>
             <div class="tab" onclick="mostrarAba('gerenciamento')">
                 <i class="fas fa-cogs"></i> Gerenciamento
             </div>
@@ -1449,12 +1569,12 @@
             <!-- Vendas de Hoje -->
             <div class="vendas-hoje fade-in">
                 <h3>
-                    <i class="fas fa-list"></i> Vendas de Hoje
-                    <button class="btn btn-secondary" onclick="atualizarVendas()" style="float: right; padding: 8px 15px; font-size: 0.9rem;">
+                    <i class="fas fa-clock"></i> Vendas de Hoje
+                    <button class="btn btn-secondary" onclick="atualizarVendasHoje()" style="float: right; padding: 8px 15px; font-size: 0.9rem;">
                         <i class="fas fa-sync-alt"></i> Atualizar
                     </button>
                 </h3>
-                <div id="vendas-lista">
+                <div id="vendas-hoje-lista">
                     <p style="text-align: center; color: #b0b0b0; padding: 20px;">
                         <i class="fas fa-info-circle"></i> Nenhuma venda registrada hoje
                     </p>
@@ -1629,6 +1749,100 @@
             </div>
         </div>
 
+        <!-- Aba Vendas Registradas -->
+        <div id="aba-vendas-registradas" class="tab-content">
+            <div class="relatorio-card fade-in">
+                <div class="relatorio-header">
+                    <h3 class="relatorio-title">
+                        <i class="fas fa-list-alt"></i> Todas as Vendas Registradas
+                    </h3>
+                    <button class="btn-atualizar" onclick="atualizarVendasRegistradas()">
+                        <i class="fas fa-sync-alt"></i> Atualizar
+                    </button>
+                </div>
+                
+                <!-- Filtros -->
+                <div class="venda-form fade-in" style="margin-bottom: 20px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div class="form-group">
+                            <label for="filtro-data-inicial">
+                                <i class="fas fa-calendar"></i> Data Inicial
+                            </label>
+                            <input type="date" id="filtro-data-inicial" class="form-control">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="filtro-data-final">
+                                <i class="fas fa-calendar"></i> Data Final
+                            </label>
+                            <input type="date" id="filtro-data-final" class="form-control">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label style="color: transparent;">Ações</label>
+                            <button class="btn btn-primary" onclick="filtrarVendas()" style="width: 100%;">
+                                <i class="fas fa-search"></i> Filtrar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <button class="btn btn-secondary" onclick="limparFiltrosVendas()">
+                            <i class="fas fa-eraser"></i> Limpar Filtros
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Lista de Vendas -->
+                <div class="vendas-hoje fade-in">
+                    <div id="vendas-registradas-lista">
+                        <p style="text-align: center; color: #b0b0b0; padding: 20px;">
+                            <i class="fas fa-info-circle"></i> Carregando vendas...
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba Estoque -->
+        <div id="aba-estoque" class="tab-content">
+            <div class="relatorio-card fade-in">
+                <div class="relatorio-header">
+                    <h3 class="relatorio-title">
+                        <i class="fas fa-boxes"></i> Controle de Estoque
+                    </h3>
+                    <button class="btn-atualizar" onclick="atualizarEstoque()">
+                        <i class="fas fa-sync-alt"></i> Atualizar
+                    </button>
+                </div>
+                
+                <!-- Resumo do Estoque -->
+                <div class="relatorio-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="total-produtos">0</div>
+                        <div class="stat-label">Total de Produtos</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="total-estoque">0</div>
+                        <div class="stat-label">Total em Estoque</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="produtos-sem-estoque">0</div>
+                        <div class="stat-label">Sem Estoque</div>
+                    </div>
+                </div>
+                
+                <!-- Lista de Estoque -->
+                <div class="vendas-hoje fade-in">
+                    <div id="estoque-lista">
+                        <p style="text-align: center; color: #b0b0b0; padding: 20px;">
+                            <i class="fas fa-info-circle"></i> Carregando estoque...
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Aba Gerenciamento -->
         <div id="aba-gerenciamento" class="tab-content">
             <div class="relatorio-card fade-in">
@@ -1703,7 +1917,7 @@
                     
                     <div id="alert-estoque"></div>
                     
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                    <div class="estoque-controls">
                         <div class="form-group">
                             <label for="espetinho-estoque">
                                 <i class="fas fa-utensils"></i> Espetinho
@@ -1723,11 +1937,11 @@
                         
                         <div class="form-group">
                             <label style="color: transparent;">Ações</label>
-                            <div style="display: flex; gap: 10px;">
-                                <button type="button" class="btn btn-primary" onclick="adicionarEstoque()" style="flex: 1;">
+                            <div class="estoque-buttons">
+                                <button type="button" class="btn btn-primary" onclick="adicionarEstoque()">
                                     <i class="fas fa-plus"></i> Adicionar
                                 </button>
-                                <button type="button" class="btn btn-warning" onclick="zerarEstoqueIndividual()" style="flex: 1;">
+                                <button type="button" class="btn btn-warning" onclick="zerarEstoqueIndividual()">
                                     <i class="fas fa-times"></i> Zerar
                                 </button>
                             </div>
@@ -1799,6 +2013,7 @@
             carregarEspetinhos();
             carregarVendasHoje();
             atualizarStatus();
+            atualizarVendasHoje();
             
             // Atualizar a cada 30 segundos
             setInterval(atualizarStatus, 30000);
@@ -1979,6 +2194,7 @@
                     mostrarModalSucesso('✅ Sucesso', result.message);
                     limparFormulario();
                     carregarVendasHoje();
+                    atualizarVendasHoje();
                     atualizarStatus();
                     atualizarRelatorios();
                 } else {
@@ -2197,7 +2413,7 @@
 
         async function confirmarExclusaoVenda(indice) {
             try {
-                const response = await fetch(`/api/vendas/${indice}`, {
+                const response = await fetch(`/api/vendas/hoje/${indice}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
@@ -2209,6 +2425,8 @@
                 if (result.success) {
                     mostrarModalSucesso('✅ Sucesso', result.message);
                     carregarVendasHoje();
+                    atualizarVendasHoje();
+                    atualizarEstoque();
                     atualizarStatus();
                     atualizarRelatorios();
                 } else {
@@ -2252,6 +2470,16 @@
             if (aba === 'despesas') {
                 atualizarListaDespesas();
                 definirDataAtualDespesa();
+            }
+            
+            // Se for aba de vendas registradas, atualizar dados
+            if (aba === 'vendas-registradas') {
+                atualizarVendasRegistradas();
+            }
+            
+            // Se for aba de estoque, atualizar dados
+            if (aba === 'estoque') {
+                atualizarEstoque();
             }
             
             // Se for aba de gerenciamento, atualizar dados
@@ -3496,6 +3724,226 @@
             setTimeout(() => {
                 container.innerHTML = '';
             }, 5000);
+        }
+
+        // Atualizar vendas de hoje na aba vendas
+        async function atualizarVendasHoje() {
+            try {
+                const response = await fetch('/api/vendas/hoje');
+                const vendas = await response.json();
+                
+                const container = document.getElementById('vendas-hoje-lista');
+                
+                if (vendas.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #b0b0b0; padding: 20px;"><i class="fas fa-info-circle"></i> Nenhuma venda realizada hoje</p>';
+                    return;
+                }
+                
+                container.innerHTML = vendas.map((venda, index) => `
+                    <div class="venda-item fade-in">
+                        <div class="venda-info">
+                            <div class="venda-espetinho">${venda.espetinho}</div>
+                            <div class="venda-detalhes">
+                                ${venda.quantidade}x - R$ ${venda.valor_unitario.toFixed(2)} cada | ${venda.data}
+                            </div>
+                        </div>
+                        <div class="venda-actions">
+                            <div class="venda-total">R$ ${venda.total.toFixed(2)}</div>
+                            <button class="btn-excluir" onclick="excluirVenda(${index})" title="Excluir venda">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Erro ao carregar vendas de hoje:', error);
+                const container = document.getElementById('vendas-hoje-lista');
+                container.innerHTML = '<p style="text-align: center; color: #ff6b6b; padding: 20px;"><i class="fas fa-exclamation-triangle"></i> Erro ao carregar vendas</p>';
+            }
+        }
+
+        // VENDAS REGISTRADAS
+        async function atualizarVendasRegistradas() {
+            try {
+                const response = await fetch('/api/vendas/todas');
+                const vendas = await response.json();
+                
+                const container = document.getElementById('vendas-registradas-lista');
+                
+                if (vendas.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #b0b0b0; padding: 20px;"><i class="fas fa-info-circle"></i> Nenhuma venda registrada</p>';
+                    return;
+                }
+                
+                // Ordenar por data (mais recente primeiro)
+                vendas.sort((a, b) => new Date(b.data.split(' ')[0].split('/').reverse().join('-')) - new Date(a.data.split(' ')[0].split('/').reverse().join('-')));
+                
+                container.innerHTML = vendas.map((venda, index) => `
+                    <div class="venda-item fade-in">
+                        <div class="venda-info">
+                            <div class="venda-espetinho">${venda.espetinho}</div>
+                            <div class="venda-detalhes">
+                                ${venda.quantidade}x - R$ ${venda.valor_unitario.toFixed(2)} cada | ${venda.data}
+                                ${venda.alterou_estoque ? ' | <span style="color: #00d4aa;">✓ Estoque</span>' : ' | <span style="color: #ffa726;">Sem estoque</span>'}
+                            </div>
+                        </div>
+                        <div class="venda-actions">
+                            <div class="venda-total">R$ ${venda.total.toFixed(2)}</div>
+                            <button class="btn-excluir" onclick="excluirVendaRegistrada(${index})" title="Excluir venda">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Erro ao carregar vendas registradas:', error);
+                const container = document.getElementById('vendas-registradas-lista');
+                container.innerHTML = '<p style="text-align: center; color: #ff6b6b; padding: 20px;"><i class="fas fa-exclamation-triangle"></i> Erro ao carregar vendas</p>';
+            }
+        }
+
+        // Filtrar vendas por data
+        async function filtrarVendas() {
+            const dataInicial = document.getElementById('filtro-data-inicial').value;
+            const dataFinal = document.getElementById('filtro-data-final').value;
+            
+            if (!dataInicial || !dataFinal) {
+                mostrarModalErro('❌ Erro', 'Selecione data inicial e final');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/vendas/todas');
+                const vendas = await response.json();
+                
+                // Filtrar por data
+                const vendasFiltradas = vendas.filter(venda => {
+                    const dataVenda = venda.data.split(' ')[0]; // dd/mm/yyyy
+                    const [dia, mes, ano] = dataVenda.split('/');
+                    const dataFormatada = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+                    
+                    return dataFormatada >= dataInicial && dataFormatada <= dataFinal;
+                });
+                
+                const container = document.getElementById('vendas-registradas-lista');
+                
+                if (vendasFiltradas.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #b0b0b0; padding: 20px;"><i class="fas fa-info-circle"></i> Nenhuma venda encontrada no período</p>';
+                    return;
+                }
+                
+                container.innerHTML = vendasFiltradas.map((venda, index) => `
+                    <div class="venda-item fade-in">
+                        <div class="venda-info">
+                            <div class="venda-espetinho">${venda.espetinho}</div>
+                            <div class="venda-detalhes">
+                                ${venda.quantidade}x - R$ ${venda.valor_unitario.toFixed(2)} cada | ${venda.data}
+                                ${venda.alterou_estoque ? ' | <span style="color: #00d4aa;">✓ Estoque</span>' : ' | <span style="color: #ffa726;">Sem estoque</span>'}
+                            </div>
+                        </div>
+                        <div class="venda-actions">
+                            <div class="venda-total">R$ ${venda.total.toFixed(2)}</div>
+                            <button class="btn-excluir" onclick="excluirVendaRegistrada(${index})" title="Excluir venda">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Erro ao filtrar vendas:', error);
+                mostrarModalErro('❌ Erro', 'Erro ao filtrar vendas');
+            }
+        }
+
+        // Limpar filtros de vendas
+        function limparFiltrosVendas() {
+            document.getElementById('filtro-data-inicial').value = '';
+            document.getElementById('filtro-data-final').value = '';
+            atualizarVendasRegistradas();
+        }
+
+        // Excluir venda registrada
+        async function excluirVendaRegistrada(index) {
+            mostrarModalConfirmacao(
+                '⚠️ Confirmar Exclusão',
+                'Tem certeza que deseja excluir esta venda?',
+                () => confirmarExclusaoVendaRegistrada(index)
+            );
+        }
+
+        async function confirmarExclusaoVendaRegistrada(index) {
+            try {
+                const response = await fetch(`/api/vendas/${index}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    mostrarModalSucesso('✅ Sucesso', result.message);
+                    atualizarVendasRegistradas();
+                    atualizarVendasHoje();
+                    atualizarEstoque();
+                } else {
+                    mostrarModalErro('❌ Erro', result.message);
+                }
+            } catch (error) {
+                console.error('Erro ao excluir venda:', error);
+                mostrarModalErro('❌ Erro', 'Erro ao excluir venda');
+            }
+        }
+
+        // ESTOQUE
+        async function atualizarEstoque() {
+            try {
+                const response = await fetch('/api/espetinhos');
+                const espetinhos = await response.json();
+                
+                const container = document.getElementById('estoque-lista');
+                
+                if (Object.keys(espetinhos).length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #b0b0b0; padding: 20px;"><i class="fas fa-info-circle"></i> Nenhum espetinho cadastrado</p>';
+                    return;
+                }
+                
+                // Calcular estatísticas
+                const totalProdutos = Object.keys(espetinhos).length;
+                const totalEstoque = Object.values(espetinhos).reduce((sum, espetinho) => sum + espetinho.estoque, 0);
+                const produtosSemEstoque = Object.values(espetinhos).filter(espetinho => espetinho.estoque === 0).length;
+                
+                // Atualizar estatísticas
+                document.getElementById('total-produtos').textContent = totalProdutos;
+                document.getElementById('total-estoque').textContent = totalEstoque;
+                document.getElementById('produtos-sem-estoque').textContent = produtosSemEstoque;
+                
+                // Listar espetinhos
+                container.innerHTML = Object.entries(espetinhos).map(([nome, dados]) => `
+                    <div class="espetinho-item fade-in">
+                        <div class="espetinho-info">
+                            <div class="espetinho-nome">${nome}</div>
+                            <div class="espetinho-detalhes">
+                                Valor: R$ ${dados.valor.toFixed(2)} | Custo: R$ ${dados.custo.toFixed(2)}
+                            </div>
+                        </div>
+                        <div class="espetinho-valores">
+                            <div class="espetinho-valor" style="color: ${dados.estoque > 0 ? '#00d4aa' : '#ff6b6b'}">
+                                Estoque: ${dados.estoque}
+                            </div>
+                            <div class="espetinho-lucro">
+                                Lucro: R$ ${(dados.valor - dados.custo).toFixed(2)}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Erro ao carregar estoque:', error);
+                const container = document.getElementById('estoque-lista');
+                container.innerHTML = '<p style="text-align: center; color: #ff6b6b; padding: 20px;"><i class="fas fa-exclamation-triangle"></i> Erro ao carregar estoque</p>';
+            }
         }
     </script>
 </body>
