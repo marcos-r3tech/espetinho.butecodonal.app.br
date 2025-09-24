@@ -1,0 +1,2769 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>🍖 Buteco do Nal - Vendas Mobile</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+        }
+
+        .header h1 {
+            color: #1a1a1a;
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            color: #333;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-item {
+            text-align: center;
+        }
+
+        .status-item .icon {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .status-item .label {
+            font-size: 0.9rem;
+            color: #b0b0b0;
+        }
+
+        .status-item .value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .venda-form {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #ffd700;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .form-control option {
+            background: #2d2d2d;
+            color: #ffffff;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #1a1a1a;
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 215, 0, 0.1);
+            border-color: #ffd700;
+        }
+
+        .vendas-hoje {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .vendas-hoje h3 {
+            color: #ffd700;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .venda-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border-left: 4px solid #ffd700;
+        }
+
+        .venda-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .venda-info {
+            flex: 1;
+        }
+
+        .venda-espetinho {
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .venda-detalhes {
+            font-size: 0.9rem;
+            color: #b0b0b0;
+        }
+
+        .venda-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .venda-total {
+            font-weight: bold;
+            color: #ffd700;
+            font-size: 1.1rem;
+        }
+
+        .btn-excluir {
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid #ff6b6b;
+            color: #ff6b6b;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-excluir:hover {
+            background: rgba(255, 107, 107, 0.3);
+            border-color: #ff5252;
+            color: #ff5252;
+            transform: scale(1.05);
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: rgba(0, 212, 170, 0.2);
+            border: 1px solid #00d4aa;
+            color: #00d4aa;
+        }
+
+        .alert-error {
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid #ff6b6b;
+            color: #ff6b6b;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 215, 0, 0.3);
+            border-top: 3px solid #ffd700;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Checkbox personalizado SUPER VISÍVEL */
+        .checkbox-group {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: #ffffff;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .checkbox-label:hover {
+            color: #ffd700;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            display: none;
+        }
+
+        .checkmark {
+            width: 24px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 3px solid #ffd700;
+            border-radius: 6px;
+            margin-right: 15px;
+            position: relative;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .checkbox-label input[type="checkbox"]:checked + .checkmark {
+            background: #ffd700;
+            border-color: #ffd700;
+            transform: scale(1.1);
+        }
+
+        .checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #1a1a1a;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .checkbox-label:hover .checkmark {
+            border-color: #ffed4e;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Abas */
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 5px;
+            backdrop-filter: blur(10px);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px 20px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: #b0b0b0;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #1a1a1a;
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .tab:hover:not(.active) {
+            background: rgba(255, 215, 0, 0.1);
+            color: #ffd700;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Relatórios */
+        .relatorio-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .relatorio-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .relatorio-title {
+            color: #ffd700;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .relatorio-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border-left: 4px solid #ffd700;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #b0b0b0;
+        }
+
+        .espetinho-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border-left: 4px solid #00d4aa;
+        }
+
+        .espetinho-info {
+            flex: 1;
+        }
+
+        .espetinho-nome {
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+
+        .espetinho-detalhes {
+            font-size: 0.9rem;
+            color: #b0b0b0;
+        }
+
+        .espetinho-valores {
+            text-align: right;
+        }
+
+        .espetinho-valor {
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 2px;
+        }
+
+        .espetinho-lucro {
+            font-size: 0.9rem;
+            color: #00d4aa;
+        }
+
+        .btn-atualizar {
+            background: linear-gradient(135deg, #00d4aa 0%, #00b894 100%);
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-atualizar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 212, 170, 0.3);
+        }
+
+        /* MODAIS MODERNOS */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: linear-gradient(135deg, #2d2d2d 0%, #3a3a3a 100%);
+            border-radius: 20px;
+            padding: 0;
+            max-width: 90%;
+            max-height: 80%;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.3s ease;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .modal-header h3 {
+            color: #1a1a1a;
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin: 0;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #1a1a1a;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(26, 26, 26, 0.1);
+            transform: scale(1.1);
+        }
+
+        .modal-body {
+            padding: 25px;
+            color: #ffffff;
+        }
+
+        .modal-footer {
+            padding: 20px 25px;
+            background: rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .modal-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            min-width: 100px;
+        }
+
+        .modal-btn-primary {
+            background: linear-gradient(135deg, #00d4aa 0%, #00b894 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(0, 212, 170, 0.3);
+        }
+
+        .modal-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 212, 170, 0.4);
+        }
+
+        .modal-btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .modal-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #ffffff;
+        }
+
+        .modal-btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .modal-btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .modal-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .modal-message {
+            font-size: 1.1rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .espetinho-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+
+        .espetinho-option {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .espetinho-option:hover {
+            background: rgba(255, 215, 0, 0.1);
+            border-color: rgba(255, 215, 0, 0.3);
+            transform: translateX(5px);
+        }
+
+        .espetinho-option.selected {
+            background: rgba(255, 215, 0, 0.2);
+            border-color: #ffd700;
+        }
+
+        .espetinho-radio {
+            margin-right: 15px;
+            width: 20px;
+            height: 20px;
+            accent-color: #ffd700;
+        }
+
+        .espetinho-info {
+            flex: 1;
+        }
+
+        .espetinho-name {
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 3px;
+        }
+
+        .espetinho-price {
+            color: #ffd700;
+            font-size: 0.9rem;
+        }
+
+        .espetinho-stock {
+            color: #b0b0b0;
+            font-size: 0.8rem;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* RODAPÉ COM CRÉDITOS */
+        .footer-credits {
+            margin-top: 30px;
+            padding: 20px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .credits-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .credits-text {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .credits-label {
+            font-size: 0.8rem;
+            color: #b0b0b0;
+            font-weight: 400;
+        }
+
+        .credits-name {
+            font-size: 1rem;
+            color: #ffd700;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .credits-contact {
+            margin-top: 5px;
+        }
+
+        .contact-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(255, 215, 0, 0.1);
+            color: #ffd700;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .contact-link:hover {
+            background: rgba(255, 215, 0, 0.2);
+            border-color: #ffd700;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+            color: #ffed4e;
+        }
+
+        .contact-link i {
+            font-size: 0.8rem;
+        }
+
+        /* RELATÓRIOS GERENCIAIS */
+        .relatorios-botoes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .relatorio-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 215, 0, 0.2);
+            border-radius: 15px;
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .relatorio-btn:hover {
+            background: rgba(255, 215, 0, 0.1);
+            border-color: #ffd700;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.2);
+        }
+
+        .relatorio-btn i {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            color: #ffd700;
+        }
+
+        .relatorio-btn span {
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .conteudo-relatorios {
+            min-height: 300px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .relatorio-detalhado {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #ffd700;
+        }
+
+        .relatorio-detalhado h4 {
+            color: #ffd700;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .relatorio-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .relatorio-stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border-left: 4px solid #00d4aa;
+        }
+
+        .relatorio-stat-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #00d4aa;
+            margin-bottom: 5px;
+        }
+
+        .relatorio-stat-label {
+            font-size: 0.8rem;
+            color: #b0b0b0;
+        }
+
+        .espetinho-ranking {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border-left: 4px solid #ffd700;
+        }
+
+        .espetinho-ranking:nth-child(1) { border-left-color: #ffd700; }
+        .espetinho-ranking:nth-child(2) { border-left-color: #c0c0c0; }
+        .espetinho-ranking:nth-child(3) { border-left-color: #cd7f32; }
+
+        .espetinho-posicao {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ffd700;
+            min-width: 30px;
+        }
+
+        .espetinho-nome-ranking {
+            flex: 1;
+            margin-left: 15px;
+            font-weight: 500;
+        }
+
+        .espetinho-valores-ranking {
+            text-align: right;
+        }
+
+        .espetinho-quantidade {
+            color: #00d4aa;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .espetinho-percentual {
+            color: #b0b0b0;
+            font-size: 0.8rem;
+        }
+
+        /* GRÁFICO DE BARRAS */
+        .grafico-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .grafico-titulo {
+            text-align: center;
+            color: #333;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .grafico-barras {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            height: 300px;
+            padding: 20px 0;
+            border-bottom: 2px solid #e0e0e0;
+            border-left: 2px solid #e0e0e;
+            position: relative;
+        }
+
+        .barra-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            margin: 0 2px;
+            position: relative;
+        }
+
+        .barra {
+            width: 100%;
+            background: linear-gradient(180deg, #2196F3 0%, #1976D2 100%);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            min-height: 5px;
+        }
+
+        .barra:hover {
+            background: linear-gradient(180deg, #4CAF50 0%, #388E3C 100%);
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .barra-pico {
+            background: linear-gradient(180deg, #FF9800 0%, #F57C00 100%);
+        }
+
+        .barra-pico:hover {
+            background: linear-gradient(180deg, #FF5722 0%, #D32F2F 100%);
+        }
+
+        .barra-valor {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .barra:hover .barra-valor {
+            opacity: 1;
+        }
+
+        .barra-hora {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #666;
+        }
+
+        .grafico-legenda {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 15px;
+            gap: 20px;
+        }
+
+        .legenda-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legenda-cor {
+            width: 20px;
+            height: 15px;
+            border-radius: 3px;
+        }
+
+        .legenda-normal {
+            background: linear-gradient(180deg, #2196F3 0%, #1976D2 100%);
+        }
+
+        .legenda-pico {
+            background: linear-gradient(180deg, #FF9800 0%, #F57C00 100%);
+        }
+
+        .grafico-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(33, 150, 243, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid #2196F3;
+        }
+
+        .stat-valor {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2196F3;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        /* RESPONSIVIDADE SUPER OTIMIZADA PARA CELULAR */
+        @media (max-width: 480px) {
+            .container {
+                padding: 8px;
+                margin: 0;
+            }
+            
+            .header {
+                padding: 15px 10px;
+                margin-bottom: 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.4rem;
+                margin-bottom: 5px;
+            }
+            
+            .header p {
+                font-size: 0.8rem;
+            }
+            
+            .card {
+                margin-bottom: 15px;
+                padding: 15px;
+            }
+            
+            .card h3 {
+                font-size: 1.1rem;
+                margin-bottom: 15px;
+            }
+            
+            .form-group {
+                margin-bottom: 12px;
+            }
+            
+            .form-group label {
+                font-size: 0.85rem;
+                margin-bottom: 5px;
+            }
+            
+            .form-control {
+                padding: 12px;
+                font-size: 0.9rem;
+                height: 45px;
+            }
+            
+            .btn {
+                padding: 12px 16px;
+                font-size: 0.85rem;
+                height: 45px;
+                min-width: 120px;
+            }
+            
+            .btn-primary {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            .btn-secondary {
+                width: 100%;
+            }
+            
+            .venda-item {
+                padding: 12px;
+                margin-bottom: 8px;
+            }
+            
+            .venda-espetinho {
+                font-size: 0.9rem;
+            }
+            
+            .venda-detalhes {
+                font-size: 0.8rem;
+            }
+            
+            .venda-total {
+                font-size: 1rem;
+            }
+            
+            .btn-excluir {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+                margin-bottom: 15px;
+            }
+            
+            .stat-item {
+                padding: 12px;
+            }
+            
+            .stat-value {
+                font-size: 1.2rem;
+            }
+            
+            .stat-label {
+                font-size: 0.8rem;
+            }
+            
+            .tabs {
+                margin-bottom: 15px;
+                padding: 3px;
+            }
+            
+            .tab {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+            
+            .tab-content {
+                padding: 15px;
+            }
+            
+            .espetinho-item {
+                padding: 10px;
+                margin-bottom: 8px;
+            }
+            
+            .espetinho-nome {
+                font-size: 0.9rem;
+            }
+            
+            .espetinho-detalhes {
+                font-size: 0.8rem;
+            }
+            
+            .espetinho-valor {
+                font-size: 0.9rem;
+            }
+            
+            .espetinho-lucro {
+                font-size: 0.8rem;
+            }
+            
+            /* CHECKBOX RESPONSIVO */
+            .checkbox-group {
+                margin: 15px 0;
+            }
+            
+            .checkbox-label {
+                font-size: 0.85rem;
+                line-height: 1.4;
+            }
+            
+            .checkmark {
+                width: 18px;
+                height: 18px;
+                margin-right: 10px;
+            }
+            
+            .checkmark::after {
+                font-size: 11px;
+            }
+            
+            /* RODAPÉ RESPONSIVO */
+            .footer-credits {
+                margin-top: 20px;
+                padding: 15px;
+            }
+            
+            .credits-name {
+                font-size: 0.9rem;
+            }
+            
+            .contact-link {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+            
+            /* RELATÓRIOS RESPONSIVOS */
+            .relatorios-botoes {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            
+            .relatorio-btn {
+                padding: 15px 10px;
+                font-size: 0.8rem;
+            }
+            
+            .relatorio-btn i {
+                font-size: 1.2rem;
+                margin-bottom: 5px;
+            }
+            
+            .conteudo-relatorios {
+                min-height: 250px;
+                padding: 15px;
+            }
+            
+            .relatorio-stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            
+            .relatorio-stat-item {
+                padding: 12px;
+            }
+            
+            .relatorio-stat-value {
+                font-size: 1.1rem;
+            }
+            
+            /* GRÁFICO RESPONSIVO */
+            .grafico-container {
+                padding: 15px;
+                margin: 10px 0;
+            }
+            
+            .grafico-barras {
+                height: 250px;
+                padding: 15px 0;
+            }
+            
+            .barra-container {
+                margin: 0 1px;
+            }
+            
+            .barra-valor {
+                font-size: 0.7rem;
+                padding: 2px 6px;
+                max-width: 60px;
+                font-size: 0.6rem;
+            }
+            
+            .barra-hora {
+                font-size: 0.8rem;
+                margin-top: 8px;
+            }
+            
+            .grafico-stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            
+            .stat-item {
+                padding: 12px;
+            }
+            
+            .stat-valor {
+                font-size: 1.1rem;
+            }
+        }
+        
+        @media (max-width: 768px) and (min-width: 481px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+        }
+        
+        @media (max-width: 1024px) and (min-width: 769px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header fade-in">
+            <h1>🍖 BUTECO DO NAL</h1>
+            <p>Sistema de Vendas Mobile</p>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar fade-in">
+            <div class="status-item">
+                <div class="icon">💰</div>
+                <div class="label">Vendas Hoje</div>
+                <div class="value" id="vendas-hoje-count">0</div>
+            </div>
+            <div class="status-item">
+                <div class="icon">📊</div>
+                <div class="label">Total Vendas</div>
+                <div class="value" id="total-vendas">0</div>
+            </div>
+            <div class="status-item">
+                <div class="icon">🟢</div>
+                <div class="label">Status</div>
+                <div class="value">Online</div>
+            </div>
+        </div>
+
+        <!-- Abas -->
+        <div class="tabs fade-in">
+            <div class="tab active" onclick="mostrarAba('vendas')">
+                <i class="fas fa-shopping-cart"></i> Vendas
+            </div>
+            <div class="tab" onclick="mostrarAba('relatorios')">
+                <i class="fas fa-chart-bar"></i> Relatórios
+            </div>
+            <div class="tab" onclick="mostrarAba('gerenciais')">
+                <i class="fas fa-chart-line"></i> Gerenciais
+            </div>
+        </div>
+
+        <!-- Aba Vendas -->
+        <div id="aba-vendas" class="tab-content active">
+            <!-- Formulário de Venda -->
+            <div class="venda-form fade-in">
+                <h3 style="color: #ffd700; margin-bottom: 20px; text-align: center;">
+                    <i class="fas fa-plus-circle"></i> Nova Venda
+                </h3>
+                
+                <div id="alert-container"></div>
+                
+                <form id="venda-form">
+                    <div class="form-group">
+                        <label for="espetinho">
+                            <i class="fas fa-utensils"></i> Espetinho
+                        </label>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="espetinho" class="form-control" required style="flex: 1;">
+                                <option value="">Selecione o espetinho...</option>
+                            </select>
+                            <button type="button" class="btn btn-secondary" onclick="mostrarModalSelecaoEspetinho()" style="padding: 15px; min-width: 50px;">
+                                <i class="fas fa-list"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="quantidade">
+                            <i class="fas fa-hashtag"></i> Quantidade
+                        </label>
+                        <input type="number" id="quantidade" class="form-control" 
+                               min="1" max="100" value="1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-calculator"></i> Valor Unitário
+                        </label>
+                        <input type="text" id="valor-unitario" class="form-control" 
+                               readonly style="background: rgba(255, 255, 255, 0.05);">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-dollar-sign"></i> Total
+                        </label>
+                        <input type="text" id="total" class="form-control" 
+                               readonly style="background: rgba(255, 255, 255, 0.05); font-weight: bold; color: #ffd700;">
+                    </div>
+                    
+                    <div class="form-group checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="alterar-estoque" checked>
+                            <span class="checkmark"></span>
+                            <i class="fas fa-box"></i> 📦 BAIXAR ESTOQUE (desmarque para venda sem estoque)
+                        </label>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Lançar Venda
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="limparFormulario()" style="margin-left: 15px;">
+                            <i class="fas fa-eraser"></i> Limpar
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Processando venda...</p>
+                </div>
+            </div>
+
+            <!-- Vendas de Hoje -->
+            <div class="vendas-hoje fade-in">
+                <h3>
+                    <i class="fas fa-list"></i> Vendas de Hoje
+                    <button class="btn btn-secondary" onclick="atualizarVendas()" style="float: right; padding: 8px 15px; font-size: 0.9rem;">
+                        <i class="fas fa-sync-alt"></i> Atualizar
+                    </button>
+                </h3>
+                <div id="vendas-lista">
+                    <p style="text-align: center; color: #b0b0b0; padding: 20px;">
+                        <i class="fas fa-info-circle"></i> Nenhuma venda registrada hoje
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba Relatórios -->
+        <div id="aba-relatorios" class="tab-content">
+            <div class="relatorio-card fade-in">
+                <div class="relatorio-header">
+                    <h3 class="relatorio-title">
+                        <i class="fas fa-chart-line"></i> Resumo de Vendas
+                    </h3>
+                    <button class="btn-atualizar" onclick="atualizarRelatorios()">
+                        <i class="fas fa-sync-alt"></i> Atualizar
+                    </button>
+                </div>
+                
+                <div class="relatorio-stats" id="relatorio-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="total-vendas-hoje">R$ 0,00</div>
+                        <div class="stat-label">Vendas Hoje</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="total-quantidade">0</div>
+                        <div class="stat-label">Quantidade</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="total-custo">R$ 0,00</div>
+                        <div class="stat-label">Custo Total</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="total-lucro">R$ 0,00</div>
+                        <div class="stat-label">Lucro Total</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="relatorio-card fade-in">
+                <div class="relatorio-header">
+                    <h3 class="relatorio-title">
+                        <i class="fas fa-utensils"></i> Vendas por Espetinho
+                    </h3>
+                </div>
+                <div id="relatorio-espetinhos">
+                    <p style="text-align: center; color: #b0b0b0; padding: 20px;">
+                        <i class="fas fa-info-circle"></i> Nenhuma venda registrada hoje
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba Relatórios Gerenciais -->
+        <div id="aba-gerenciais" class="tab-content">
+            <div class="relatorio-card fade-in">
+                <div class="relatorio-header">
+                    <h3 class="relatorio-title">
+                        <i class="fas fa-chart-line"></i> Relatórios Gerenciais
+                    </h3>
+                    <button class="btn-atualizar" onclick="atualizarRelatoriosGerenciais()">
+                        <i class="fas fa-sync-alt"></i> Atualizar
+                    </button>
+                </div>
+                
+                <!-- Botões de Relatórios -->
+                <div class="relatorios-botoes">
+                    <button class="relatorio-btn" onclick="mostrarRelatorioTopEspetinhos()">
+                        <i class="fas fa-trophy"></i>
+                        <span>Top Espetinhos</span>
+                    </button>
+                    <button class="relatorio-btn" onclick="mostrarRelatorioAnaliseEspetinho()">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Análise por Espetinho</span>
+                    </button>
+                    <button class="relatorio-btn" onclick="mostrarRelatorioLucro()">
+                        <i class="fas fa-clock"></i>
+                        <span>Análise de Lucro</span>
+                    </button>
+                    <button class="relatorio-btn" onclick="mostrarRelatorioDiario()">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Relatório Geral</span>
+                    </button>
+                    <button class="relatorio-btn" onclick="mostrarRelatorioVendasPorHora()">
+                        <i class="fas fa-clock"></i>
+                        <span>Vendas por Hora</span>
+                    </button>
+                </div>
+                
+                <!-- Área de Conteúdo dos Relatórios -->
+                <div id="conteudo-relatorios-gerenciais" class="conteudo-relatorios">
+                    <p style="text-align: center; color: #b0b0b0; padding: 40px;">
+                        <i class="fas fa-chart-line" style="font-size: 2rem; margin-bottom: 15px; display: block;"></i>
+                        Selecione um relatório acima para visualizar
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Rodapé com créditos -->
+        <div class="footer-credits fade-in">
+            <div class="credits-content">
+                <div class="credits-text">
+                    <span class="credits-label">Desenvolvido por</span>
+                    <span class="credits-name">Marcos Pacheco</span>
+                </div>
+                <div class="credits-contact">
+                    <a href="tel:+5577991630059" class="contact-link">
+                        <i class="fas fa-phone"></i> (77) 99163-0059
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modais Modernos -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal" id="modal">
+            <div class="modal-header">
+                <h3 id="modal-title">Título do Modal</h3>
+                <button class="modal-close" onclick="fecharModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Conteúdo do modal será inserido aqui -->
+            </div>
+            <div class="modal-footer" id="modal-footer">
+                <!-- Botões do modal serão inseridos aqui -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let espetinhos = {};
+        let vendasHoje = [];
+
+        // Carregar dados iniciais
+        document.addEventListener('DOMContentLoaded', function() {
+            carregarEspetinhos();
+            carregarVendasHoje();
+            atualizarStatus();
+            
+            // Atualizar a cada 30 segundos
+            setInterval(atualizarStatus, 30000);
+        });
+
+        // Carregar espetinhos
+        async function carregarEspetinhos() {
+            try {
+                const response = await fetch('/api/espetinhos');
+                espetinhos = await response.json();
+                
+                const select = document.getElementById('espetinho');
+                select.innerHTML = '<option value="">Selecione o espetinho...</option>';
+                
+                for (const [nome, dados] of Object.entries(espetinhos)) {
+                    const option = document.createElement('option');
+                    option.value = nome;
+                    option.textContent = `${nome} - R$ ${dados.valor.toFixed(2)}`;
+                    select.appendChild(option);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar espetinhos:', error);
+                mostrarModalErro('❌ Erro', 'Erro ao carregar espetinhos');
+            }
+        }
+
+        // Carregar vendas de hoje
+        async function carregarVendasHoje() {
+            try {
+                const response = await fetch('/api/vendas/hoje');
+                vendasHoje = await response.json();
+                atualizarListaVendas();
+            } catch (error) {
+                console.error('Erro ao carregar vendas:', error);
+            }
+        }
+
+        // Atualizar status
+        async function atualizarStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const status = await response.json();
+                
+                document.getElementById('vendas-hoje-count').textContent = status.vendas_hoje;
+                document.getElementById('total-vendas').textContent = status.total_vendas;
+            } catch (error) {
+                console.error('Erro ao atualizar status:', error);
+            }
+        }
+
+        // Atualizar lista de vendas
+        function atualizarListaVendas() {
+            const container = document.getElementById('vendas-lista');
+            
+            if (vendasHoje.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #b0b0b0; padding: 20px;"><i class="fas fa-info-circle"></i> Nenhuma venda registrada hoje</p>';
+                return;
+            }
+            
+            container.innerHTML = vendasHoje.map((venda, index) => `
+                <div class="venda-item fade-in">
+                    <div class="venda-info">
+                        <div class="venda-espetinho">
+                            ${venda.origem === 'mobile' ? '📱 ' : '💻 '}${venda.espetinho}
+                        </div>
+                        <div class="venda-detalhes">
+                            ${venda.quantidade}x R$ ${venda.valor_unitario.toFixed(2)} - ${venda.data}
+                        </div>
+                    </div>
+                    <div class="venda-actions">
+                        <div class="venda-total">R$ ${venda.total.toFixed(2)}</div>
+                        <button class="btn-excluir" onclick="excluirVenda(${index})" title="Excluir venda">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Calcular total quando espetinho ou quantidade mudar
+        document.getElementById('espetinho').addEventListener('change', calcularTotal);
+        document.getElementById('quantidade').addEventListener('input', calcularTotal);
+        
+        // Mostrar estoque quando espetinho mudar
+        document.getElementById('espetinho').addEventListener('change', mostrarEstoque);
+
+        function calcularTotal() {
+            const espetinho = document.getElementById('espetinho').value;
+            const quantidade = parseInt(document.getElementById('quantidade').value) || 0;
+            
+            if (espetinho && espetinhos[espetinho]) {
+                const valorUnitario = espetinhos[espetinho].valor;
+                const total = valorUnitario * quantidade;
+                
+                document.getElementById('valor-unitario').value = `R$ ${valorUnitario.toFixed(2)}`;
+                document.getElementById('total').value = `R$ ${total.toFixed(2)}`;
+            } else {
+                document.getElementById('valor-unitario').value = '';
+                document.getElementById('total').value = '';
+            }
+        }
+
+        function mostrarEstoque() {
+            const espetinho = document.getElementById('espetinho').value;
+            const alterarEstoque = document.getElementById('alterar-estoque');
+            
+            if (espetinho && espetinhos[espetinho]) {
+                const estoque = espetinhos[espetinho].estoque;
+                const quantidade = parseInt(document.getElementById('quantidade').value) || 0;
+                
+                // Atualizar texto do checkbox com estoque atual
+                const checkboxLabel = document.querySelector('.checkbox-label');
+                if (estoque > 0) {
+                    checkboxLabel.innerHTML = `
+                        <input type="checkbox" id="alterar-estoque" checked>
+                        <span class="checkmark"></span>
+                        <i class="fas fa-box"></i> 📦 BAIXAR ESTOQUE (${estoque} disponíveis)
+                    `;
+                    
+                    // Re-vincular evento
+                    document.getElementById('alterar-estoque').addEventListener('change', function() {
+                        if (this.checked && estoque < quantidade) {
+                            mostrarModalErro('⚠️ Estoque Insuficiente', `Disponível: ${estoque} unidades`);
+                            this.checked = false;
+                        }
+                    });
+                } else {
+                    checkboxLabel.innerHTML = `
+                        <input type="checkbox" id="alterar-estoque" checked>
+                        <span class="checkmark"></span>
+                        <i class="fas fa-box"></i> 📦 BAIXAR ESTOQUE (SEM ESTOQUE - venda sem baixar)
+                    `;
+                    alterarEstoque.checked = false;
+                }
+            }
+        }
+
+        // Submeter formulário
+        document.getElementById('venda-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const espetinho = document.getElementById('espetinho').value;
+            const quantidade = parseInt(document.getElementById('quantidade').value);
+            const alterarEstoque = document.getElementById('alterar-estoque').checked;
+            
+            if (!espetinho || !quantidade) {
+                mostrarModalErro('❌ Erro', 'Preencha todos os campos');
+                return;
+            }
+            
+            // Verificar estoque se a opção estiver marcada
+            if (alterarEstoque && espetinhos[espetinho]) {
+                const estoqueAtual = espetinhos[espetinho].estoque;
+                if (estoqueAtual < quantidade) {
+                    mostrarModalErro('❌ Estoque Insuficiente', `Disponível: ${estoqueAtual} unidades`);
+                    return;
+                }
+            }
+            
+            mostrarLoading(true);
+            
+            try {
+                const response = await fetch('/api/vendas', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        espetinho: espetinho,
+                        quantidade: quantidade,
+                        alterar_estoque: alterarEstoque
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    mostrarModalSucesso('✅ Sucesso', result.message);
+                    limparFormulario();
+                    carregarVendasHoje();
+                    atualizarStatus();
+                    atualizarRelatorios();
+                } else {
+                    mostrarModalErro('❌ Erro', result.message);
+                }
+            } catch (error) {
+                console.error('Erro ao enviar venda:', error);
+                mostrarModalErro('❌ Erro', 'Erro ao enviar venda');
+            } finally {
+                mostrarLoading(false);
+            }
+        });
+
+        // Limpar formulário
+        function limparFormulario() {
+            document.getElementById('venda-form').reset();
+            document.getElementById('valor-unitario').value = '';
+            document.getElementById('total').value = '';
+            
+            // Resetar checkbox de estoque
+            const checkboxLabel = document.querySelector('.checkbox-label');
+            checkboxLabel.innerHTML = `
+                <input type="checkbox" id="alterar-estoque" checked>
+                <span class="checkmark"></span>
+                <i class="fas fa-box"></i> 📦 BAIXAR ESTOQUE (desmarque para venda sem estoque)
+            `;
+        }
+
+        // Mostrar alerta
+        function mostrarAlerta(mensagem, tipo) {
+            const container = document.getElementById('alert-container');
+            const alertClass = tipo === 'success' ? 'alert-success' : 'alert-error';
+            
+            container.innerHTML = `<div class="alert ${alertClass} fade-in">${mensagem}</div>`;
+            
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        // Mostrar loading
+        function mostrarLoading(mostrar) {
+            document.getElementById('loading').style.display = mostrar ? 'block' : 'none';
+        }
+
+        // Atualizar vendas
+        function atualizarVendas() {
+            carregarVendasHoje();
+            atualizarStatus();
+        }
+
+        // SISTEMA DE MODAIS MODERNOS
+        function mostrarModal(titulo, conteudo, botoes = []) {
+            document.getElementById('modal-title').textContent = titulo;
+            document.getElementById('modal-body').innerHTML = conteudo;
+            
+            const footer = document.getElementById('modal-footer');
+            footer.innerHTML = '';
+            
+            botoes.forEach(botao => {
+                const btn = document.createElement('button');
+                btn.className = `modal-btn ${botao.classe}`;
+                btn.textContent = botao.texto;
+                btn.onclick = botao.acao;
+                footer.appendChild(btn);
+            });
+            
+            document.getElementById('modal-overlay').classList.add('show');
+        }
+
+        function fecharModal() {
+            document.getElementById('modal-overlay').classList.remove('show');
+        }
+
+        function mostrarModalConfirmacao(titulo, mensagem, callbackSim, callbackNao = null) {
+            const conteudo = `
+                <div style="text-align: center;">
+                    <div class="modal-icon">⚠️</div>
+                    <div class="modal-message">${mensagem}</div>
+                </div>
+            `;
+            
+            const botoes = [
+                {
+                    texto: '✅ Sim',
+                    classe: 'modal-btn-primary',
+                    acao: () => {
+                        fecharModal();
+                        if (callbackSim) callbackSim();
+                    }
+                },
+                {
+                    texto: '❌ Não',
+                    classe: 'modal-btn-secondary',
+                    acao: () => {
+                        fecharModal();
+                        if (callbackNao) callbackNao();
+                    }
+                }
+            ];
+            
+            mostrarModal(titulo, conteudo, botoes);
+        }
+
+        function mostrarModalSucesso(titulo, mensagem) {
+            const conteudo = `
+                <div style="text-align: center;">
+                    <div class="modal-icon">✅</div>
+                    <div class="modal-message">${mensagem}</div>
+                </div>
+            `;
+            
+            const botoes = [
+                {
+                    texto: '✅ OK',
+                    classe: 'modal-btn-primary',
+                    acao: fecharModal
+                }
+            ];
+            
+            mostrarModal(titulo, conteudo, botoes);
+        }
+
+        function mostrarModalErro(titulo, mensagem) {
+            const conteudo = `
+                <div style="text-align: center;">
+                    <div class="modal-icon">❌</div>
+                    <div class="modal-message">${mensagem}</div>
+                </div>
+            `;
+            
+            const botoes = [
+                {
+                    texto: '✅ OK',
+                    classe: 'modal-btn-danger',
+                    acao: fecharModal
+                }
+            ];
+            
+            mostrarModal(titulo, conteudo, botoes);
+        }
+
+        function mostrarModalSelecaoEspetinho() {
+            let conteudo = '<div class="espetinho-list">';
+            
+            for (const [nome, dados] of Object.entries(espetinhos)) {
+                const estoque = dados.estoque || 0;
+                conteudo += `
+                    <div class="espetinho-option" onclick="selecionarEspetinho('${nome}')">
+                        <input type="radio" name="espetinho-modal" value="${nome}" class="espetinho-radio">
+                        <div class="espetinho-info">
+                            <div class="espetinho-name">${nome}</div>
+                            <div class="espetinho-price">R$ ${dados.valor.toFixed(2)}</div>
+                            <div class="espetinho-stock">Estoque: ${estoque} unidades</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            conteudo += '</div>';
+            
+            const botoes = [
+                {
+                    texto: '✅ Selecionar',
+                    classe: 'modal-btn-primary',
+                    acao: confirmarSelecaoEspetinho
+                },
+                {
+                    texto: '❌ Cancelar',
+                    classe: 'modal-btn-secondary',
+                    acao: fecharModal
+                }
+            ];
+            
+            mostrarModal('🍖 Selecione o Espetinho', conteudo, botoes);
+        }
+
+        function selecionarEspetinho(nome) {
+            // Remover seleção anterior
+            document.querySelectorAll('.espetinho-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Selecionar novo
+            event.currentTarget.classList.add('selected');
+            event.currentTarget.querySelector('input[type="radio"]').checked = true;
+        }
+
+        function confirmarSelecaoEspetinho() {
+            const selecionado = document.querySelector('input[name="espetinho-modal"]:checked');
+            if (selecionado) {
+                document.getElementById('espetinho').value = selecionado.value;
+                calcularTotal();
+                mostrarEstoque();
+                fecharModal();
+            } else {
+                mostrarModalErro('❌ Erro', 'Selecione um espetinho!');
+            }
+        }
+
+        // Fechar modal clicando fora dele
+        document.getElementById('modal-overlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                fecharModal();
+            }
+        });
+
+        // Excluir venda
+        async function excluirVenda(indice) {
+            mostrarModalConfirmacao(
+                '⚠️ Confirmar Exclusão',
+                'Tem certeza que deseja excluir esta venda?',
+                () => confirmarExclusaoVenda(indice)
+            );
+        }
+
+        async function confirmarExclusaoVenda(indice) {
+            try {
+                const response = await fetch(`/api/vendas/${indice}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    mostrarModalSucesso('✅ Sucesso', result.message);
+                    carregarVendasHoje();
+                    atualizarStatus();
+                    atualizarRelatorios();
+                } else {
+                    mostrarModalErro('❌ Erro', result.message);
+                }
+            } catch (error) {
+                console.error('Erro ao excluir venda:', error);
+                mostrarModalErro('❌ Erro', 'Erro ao excluir venda');
+            }
+        }
+
+        // Mostrar aba
+        function mostrarAba(aba) {
+            // Esconder todas as abas
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remover active de todas as tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Mostrar aba selecionada
+            document.getElementById(`aba-${aba}`).classList.add('active');
+            
+            // Adicionar active na tab selecionada
+            event.target.classList.add('active');
+            
+            // Se for aba de relatórios, atualizar dados
+            if (aba === 'relatorios') {
+                atualizarRelatorios();
+            }
+            
+            // Se for aba de gerenciais, atualizar dados
+            if (aba === 'gerenciais') {
+                atualizarRelatoriosGerenciais();
+            }
+        }
+
+        // RELATÓRIOS GERENCIAIS
+        async function atualizarRelatoriosGerenciais() {
+            // Atualizar todos os dados necessários
+            await carregarTodasVendas();
+            await carregarEspetinhos();
+        }
+
+        // Carregar todas as vendas do histórico
+        async function carregarTodasVendas() {
+            try {
+                const response = await fetch('/api/vendas/todas');
+                vendasHoje = await response.json();
+            } catch (error) {
+                console.error('Erro ao carregar todas as vendas:', error);
+                mostrarModalErro('❌ Erro', 'Erro ao carregar histórico de vendas');
+            }
+        }
+
+        // Carregar despesas do histórico
+        async function carregarDespesas() {
+            try {
+                const response = await fetch('/api/despesas');
+                return await response.json();
+            } catch (error) {
+                console.error('Erro ao carregar despesas:', error);
+                return [];
+            }
+        }
+
+        function mostrarRelatorioTopEspetinhos() {
+            const container = document.getElementById('conteudo-relatorios-gerenciais');
+            
+            if (vendasHoje.length === 0) {
+                container.innerHTML = `
+                    <div class="relatorio-detalhado">
+                        <h4><i class="fas fa-trophy"></i> Top Espetinhos - Histórico Completo</h4>
+                        <p style="text-align: center; color: #b0b0b0; padding: 20px;">
+                            <i class="fas fa-info-circle"></i> Nenhuma venda registrada no histórico
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Agrupar vendas por espetinho
+            const vendasPorEspetinho = {};
+            vendasHoje.forEach(venda => {
+                if (venda.espetinho) {
+                    const espetinho = venda.espetinho;
+                    if (!vendasPorEspetinho[espetinho]) {
+                        vendasPorEspetinho[espetinho] = {
+                            quantidade: 0,
+                            valorTotal: 0
+                        };
+                    }
+                    vendasPorEspetinho[espetinho].quantidade += venda.quantidade;
+                    vendasPorEspetinho[espetinho].valorTotal += venda.total;
+                }
+            });
+
+            // Ordenar por quantidade vendida
+            const ranking = Object.entries(vendasPorEspetinho)
+                .sort((a, b) => b[1].quantidade - a[1].quantidade)
+                .slice(0, 5);
+
+            let html = `
+                <div class="relatorio-detalhado">
+                    <h4><i class="fas fa-trophy"></i> Top 5 Espetinhos Mais Vendidos - Histórico Completo</h4>
+                    <div class="relatorio-stats-grid">
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">${ranking.length}</div>
+                            <div class="relatorio-stat-label">Espetinhos</div>
+                        </div>
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">${ranking.reduce((sum, item) => sum + item[1].quantidade, 0)}</div>
+                            <div class="relatorio-stat-label">Total Vendido</div>
+                        </div>
+                    </div>
+            `;
+
+            ranking.forEach(([espetinho, dados], index) => {
+                const posicao = index + 1;
+                const icone = posicao === 1 ? '🥇' : posicao === 2 ? '🥈' : posicao === 3 ? '🥉' : '🏅';
+                
+                html += `
+                    <div class="espetinho-ranking">
+                        <div class="espetinho-posicao">${icone} ${posicao}º</div>
+                        <div class="espetinho-nome-ranking">${espetinho}</div>
+                        <div class="espetinho-valores-ranking">
+                            <div class="espetinho-quantidade">${dados.quantidade} unidades</div>
+                            <div class="espetinho-percentual">R$ ${dados.valorTotal.toFixed(2)}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function mostrarRelatorioAnaliseEspetinho() {
+            const container = document.getElementById('conteudo-relatorios-gerenciais');
+            
+            if (vendasHoje.length === 0) {
+                container.innerHTML = `
+                    <div class="relatorio-detalhado">
+                        <h4><i class="fas fa-chart-bar"></i> Análise por Espetinho - Histórico Completo</h4>
+                        <p style="text-align: center; color: #b0b0b0; padding: 20px;">
+                            <i class="fas fa-info-circle"></i> Nenhuma venda registrada no histórico
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Agrupar vendas por espetinho
+            const vendasPorEspetinho = {};
+            let totalVendas = 0;
+            let totalQuantidade = 0;
+
+            vendasHoje.forEach(venda => {
+                if (venda.espetinho) {
+                    const espetinho = venda.espetinho;
+                    if (!vendasPorEspetinho[espetinho]) {
+                        vendasPorEspetinho[espetinho] = {
+                            quantidade: 0,
+                            valorTotal: 0,
+                            custoTotal: 0,
+                            lucroTotal: 0
+                        };
+                    }
+                    vendasPorEspetinho[espetinho].quantidade += venda.quantidade;
+                    vendasPorEspetinho[espetinho].valorTotal += venda.total;
+                    
+                    // Calcular custo e lucro
+                    if (espetinhos[espetinho]) {
+                        const custoUnitario = espetinhos[espetinho].custo;
+                        const custoTotal = venda.quantidade * custoUnitario;
+                        const lucro = venda.total - custoTotal;
+                        
+                        vendasPorEspetinho[espetinho].custoTotal += custoTotal;
+                        vendasPorEspetinho[espetinho].lucroTotal += lucro;
+                    }
+                    
+                    totalVendas += venda.total;
+                    totalQuantidade += venda.quantidade;
+                }
+            });
+
+            let html = `
+                <div class="relatorio-detalhado">
+                    <h4><i class="fas fa-chart-bar"></i> Análise Detalhada por Espetinho - Histórico Completo</h4>
+                    <div class="relatorio-stats-grid">
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">${Object.keys(vendasPorEspetinho).length}</div>
+                            <div class="relatorio-stat-label">Tipos Vendidos</div>
+                        </div>
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">${totalQuantidade}</div>
+                            <div class="relatorio-stat-label">Total Unidades</div>
+                        </div>
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">R$ ${totalVendas.toFixed(2)}</div>
+                            <div class="relatorio-stat-label">Faturamento</div>
+                        </div>
+                    </div>
+            `;
+
+            Object.entries(vendasPorEspetinho).forEach(([espetinho, dados]) => {
+                const percentual = totalQuantidade > 0 ? (dados.quantidade / totalQuantidade * 100).toFixed(1) : 0;
+                
+                html += `
+                    <div class="espetinho-item">
+                        <div class="espetinho-info">
+                            <div class="espetinho-nome">${espetinho}</div>
+                            <div class="espetinho-detalhes">
+                                ${dados.quantidade} unidades (${percentual}% do total)
+                            </div>
+                        </div>
+                        <div class="espetinho-valores">
+                            <div class="espetinho-valor">R$ ${dados.valorTotal.toFixed(2)}</div>
+                            <div class="espetinho-lucro">
+                                Custo: R$ ${dados.custoTotal.toFixed(2)} | Lucro: R$ ${dados.lucroTotal.toFixed(2)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        async function mostrarRelatorioLucro() {
+            const container = document.getElementById('conteudo-relatorios-gerenciais');
+            
+            if (vendasHoje.length === 0) {
+                container.innerHTML = `
+                    <div class="relatorio-detalhado">
+                        <h4><i class="fas fa-clock"></i> Análise de Lucro - Histórico Completo</h4>
+                        <p style="text-align: center; color: #b0b0b0; padding: 20px;">
+                            <i class="fas fa-info-circle"></i> Nenhuma venda registrada no histórico
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Carregar despesas
+            const despesas = await carregarDespesas();
+            
+            let totalVendas = 0;
+            let totalQuantidade = 0;
+            let totalDespesas = 0;
+
+            // Calcular vendas
+            vendasHoje.forEach(venda => {
+                if (venda.espetinho) {
+                    totalVendas += venda.total;
+                    totalQuantidade += venda.quantidade;
+                }
+            });
+
+            // Calcular total de despesas
+            despesas.forEach(despesa => {
+                totalDespesas += despesa.valor;
+            });
+
+            // Lucro real = Faturamento - Despesas (igual ao desktop)
+            const lucroReal = totalVendas - totalDespesas;
+            const margemLucro = totalVendas > 0 ? (lucroReal / totalVendas * 100).toFixed(1) : 0;
+            const lucroPorUnidade = totalQuantidade > 0 ? (lucroReal / totalQuantidade).toFixed(2) : 0;
+
+            const html = `
+                <div class="relatorio-detalhado">
+                    <h4><i class="fas fa-clock"></i> Análise de Lucro - Histórico Completo</h4>
+                    <div class="relatorio-stats-grid">
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">R$ ${totalVendas.toFixed(2)}</div>
+                            <div class="relatorio-stat-label">Faturamento</div>
+                        </div>
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">R$ ${totalDespesas.toFixed(2)}</div>
+                            <div class="relatorio-stat-label">Despesas</div>
+                        </div>
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">R$ ${lucroReal.toFixed(2)}</div>
+                            <div class="relatorio-stat-label">Lucro Real</div>
+                        </div>
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">${margemLucro}%</div>
+                            <div class="relatorio-stat-label">Margem de Lucro</div>
+                        </div>
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">${totalQuantidade}</div>
+                            <div class="relatorio-stat-label">Unidades Vendidas</div>
+                        </div>
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">${vendasHoje.length}</div>
+                            <div class="relatorio-stat-label">Vendas Realizadas</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; padding: 10px; background: rgba(255, 215, 0, 0.1); border-radius: 8px; border-left: 4px solid #ffd700;">
+                        <strong>Fórmula:</strong> Faturamento - Despesas = Lucro Real<br>
+                        <strong>R$ ${totalVendas.toFixed(2)} - R$ ${totalDespesas.toFixed(2)} = R$ ${lucroReal.toFixed(2)}</strong>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        async function mostrarRelatorioDiario() {
+            const container = document.getElementById('conteudo-relatorios-gerenciais');
+            
+            if (vendasHoje.length === 0) {
+                container.innerHTML = `
+                    <div class="relatorio-detalhado">
+                        <h4><i class="fas fa-file-alt"></i> Relatório Geral - Histórico Completo</h4>
+                        <p style="text-align: center; color: #b0b0b0; padding: 20px;">
+                            <i class="fas fa-info-circle"></i> Nenhuma venda registrada no histórico
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Carregar despesas
+            const despesas = await carregarDespesas();
+            
+            let totalVendas = 0;
+            let totalQuantidade = 0;
+            let totalDespesas = 0;
+            const vendasPorEspetinho = {};
+
+            // Calcular vendas
+            vendasHoje.forEach(venda => {
+                if (venda.espetinho) {
+                    const espetinho = venda.espetinho;
+                    if (!vendasPorEspetinho[espetinho]) {
+                        vendasPorEspetinho[espetinho] = {
+                            quantidade: 0,
+                            valorTotal: 0
+                        };
+                    }
+                    
+                    vendasPorEspetinho[espetinho].quantidade += venda.quantidade;
+                    vendasPorEspetinho[espetinho].valorTotal += venda.total;
+                    
+                    totalVendas += venda.total;
+                    totalQuantidade += venda.quantidade;
+                }
+            });
+
+            // Calcular total de despesas
+            despesas.forEach(despesa => {
+                totalDespesas += despesa.valor;
+            });
+
+            // Lucro real = Faturamento - Despesas (igual ao desktop)
+            const lucroReal = totalVendas - totalDespesas;
+            const margemLucro = totalVendas > 0 ? (lucroReal / totalVendas * 100).toFixed(1) : 0;
+
+            let html = `
+                <div class="relatorio-detalhado">
+                    <h4><i class="fas fa-file-alt"></i> Relatório Geral - Histórico Completo</h4>
+                    <div class="relatorio-stats-grid">
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">${vendasHoje.length}</div>
+                            <div class="relatorio-stat-label">Vendas Realizadas</div>
+                        </div>
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">${totalQuantidade}</div>
+                            <div class="relatorio-stat-label">Unidades Vendidas</div>
+                        </div>
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">R$ ${totalVendas.toFixed(2)}</div>
+                            <div class="relatorio-stat-label">Faturamento</div>
+                        </div>
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">R$ ${totalDespesas.toFixed(2)}</div>
+                            <div class="relatorio-stat-label">Despesas</div>
+                        </div>
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">R$ ${lucroReal.toFixed(2)}</div>
+                            <div class="relatorio-stat-label">Lucro Real</div>
+                        </div>
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">${margemLucro}%</div>
+                            <div class="relatorio-stat-label">Margem de Lucro</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; padding: 10px; background: rgba(255, 215, 0, 0.1); border-radius: 8px; border-left: 4px solid #ffd700;">
+                        <strong>Fórmula:</strong> Faturamento - Despesas = Lucro Real<br>
+                        <strong>R$ ${totalVendas.toFixed(2)} - R$ ${totalDespesas.toFixed(2)} = R$ ${lucroReal.toFixed(2)}</strong>
+                    </div>
+                </div>
+            `;
+
+            // Adicionar detalhamento por espetinho
+            Object.entries(vendasPorEspetinho).forEach(([espetinho, dados]) => {
+                const percentual = totalQuantidade > 0 ? (dados.quantidade / totalQuantidade * 100).toFixed(1) : 0;
+                
+                html += `
+                    <div class="espetinho-item">
+                        <div class="espetinho-info">
+                            <div class="espetinho-nome">${espetinho}</div>
+                            <div class="espetinho-detalhes">
+                                ${dados.quantidade} unidades (${percentual}% do total)
+                            </div>
+                        </div>
+                        <div class="espetinho-valores">
+                            <div class="espetinho-valor">R$ ${dados.valorTotal.toFixed(2)}</div>
+                            <div class="espetinho-lucro">
+                                ${dados.quantidade} unidades vendidas
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function mostrarRelatorioVendasPorHora() {
+            const container = document.getElementById('conteudo-relatorios-gerenciais');
+            
+            // Criar interface de seleção de período
+            const hoje = new Date();
+            const dataInicial = new Date(hoje.getTime() - (30 * 24 * 60 * 60 * 1000)); // 30 dias atrás
+            const dataFinal = hoje;
+            
+            const dataInicialStr = dataInicial.toISOString().split('T')[0];
+            const dataFinalStr = dataFinal.toISOString().split('T')[0];
+            
+                container.innerHTML = `
+                    <div class="relatorio-detalhado">
+                    <h4><i class="fas fa-clock"></i> Vendas por Hora - Filtro de Período</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div class="form-group">
+                            <label for="data-inicial-vendas-hora">
+                                <i class="fas fa-calendar-alt"></i> Data Inicial
+                            </label>
+                            <input type="date" id="data-inicial-vendas-hora" class="form-control" value="${dataInicialStr}">
+                        </div>
+                        <div class="form-group">
+                            <label for="data-final-vendas-hora">
+                                <i class="fas fa-calendar-alt"></i> Data Final
+                            </label>
+                            <input type="date" id="data-final-vendas-hora" class="form-control" value="${dataFinalStr}">
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <button class="btn btn-primary" onclick="gerarRelatorioVendasPorHora()">
+                            <i class="fas fa-chart-bar"></i> Gerar Relatório
+                        </button>
+                        <button class="btn btn-secondary" onclick="gerarRelatorioVendasPorHora('hoje')" style="margin-left: 10px;">
+                            <i class="fas fa-calendar-day"></i> Apenas Hoje
+                        </button>
+                        <button class="btn btn-secondary" onclick="gerarRelatorioVendasPorHora('todos')" style="margin-left: 10px;">
+                            <i class="fas fa-history"></i> Todo Período
+                        </button>
+                    </div>
+                    <div id="conteudo-vendas-por-hora">
+                        <p style="text-align: center; color: #b0b0b0; padding: 20px;">
+                            <i class="fas fa-info-circle"></i> Selecione o período e clique em "Gerar Relatório"
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function gerarRelatorioVendasPorHora(tipo = 'filtro') {
+            const container = document.getElementById('conteudo-vendas-por-hora');
+            
+            let dataInicial, dataFinal;
+            
+            if (tipo === 'hoje') {
+                const hoje = new Date();
+                dataInicial = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+                dataFinal = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 23, 59, 59);
+            } else if (tipo === 'todos') {
+                dataInicial = null;
+                dataFinal = null;
+            } else {
+                const dataInicialInput = document.getElementById('data-inicial-vendas-hora').value;
+                const dataFinalInput = document.getElementById('data-final-vendas-hora').value;
+                
+                if (!dataInicialInput || !dataFinalInput) {
+                    mostrarModalErro('❌ Erro', 'Selecione as datas inicial e final');
+                    return;
+                }
+                
+                dataInicial = new Date(dataInicialInput + 'T00:00:00');
+                dataFinal = new Date(dataFinalInput + 'T23:59:59');
+                
+                if (dataInicial > dataFinal) {
+                    mostrarModalErro('❌ Erro', 'A data inicial deve ser anterior à data final');
+                    return;
+                }
+            }
+            
+            // Filtrar vendas pelo período selecionado
+            let vendasFiltradas = vendasHoje;
+            
+            if (dataInicial && dataFinal) {
+                vendasFiltradas = vendasHoje.filter(venda => {
+                    try {
+                        const dataVenda = new Date(venda.data.split(' ')[0].split('/').reverse().join('-') + 'T' + venda.data.split(' ')[1]);
+                        return dataVenda >= dataInicial && dataVenda <= dataFinal;
+                    } catch (error) {
+                        return false;
+                    }
+                });
+            }
+            
+            if (vendasFiltradas.length === 0) {
+                container.innerHTML = `
+                    <div class="relatorio-detalhado">
+                        <h4><i class="fas fa-clock"></i> Vendas por Hora - ${tipo === 'hoje' ? 'Hoje' : tipo === 'todos' ? 'Todo Período' : 'Período Selecionado'}</h4>
+                        <p style="text-align: center; color: #b0b0b0; padding: 20px;">
+                            <i class="fas fa-info-circle"></i> Nenhuma venda registrada no período selecionado
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Agrupar vendas por hora
+            const vendasPorHora = {};
+            
+            vendasFiltradas.forEach(venda => {
+                try {
+                    // Extrair hora da data (formato: DD/MM/YYYY HH:MM)
+                    const dataHora = venda.data;
+                    if (dataHora && dataHora.includes(' ')) {
+                        const hora = dataHora.split(' ')[1].split(':')[0]; // Pega apenas a hora
+                        const horaInt = parseInt(hora);
+                        
+                        if (!vendasPorHora[horaInt]) {
+                            vendasPorHora[horaInt] = {
+                                quantidade: 0,
+                                valorTotal: 0,
+                                vendas: 0
+                            };
+                        }
+                        
+                        vendasPorHora[horaInt].quantidade += venda.quantidade;
+                        vendasPorHora[horaInt].valorTotal += venda.total;
+                        vendasPorHora[horaInt].vendas += 1;
+                    }
+                } catch (error) {
+                    console.error('Erro ao processar data:', error);
+                }
+            });
+
+            // Ordenar por hora
+            const horasOrdenadas = Object.keys(vendasPorHora).map(Number).sort((a, b) => a - b);
+            
+            // Calcular totais gerais
+            const totalGeralVendas = Object.values(vendasPorHora).reduce((sum, dados) => sum + dados.vendas, 0);
+            const totalGeralQuantidade = Object.values(vendasPorHora).reduce((sum, dados) => sum + dados.quantidade, 0);
+            const totalGeralValor = Object.values(vendasPorHora).reduce((sum, dados) => sum + dados.valorTotal, 0);
+            
+            // Encontrar horários de pico
+            const horaPicoVendas = horasOrdenadas.reduce((max, hora) => 
+                vendasPorHora[hora].vendas > vendasPorHora[max].vendas ? hora : max, horasOrdenadas[0]);
+            const horaPicoValor = horasOrdenadas.reduce((max, hora) => 
+                vendasPorHora[hora].valorTotal > vendasPorHora[max].valorTotal ? hora : max, horasOrdenadas[0]);
+
+            // Determinar título baseado no período
+            let tituloPeriodo = '';
+            if (tipo === 'hoje') {
+                tituloPeriodo = 'Hoje';
+            } else if (tipo === 'todos') {
+                tituloPeriodo = 'Todo Período';
+            } else {
+                const dataInicialStr = dataInicial.toLocaleDateString('pt-BR');
+                const dataFinalStr = dataFinal.toLocaleDateString('pt-BR');
+                tituloPeriodo = `${dataInicialStr} a ${dataFinalStr}`;
+            }
+
+            let html = `
+                <div class="relatorio-detalhado">
+                    <h4><i class="fas fa-clock"></i> Vendas por Hora - ${tituloPeriodo}</h4>
+                    <div class="relatorio-stats-grid">
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">${totalGeralVendas}</div>
+                            <div class="relatorio-stat-label">Total Vendas</div>
+                        </div>
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">${totalGeralQuantidade}</div>
+                            <div class="relatorio-stat-label">Total Unidades</div>
+                        </div>
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">R$ ${totalGeralValor.toFixed(2)}</div>
+                            <div class="relatorio-stat-label">Faturamento</div>
+                        </div>
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">${horaPicoVendas.toString().padStart(2, '0')}:00</div>
+                            <div class="relatorio-stat-label">Pico de Vendas</div>
+                        </div>
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">${horaPicoValor.toString().padStart(2, '0')}:00</div>
+                            <div class="relatorio-stat-label">Pico de Faturamento</div>
+                        </div>
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">${horasOrdenadas.length}</div>
+                            <div class="relatorio-stat-label">Horários Ativos</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Adicionar gráfico visual
+            html += `
+                <div class="grafico-container">
+                    <div class="grafico-titulo">📊 Gráfico de Vendas por Hora</div>
+                    <div class="grafico-barras">
+            `;
+
+            // Encontrar valor máximo para escala
+            const valorMax = Math.max(...Object.values(vendasPorHora).map(d => d.valorTotal));
+            const valorMaxArredondado = Math.ceil(valorMax / 50) * 50;
+
+            horasOrdenadas.forEach(hora => {
+                const dados = vendasPorHora[hora];
+                const alturaPercentual = (dados.valorTotal / valorMaxArredondado) * 100;
+                const isPico = dados.valorTotal === valorMax;
+                
+                html += `
+                    <div class="barra-container">
+                        <div class="barra ${isPico ? 'barra-pico' : ''}" style="height: ${Math.max(alturaPercentual, 2)}%;">
+                            <div class="barra-valor">R$ ${dados.valorTotal.toFixed(0)}</div>
+                        </div>
+                        <div class="barra-hora">${hora.toString().padStart(2, '0')}:00</div>
+                    </div>
+                `;
+            });
+
+            html += `
+                    </div>
+                    <div class="grafico-legenda">
+                        <div class="legenda-item">
+                            <div class="legenda-cor legenda-normal"></div>
+                            <span>Vendas Normais</span>
+                        </div>
+                        <div class="legenda-item">
+                            <div class="legenda-cor legenda-pico"></div>
+                            <span>Horário de Pico</span>
+                        </div>
+                    </div>
+                    <div class="grafico-stats">
+                        <div class="stat-item">
+                            <div class="stat-valor">${horaPicoVendas.toString().padStart(2, '0')}:00</div>
+                            <div class="stat-label">Pico de Vendas</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-valor">R$ ${valorMax.toFixed(0)}</div>
+                            <div class="stat-label">Maior Faturamento</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-valor">${horasOrdenadas.length}</div>
+                            <div class="stat-label">Horários Ativos</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        // Atualizar relatórios
+        async function atualizarRelatorios() {
+            try {
+                const response = await fetch('/api/vendas/hoje');
+                const vendas = await response.json();
+                
+                // Calcular totais
+                let totalVendas = 0;
+                let totalQuantidade = 0;
+                let totalCusto = 0;
+                let totalLucro = 0;
+                
+                // Agrupar vendas por espetinho
+                const vendasPorEspetinho = {};
+                
+                vendas.forEach(venda => {
+                    if (venda.espetinho) {
+                        const espetinho = venda.espetinho;
+                        const quantidade = venda.quantidade;
+                        const valorUnitario = venda.valor_unitario;
+                        const total = venda.total;
+                        
+                        // Totais gerais
+                        totalVendas += total;
+                        totalQuantidade += quantidade;
+                        
+                        // Calcular custo e lucro
+                        if (espetinhos[espetinho]) {
+                            const custoUnitario = espetinhos[espetinho].custo;
+                            const custoTotal = quantidade * custoUnitario;
+                            const lucro = total - custoTotal;
+                            
+                            totalCusto += custoTotal;
+                            totalLucro += lucro;
+                            
+                            // Agrupar por espetinho
+                            if (!vendasPorEspetinho[espetinho]) {
+                                vendasPorEspetinho[espetinho] = {
+                                    quantidade: 0,
+                                    valorTotal: 0,
+                                    custoTotal: 0,
+                                    lucroTotal: 0
+                                };
+                            }
+                            
+                            vendasPorEspetinho[espetinho].quantidade += quantidade;
+                            vendasPorEspetinho[espetinho].valorTotal += total;
+                            vendasPorEspetinho[espetinho].custoTotal += custoTotal;
+                            vendasPorEspetinho[espetinho].lucroTotal += lucro;
+                        }
+                    }
+                });
+                
+                // Atualizar cards de resumo
+                document.getElementById('total-vendas-hoje').textContent = `R$ ${totalVendas.toFixed(2)}`;
+                document.getElementById('total-quantidade').textContent = totalQuantidade;
+                document.getElementById('total-custo').textContent = `R$ ${totalCusto.toFixed(2)}`;
+                document.getElementById('total-lucro').textContent = `R$ ${totalLucro.toFixed(2)}`;
+                
+                // Atualizar lista de espetinhos
+                const container = document.getElementById('relatorio-espetinhos');
+                
+                if (Object.keys(vendasPorEspetinho).length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #b0b0b0; padding: 20px;"><i class="fas fa-info-circle"></i> Nenhuma venda registrada hoje</p>';
+                    return;
+                }
+                
+                // Ordenar por quantidade vendida
+                const espetinhosOrdenados = Object.entries(vendasPorEspetinho)
+                    .sort((a, b) => b[1].quantidade - a[1].quantidade);
+                
+                container.innerHTML = espetinhosOrdenados.map(([espetinho, dados]) => `
+                    <div class="espetinho-item fade-in">
+                        <div class="espetinho-info">
+                            <div class="espetinho-nome">${espetinho}</div>
+                            <div class="espetinho-detalhes">
+                                ${dados.quantidade} unidades vendidas
+                            </div>
+                        </div>
+                        <div class="espetinho-valores">
+                            <div class="espetinho-valor">R$ ${dados.valorTotal.toFixed(2)}</div>
+                            <div class="espetinho-lucro">
+                                Custo: R$ ${dados.custoTotal.toFixed(2)} | Lucro: R$ ${dados.lucroTotal.toFixed(2)}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Erro ao atualizar relatórios:', error);
+                mostrarModalErro('❌ Erro', 'Erro ao carregar relatórios');
+            }
+        }
+    </script>
+</body>
+</html>
