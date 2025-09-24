@@ -1,0 +1,1029 @@
+{
+  "vendas": [
+    {
+      "data": "19/09/2025 13:52",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": true
+    },
+    {
+      "data": "19/09/2025 13:52",
+      "espetinho": "FRANGO",
+      "quantidade": 2,
+      "valor_unitario": 6.0,
+      "total": 12.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:52",
+      "espetinho": "GADO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:52",
+      "espetinho": "TULIPA",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:53",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 2,
+      "valor_unitario": 6.0,
+      "total": 12.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:53",
+      "espetinho": "GADO",
+      "quantidade": 5,
+      "valor_unitario": 6.0,
+      "total": 30.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:53",
+      "espetinho": "MEDALHÃO DE FRANGO",
+      "quantidade": 1,
+      "valor_unitario": 9.0,
+      "total": 9.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:54",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:54",
+      "espetinho": "TULIPA",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:54",
+      "espetinho": "FRANGO",
+      "quantidade": 2,
+      "valor_unitario": 6.0,
+      "total": 12.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:55",
+      "espetinho": "GADO",
+      "quantidade": 3,
+      "valor_unitario": 6.0,
+      "total": 18.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:55",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:55",
+      "espetinho": "FRANGO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:56",
+      "espetinho": "GADO",
+      "quantidade": 2,
+      "valor_unitario": 6.0,
+      "total": 12.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:57",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:57",
+      "espetinho": "GADO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:57",
+      "espetinho": "GADO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:57",
+      "espetinho": "MEDALHÃO DE FRANGO",
+      "quantidade": 2,
+      "valor_unitario": 9.0,
+      "total": 18.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:57",
+      "espetinho": "GADO",
+      "quantidade": 2,
+      "valor_unitario": 6.0,
+      "total": 12.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:58",
+      "espetinho": "FRANGO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:58",
+      "espetinho": "MEDALHÃO DE FRANGO",
+      "quantidade": 1,
+      "valor_unitario": 9.0,
+      "total": 9.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:58",
+      "espetinho": "GADO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:58",
+      "espetinho": "TULIPA",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:59",
+      "espetinho": "GADO",
+      "quantidade": 2,
+      "valor_unitario": 6.0,
+      "total": 12.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:59",
+      "espetinho": "GADO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:59",
+      "espetinho": "GADO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:59",
+      "espetinho": "GADO",
+      "quantidade": 6,
+      "valor_unitario": 6.0,
+      "total": 36.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:59",
+      "espetinho": "TULIPA",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 13:59",
+      "espetinho": "FRANGO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 14:00",
+      "espetinho": "FRANGO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "19/09/2025 14:02",
+      "espetinho": "GADO",
+      "quantidade": 4,
+      "valor_unitario": 6.0,
+      "total": 24.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:02",
+      "espetinho": "GADO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:03",
+      "espetinho": "PÃO DE ALHO",
+      "quantidade": 1,
+      "valor_unitario": 4.0,
+      "total": 4.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:03",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:03",
+      "espetinho": "GADO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:03",
+      "espetinho": "PÃO DE ALHO",
+      "quantidade": 1,
+      "valor_unitario": 4.0,
+      "total": 4.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:03",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:04",
+      "espetinho": "LINGUIÇA DEFUMADA",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:04",
+      "espetinho": "GADO",
+      "quantidade": 6,
+      "valor_unitario": 6.0,
+      "total": 36.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:04",
+      "espetinho": "PÃO DE ALHO",
+      "quantidade": 1,
+      "valor_unitario": 4.0,
+      "total": 4.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:04",
+      "espetinho": "GADO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:05",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 2,
+      "valor_unitario": 6.0,
+      "total": 12.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:05",
+      "espetinho": "PÃO DE ALHO",
+      "quantidade": 1,
+      "valor_unitario": 4.0,
+      "total": 4.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:05",
+      "espetinho": "TULIPA",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:05",
+      "espetinho": "GADO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:06",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:06",
+      "espetinho": "PÃO DE ALHO",
+      "quantidade": 1,
+      "valor_unitario": 4.0,
+      "total": 4.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:06",
+      "espetinho": "GADO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:06",
+      "espetinho": "MEDALHÃO DE CARNE",
+      "quantidade": 2,
+      "valor_unitario": 9.0,
+      "total": 18.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:07",
+      "espetinho": "GADO",
+      "quantidade": 3,
+      "valor_unitario": 6.0,
+      "total": 18.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:07",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:07",
+      "espetinho": "FRANGO",
+      "quantidade": 2,
+      "valor_unitario": 6.0,
+      "total": 12.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:08",
+      "espetinho": "PÃO DE ALHO",
+      "quantidade": 2,
+      "valor_unitario": 4.0,
+      "total": 8.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:08",
+      "espetinho": "MEDALHÃO DE CARNE",
+      "quantidade": 1,
+      "valor_unitario": 9.0,
+      "total": 9.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:08",
+      "espetinho": "PORCO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:08",
+      "espetinho": "GADO",
+      "quantidade": 2,
+      "valor_unitario": 6.0,
+      "total": 12.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:09",
+      "espetinho": "MEDALHÃO DE CARNE",
+      "quantidade": 1,
+      "valor_unitario": 9.0,
+      "total": 9.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:09",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:09",
+      "espetinho": "MEDALHÃO DE CARNE",
+      "quantidade": 1,
+      "valor_unitario": 9.0,
+      "total": 9.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:09",
+      "espetinho": "PORCO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:10",
+      "espetinho": "MEDALHÃO DE CARNE",
+      "quantidade": 2,
+      "valor_unitario": 9.0,
+      "total": 18.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:10",
+      "espetinho": "FRANGO",
+      "quantidade": 2,
+      "valor_unitario": 6.0,
+      "total": 12.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:10",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 4,
+      "valor_unitario": 6.0,
+      "total": 24.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:10",
+      "espetinho": "PÃO DE ALHO",
+      "quantidade": 1,
+      "valor_unitario": 4.0,
+      "total": 4.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:10",
+      "espetinho": "PORCO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:11",
+      "espetinho": "MEDALHÃO DE CARNE",
+      "quantidade": 1,
+      "valor_unitario": 9.0,
+      "total": 9.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:11",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 2,
+      "valor_unitario": 6.0,
+      "total": 12.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:11",
+      "espetinho": "PÃO DE ALHO",
+      "quantidade": 1,
+      "valor_unitario": 4.0,
+      "total": 4.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:11",
+      "espetinho": "FRANGO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 14:11",
+      "espetinho": "GADO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:12",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:13",
+      "espetinho": "PÃO DE ALHO",
+      "quantidade": 1,
+      "valor_unitario": 4.0,
+      "total": 4.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:13",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:13",
+      "espetinho": "FRANGO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:13",
+      "espetinho": "MEDALHÃO DE CARNE",
+      "quantidade": 2,
+      "valor_unitario": 9.0,
+      "total": 18.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:13",
+      "espetinho": "GADO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:14",
+      "espetinho": "TULIPA",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:14",
+      "espetinho": "PORCO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:14",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 2,
+      "valor_unitario": 6.0,
+      "total": 12.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:14",
+      "espetinho": "FRANGO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:15",
+      "espetinho": "GADO",
+      "quantidade": 2,
+      "valor_unitario": 6.0,
+      "total": 12.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:15",
+      "espetinho": "FRANGO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:15",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 2,
+      "valor_unitario": 6.0,
+      "total": 12.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:15",
+      "espetinho": "GADO",
+      "quantidade": 2,
+      "valor_unitario": 6.0,
+      "total": 12.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:15",
+      "espetinho": "PORCO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:16",
+      "espetinho": "GADO",
+      "quantidade": 5,
+      "valor_unitario": 6.0,
+      "total": 30.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:16",
+      "espetinho": "FRANGO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:16",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 2,
+      "valor_unitario": 6.0,
+      "total": 12.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:17",
+      "espetinho": "GADO",
+      "quantidade": 6,
+      "valor_unitario": 6.0,
+      "total": 36.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:17",
+      "espetinho": "FRANGO",
+      "quantidade": 2,
+      "valor_unitario": 6.0,
+      "total": 12.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:17",
+      "espetinho": "GADO",
+      "quantidade": 9,
+      "valor_unitario": 6.0,
+      "total": 54.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:17",
+      "espetinho": "FRANGO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:17",
+      "espetinho": "GADO",
+      "quantidade": 2,
+      "valor_unitario": 6.0,
+      "total": 12.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:18",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 2,
+      "valor_unitario": 6.0,
+      "total": 12.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:18",
+      "espetinho": "FRANGO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:18",
+      "espetinho": "GADO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:18",
+      "espetinho": "PORCO",
+      "quantidade": 2,
+      "valor_unitario": 6.0,
+      "total": 12.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:18",
+      "espetinho": "FRANGO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:19",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 2,
+      "valor_unitario": 6.0,
+      "total": 12.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:19",
+      "espetinho": "PORCO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:19",
+      "espetinho": "FRANGO",
+      "quantidade": 2,
+      "valor_unitario": 6.0,
+      "total": 12.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:19",
+      "espetinho": "PORCO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:19",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 4,
+      "valor_unitario": 6.0,
+      "total": 24.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:20",
+      "espetinho": "PORCO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:20",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:20",
+      "espetinho": "FRANGO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:20",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 2,
+      "valor_unitario": 6.0,
+      "total": 12.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:21",
+      "espetinho": "FRANGO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "21/09/2025 14:21",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "13/09/2025 14:23",
+      "espetinho": "GADO",
+      "quantidade": 60,
+      "valor_unitario": 6.0,
+      "total": 360.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "14/09/2025 14:23",
+      "espetinho": "GADO",
+      "quantidade": 30,
+      "valor_unitario": 6.0,
+      "total": 180.0,
+      "alterou_estoque": false
+    },
+    {
+      "data": "20/09/2025 17:58",
+      "espetinho": "GADO",
+      "quantidade": 3,
+      "valor_unitario": 6.0,
+      "total": 18.0,
+      "alterou_estoque": true,
+      "origem": "desktop"
+    },
+    {
+      "data": "20/09/2025 17:59",
+      "espetinho": "FRANGO",
+      "quantidade": 1,
+      "valor_unitario": 6.0,
+      "total": 6.0,
+      "alterou_estoque": true,
+      "origem": "desktop"
+    }
+  ],
+  "despesas": [
+    {
+      "data": "15/09/2025 13:29",
+      "descricao": "COMPRA DE CARVÃO",
+      "valor": 50.0
+    },
+    {
+      "data": "15/09/2025 13:30",
+      "descricao": "COMPRA DE ESPETINHO (ROCHA)",
+      "valor": 177.0
+    },
+    {
+      "data": "14/09/2025 13:30",
+      "descricao": "COMPRA DE ESPETINHO (MAC)",
+      "valor": 152.14
+    },
+    {
+      "data": "15/09/2025 13:31",
+      "descricao": "COMPRA DE CARNE (ÍNDIO)",
+      "valor": 170.0
+    },
+    {
+      "data": "15/09/2025 13:31",
+      "descricao": "COMPRA DE PALITOS",
+      "valor": 62.0
+    },
+    {
+      "data": "15/09/2025 13:31",
+      "descricao": "COMPRA DE PAPEL ALUMINIO",
+      "valor": 5.0
+    },
+    {
+      "data": "15/09/2025 13:32",
+      "descricao": "MOLHO DE ALHO",
+      "valor": 17.85
+    },
+    {
+      "data": "18/09/2025 13:39",
+      "descricao": "COMPRA DE CARNE (INDIO)",
+      "valor": 190.0
+    },
+    {
+      "data": "20/09/2025 13:39",
+      "descricao": "COMPRA DE ESPETINHO (ROCHA)",
+      "valor": 165.0
+    },
+    {
+      "data": "24/09/2025 12:37",
+      "descricao": "COMPRA DE PÃO DE ALHO (6 PACOTES C/5UND)",
+      "valor": 56.0
+    },
+    {
+      "data": "24/09/2025 13:02",
+      "descricao": "COMPRA DE CALABRESA DEFUMADA",
+      "valor": 43.0
+    }
+  ],
+  "espetinhos": {
+    "GADO": {
+      "valor": 6.0,
+      "custo": 3.0,
+      "estoque": 0
+    },
+    "PORCO": {
+      "valor": 6.0,
+      "custo": 3.0,
+      "estoque": 0
+    },
+    "FRANGO": {
+      "valor": 6.0,
+      "custo": 3.0,
+      "estoque": 0
+    },
+    "TULIPA": {
+      "valor": 6.0,
+      "custo": 4.0,
+      "estoque": 0
+    },
+    "CORAÇÃO": {
+      "valor": 6.0,
+      "custo": 3.0,
+      "estoque": 0
+    },
+    "MEDALHÃO DE CARNE": {
+      "valor": 9.0,
+      "custo": 4.5,
+      "estoque": 0
+    },
+    "MEDALHÃO DE FRANGO": {
+      "valor": 9.0,
+      "custo": 4.5,
+      "estoque": 0
+    },
+    "QUEIJO": {
+      "valor": 9.0,
+      "custo": 4.5,
+      "estoque": 0
+    },
+    "KAFTA": {
+      "valor": 7.0,
+      "custo": 3.5,
+      "estoque": 0
+    },
+    "LINGUIÇA DEFUMADA": {
+      "valor": 6.0,
+      "custo": 3.0,
+      "estoque": 0
+    },
+    "PÃO DE ALHO": {
+      "valor": 4.0,
+      "custo": 1.87,
+      "estoque": 30
+    },
+    "CAMARÃO": {
+      "valor": 10.0,
+      "custo": 5.0,
+      "estoque": 0
+    }
+  }
+}
