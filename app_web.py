@@ -99,13 +99,24 @@ class ButecoWebApp:
                 valor_unitario = dados_espetinho['valor']
                 total = valor_unitario * quantidade
                 
+                # Verificar se deve alterar estoque
+                alterar_estoque = data.get('alterar_estoque', True)
+                
+                # Verificar estoque se necessário
+                if alterar_estoque:
+                    estoque_atual = self.dados['espetinhos'][espetinho]['estoque']
+                    if estoque_atual < quantidade:
+                        return jsonify({'success': False, 'message': f'Estoque insuficiente! Disponível: {estoque_atual} unidades'}), 400
+                
                 # Criar venda
                 venda = {
                     'data': datetime.now().strftime('%d/%m/%Y %H:%M'),
                     'espetinho': espetinho,
                     'quantidade': quantidade,
                     'valor_unitario': valor_unitario,
-                    'total': total
+                    'total': total,
+                    'alterou_estoque': alterar_estoque,
+                    'origem': 'web'
                 }
                 
                 # Adicionar venda
@@ -113,6 +124,10 @@ class ButecoWebApp:
                     self.dados['vendas'] = []
                 
                 self.dados['vendas'].append(venda)
+                
+                # Atualizar estoque apenas se necessário
+                if alterar_estoque:
+                    self.dados['espetinhos'][espetinho]['estoque'] -= quantidade
                 
                 # Salvar dados
                 if self.salvar_dados():
@@ -212,13 +227,61 @@ class ButecoWebApp:
             except Exception as e:
                 return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
         
+        @self.app.route('/api/vendas/hoje/<int:indice>', methods=['DELETE'])
+        def api_excluir_venda_hoje(indice):
+            """API para excluir uma venda de hoje específica"""
+            try:
+                # Obter vendas de hoje para encontrar a venda correta
+                hoje = datetime.now().strftime('%d/%m/%Y')
+                vendas_hoje = []
+                indices_hoje = []
+                
+                for i, venda in enumerate(self.dados.get('vendas', [])):
+                    if venda.get('data', '').startswith(hoje):
+                        vendas_hoje.append(venda)
+                        indices_hoje.append(i)
+                
+                # Verificar se o índice é válido para vendas de hoje
+                if indice < 0 or indice >= len(vendas_hoje):
+                    return jsonify({'success': False, 'message': 'Venda não encontrada'}), 404
+                
+                # Obter o índice real da venda no array global
+                indice_real = indices_hoje[indice]
+                venda_excluida = self.dados['vendas'][indice_real]
+                
+                # Se a venda alterou estoque, devolver ao estoque
+                if venda_excluida.get('alterou_estoque', True):
+                    espetinho = venda_excluida['espetinho']
+                    quantidade = venda_excluida['quantidade']
+                    if espetinho in self.dados.get('espetinhos', {}):
+                        self.dados['espetinhos'][espetinho]['estoque'] += quantidade
+                
+                # Remover venda usando o índice real
+                del self.dados['vendas'][indice_real]
+                
+                if self.salvar_dados():
+                    return jsonify({'success': True, 'message': 'Venda excluída com sucesso!'})
+                else:
+                    return jsonify({'success': False, 'message': 'Erro ao salvar alterações'}), 500
+                    
+            except Exception as e:
+                return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
+        
         @self.app.route('/api/vendas/<int:indice>', methods=['DELETE'])
         def api_excluir_venda(indice):
-            """API para excluir uma venda específica"""
+            """API para excluir uma venda específica (todas as vendas)"""
             try:
                 vendas = self.dados.get('vendas', [])
                 if 0 <= indice < len(vendas):
                     venda_excluida = vendas.pop(indice)
+                    
+                    # Se a venda alterou estoque, devolver ao estoque
+                    if venda_excluida.get('alterou_estoque', True):
+                        espetinho = venda_excluida['espetinho']
+                        quantidade = venda_excluida['quantidade']
+                        if espetinho in self.dados.get('espetinhos', {}):
+                            self.dados['espetinhos'][espetinho]['estoque'] += quantidade
+                    
                     if self.salvar_dados():
                         return jsonify({'success': True, 'message': 'Venda excluída com sucesso!'})
                     else:
@@ -408,3 +471,4 @@ class ButecoWebApp:
 if __name__ == '__main__':
     app = ButecoWebApp()
     app.iniciar_servidor()
+
