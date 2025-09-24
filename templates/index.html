@@ -1365,6 +1365,12 @@
             <div class="tab" onclick="mostrarAba('gerenciais')">
                 <i class="fas fa-chart-line"></i> Gerenciais
             </div>
+            <div class="tab" onclick="mostrarAba('despesas')">
+                <i class="fas fa-receipt"></i> Despesas
+            </div>
+            <div class="tab" onclick="mostrarAba('gerenciamento')">
+                <i class="fas fa-cogs"></i> Gerenciamento
+            </div>
         </div>
 
         <!-- Aba Vendas -->
@@ -1544,6 +1550,210 @@
                         <i class="fas fa-chart-line" style="font-size: 2rem; margin-bottom: 15px; display: block;"></i>
                         Selecione um relatório acima para visualizar
                     </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba Despesas -->
+        <div id="aba-despesas" class="tab-content">
+            <div class="relatorio-card fade-in">
+                <div class="relatorio-header">
+                    <h3 class="relatorio-title">
+                        <i class="fas fa-receipt"></i> Controle de Despesas
+                    </h3>
+                    <button class="btn-atualizar" onclick="atualizarListaDespesas()">
+                        <i class="fas fa-sync-alt"></i> Atualizar
+                    </button>
+                </div>
+                
+                <!-- Formulário de Nova Despesa -->
+                <div class="venda-form fade-in">
+                    <h4 style="color: #ffd700; margin-bottom: 20px; text-align: center;">
+                        <i class="fas fa-plus-circle"></i> Nova Despesa
+                    </h4>
+                    
+                    <div id="alert-despesas"></div>
+                    
+                    <form id="despesa-form">
+                        <div class="form-group">
+                            <label for="descricao-despesa">
+                                <i class="fas fa-file-text"></i> Descrição
+                            </label>
+                            <input type="text" id="descricao-despesa" class="form-control" required 
+                                   placeholder="Ex: Compra de ingredientes">
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="form-group">
+                                <label for="valor-despesa">
+                                    <i class="fas fa-dollar-sign"></i> Valor
+                                </label>
+                                <input type="number" id="valor-despesa" class="form-control" 
+                                       step="0.01" min="0" required placeholder="0.00">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="data-despesa">
+                                    <i class="fas fa-calendar"></i> Data/Hora
+                                </label>
+                                <input type="text" id="data-despesa" class="form-control" 
+                                       placeholder="dd/mm/aaaa hh:mm" readonly>
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 30px;">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Adicionar Despesa
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="limparFormularioDespesa()" style="margin-left: 15px;">
+                                <i class="fas fa-eraser"></i> Limpar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Lista de Despesas -->
+                <div class="vendas-hoje fade-in">
+                    <h3>
+                        <i class="fas fa-list"></i> Despesas Registradas
+                        <button class="btn btn-secondary" onclick="atualizarListaDespesas()" style="float: right; padding: 8px 15px; font-size: 0.9rem;">
+                            <i class="fas fa-sync-alt"></i> Atualizar
+                        </button>
+                    </h3>
+                    <div id="despesas-lista">
+                        <p style="text-align: center; color: #b0b0b0; padding: 20px;">
+                            <i class="fas fa-info-circle"></i> Carregando despesas...
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba Gerenciamento -->
+        <div id="aba-gerenciamento" class="tab-content">
+            <div class="relatorio-card fade-in">
+                <div class="relatorio-header">
+                    <h3 class="relatorio-title">
+                        <i class="fas fa-cogs"></i> Gerenciamento de Espetinhos
+                    </h3>
+                    <button class="btn-atualizar" onclick="atualizarListaEspetinhos()">
+                        <i class="fas fa-sync-alt"></i> Atualizar
+                    </button>
+                </div>
+                
+                <!-- Formulário de Novo Espetinho -->
+                <div class="venda-form fade-in">
+                    <h4 style="color: #ffd700; margin-bottom: 20px; text-align: center;">
+                        <i class="fas fa-plus-circle"></i> Novo Espetinho
+                    </h4>
+                    
+                    <div id="alert-gerenciamento"></div>
+                    
+                    <form id="espetinho-form">
+                        <div class="form-group">
+                            <label for="nome-espetinho">
+                                <i class="fas fa-utensils"></i> Nome do Espetinho
+                            </label>
+                            <input type="text" id="nome-espetinho" class="form-control" required 
+                                   placeholder="Ex: Espetinho de Frango">
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="form-group">
+                                <label for="valor-espetinho">
+                                    <i class="fas fa-dollar-sign"></i> Valor de Venda
+                                </label>
+                                <input type="number" id="valor-espetinho" class="form-control" 
+                                       step="0.01" min="0" required placeholder="0.00">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="custo-espetinho">
+                                    <i class="fas fa-tag"></i> Custo
+                                </label>
+                                <input type="number" id="custo-espetinho" class="form-control" 
+                                       step="0.01" min="0" placeholder="0.00">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="estoque-espetinho">
+                                <i class="fas fa-box"></i> Estoque Inicial
+                            </label>
+                            <input type="number" id="estoque-espetinho" class="form-control" 
+                                   min="0" placeholder="0">
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 30px;">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Cadastrar Espetinho
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="limparFormularioEspetinho()" style="margin-left: 15px;">
+                                <i class="fas fa-eraser"></i> Limpar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Controle de Estoque -->
+                <div class="venda-form fade-in">
+                    <h4 style="color: #ffd700; margin-bottom: 20px; text-align: center;">
+                        <i class="fas fa-boxes"></i> Controle de Estoque
+                    </h4>
+                    
+                    <div id="alert-estoque"></div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div class="form-group">
+                            <label for="espetinho-estoque">
+                                <i class="fas fa-utensils"></i> Espetinho
+                            </label>
+                            <select id="espetinho-estoque" class="form-control" required>
+                                <option value="">Selecione um espetinho</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="quantidade-estoque">
+                                <i class="fas fa-plus"></i> Quantidade
+                            </label>
+                            <input type="number" id="quantidade-estoque" class="form-control" 
+                                   min="0" placeholder="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label style="color: transparent;">Ações</label>
+                            <div style="display: flex; gap: 10px;">
+                                <button type="button" class="btn btn-primary" onclick="adicionarEstoque()" style="flex: 1;">
+                                    <i class="fas fa-plus"></i> Adicionar
+                                </button>
+                                <button type="button" class="btn btn-warning" onclick="zerarEstoqueIndividual()" style="flex: 1;">
+                                    <i class="fas fa-times"></i> Zerar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <button type="button" class="btn btn-danger" onclick="zerarTodosEstoques()">
+                            <i class="fas fa-trash"></i> Zerar Todos os Estoques
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Lista de Espetinhos -->
+                <div class="vendas-hoje fade-in">
+                    <h3>
+                        <i class="fas fa-list"></i> Espetinhos Cadastrados
+                        <button class="btn btn-secondary" onclick="atualizarListaEspetinhos()" style="float: right; padding: 8px 15px; font-size: 0.9rem;">
+                            <i class="fas fa-sync-alt"></i> Atualizar
+                        </button>
+                    </h3>
+                    <div id="espetinhos-lista">
+                        <p style="text-align: center; color: #b0b0b0; padding: 20px;">
+                            <i class="fas fa-info-circle"></i> Carregando espetinhos...
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2036,6 +2246,18 @@
             // Se for aba de gerenciais, atualizar dados
             if (aba === 'gerenciais') {
                 atualizarRelatoriosGerenciais();
+            }
+            
+            // Se for aba de despesas, atualizar dados
+            if (aba === 'despesas') {
+                atualizarListaDespesas();
+                definirDataAtualDespesa();
+            }
+            
+            // Se for aba de gerenciamento, atualizar dados
+            if (aba === 'gerenciamento') {
+                atualizarListaEspetinhos();
+                atualizarComboEstoque();
             }
         }
 
@@ -2763,6 +2985,517 @@
                 console.error('Erro ao atualizar relatórios:', error);
                 mostrarModalErro('❌ Erro', 'Erro ao carregar relatórios');
             }
+        }
+
+        // GERENCIAMENTO DE ESPETINHOS
+        // Submeter formulário de espetinho
+        document.getElementById('espetinho-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const nome = document.getElementById('nome-espetinho').value;
+            const valor = parseFloat(document.getElementById('valor-espetinho').value);
+            const custo = parseFloat(document.getElementById('custo-espetinho').value) || 0;
+            const estoque = parseInt(document.getElementById('estoque-espetinho').value) || 0;
+            
+            if (!nome || !valor) {
+                mostrarAlertaGerenciamento('Preencha nome e valor', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/espetinhos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        nome: nome,
+                        valor: valor,
+                        custo: custo,
+                        estoque: estoque
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    mostrarAlertaGerenciamento(result.message, 'success');
+                    limparFormularioEspetinho();
+                    atualizarListaEspetinhos();
+                    carregarEspetinhos(); // Atualizar lista de vendas
+                } else {
+                    mostrarAlertaGerenciamento(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao cadastrar espetinho:', error);
+                mostrarAlertaGerenciamento('Erro ao cadastrar espetinho', 'error');
+            }
+        });
+
+        // Limpar formulário de espetinho
+        function limparFormularioEspetinho() {
+            document.getElementById('espetinho-form').reset();
+        }
+
+        // Mostrar alerta de gerenciamento
+        function mostrarAlertaGerenciamento(mensagem, tipo) {
+            const container = document.getElementById('alert-gerenciamento');
+            const alertClass = tipo === 'success' ? 'alert-success' : 'alert-error';
+            
+            container.innerHTML = `<div class="alert ${alertClass} fade-in">${mensagem}</div>`;
+            
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        // Atualizar lista de espetinhos
+        async function atualizarListaEspetinhos() {
+            try {
+                const response = await fetch('/api/espetinhos');
+                const espetinhos = await response.json();
+                
+                const container = document.getElementById('espetinhos-lista');
+                
+                if (Object.keys(espetinhos).length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #b0b0b0; padding: 20px;"><i class="fas fa-info-circle"></i> Nenhum espetinho cadastrado</p>';
+                    return;
+                }
+                
+                container.innerHTML = Object.entries(espetinhos).map(([nome, dados]) => `
+                    <div class="venda-item fade-in">
+                        <div class="venda-info">
+                            <div class="venda-espetinho">${nome}</div>
+                            <div class="venda-detalhes">
+                                Valor: R$ ${dados.valor.toFixed(2)} | Custo: R$ ${dados.custo.toFixed(2)} | Estoque: ${dados.estoque}
+                            </div>
+                        </div>
+                        <div class="venda-actions">
+                            <button class="btn-excluir" onclick="editarEspetinho('${nome}', ${dados.valor}, ${dados.custo}, ${dados.estoque})" title="Editar espetinho">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-excluir" onclick="excluirEspetinho('${nome}')" title="Excluir espetinho">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Erro ao carregar espetinhos:', error);
+                mostrarAlertaGerenciamento('Erro ao carregar espetinhos', 'error');
+            }
+        }
+
+        // Editar espetinho
+        function editarEspetinho(nome, valor, custo, estoque) {
+            document.getElementById('nome-espetinho').value = nome;
+            document.getElementById('valor-espetinho').value = valor;
+            document.getElementById('custo-espetinho').value = custo;
+            document.getElementById('estoque-espetinho').value = estoque;
+            
+            // Mudar botão para editar
+            const form = document.getElementById('espetinho-form');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Alterações';
+            submitBtn.onclick = () => salvarEdicaoEspetinho(nome);
+        }
+
+        // Salvar edição de espetinho
+        async function salvarEdicaoEspetinho(nomeOriginal) {
+            const nome = document.getElementById('nome-espetinho').value;
+            const valor = parseFloat(document.getElementById('valor-espetinho').value);
+            const custo = parseFloat(document.getElementById('custo-espetinho').value) || 0;
+            const estoque = parseInt(document.getElementById('estoque-espetinho').value) || 0;
+            
+            try {
+                const response = await fetch(`/api/espetinhos/${nomeOriginal}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        valor: valor,
+                        custo: custo,
+                        estoque: estoque
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    mostrarAlertaGerenciamento(result.message, 'success');
+                    limparFormularioEspetinho();
+                    atualizarListaEspetinhos();
+                    carregarEspetinhos();
+                } else {
+                    mostrarAlertaGerenciamento(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao editar espetinho:', error);
+                mostrarAlertaGerenciamento('Erro ao editar espetinho', 'error');
+            }
+        }
+
+        // Excluir espetinho
+        async function excluirEspetinho(nome) {
+            mostrarModalConfirmacao(
+                '⚠️ Confirmar Exclusão',
+                `Tem certeza que deseja excluir o espetinho "${nome}"?`,
+                () => confirmarExclusaoEspetinho(nome)
+            );
+        }
+
+        async function confirmarExclusaoEspetinho(nome) {
+            try {
+                const response = await fetch(`/api/espetinhos/${nome}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    mostrarModalSucesso('✅ Sucesso', result.message);
+                    atualizarListaEspetinhos();
+                    carregarEspetinhos();
+                } else {
+                    mostrarModalErro('❌ Erro', result.message);
+                }
+            } catch (error) {
+                console.error('Erro ao excluir espetinho:', error);
+                mostrarModalErro('❌ Erro', 'Erro ao excluir espetinho');
+            }
+        }
+
+        // DESPESAS
+        // Submeter formulário de despesa
+        document.getElementById('despesa-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const descricao = document.getElementById('descricao-despesa').value;
+            const valor = parseFloat(document.getElementById('valor-despesa').value);
+            const data = document.getElementById('data-despesa').value;
+            
+            if (!descricao || !valor) {
+                mostrarAlertaDespesas('Preencha descrição e valor', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/despesas', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        descricao: descricao,
+                        valor: valor,
+                        data: data
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    mostrarAlertaDespesas(result.message, 'success');
+                    limparFormularioDespesa();
+                    atualizarListaDespesas();
+                } else {
+                    mostrarAlertaDespesas(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao adicionar despesa:', error);
+                mostrarAlertaDespesas('Erro ao adicionar despesa', 'error');
+            }
+        });
+
+        // Limpar formulário de despesa
+        function limparFormularioDespesa() {
+            document.getElementById('despesa-form').reset();
+            definirDataAtualDespesa();
+        }
+
+        // Definir data atual para despesa
+        function definirDataAtualDespesa() {
+            const agora = new Date();
+            const dataFormatada = agora.toLocaleDateString('pt-BR') + ' ' + 
+                                agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'});
+            document.getElementById('data-despesa').value = dataFormatada;
+        }
+
+        // Mostrar alerta de despesas
+        function mostrarAlertaDespesas(mensagem, tipo) {
+            const container = document.getElementById('alert-despesas');
+            const alertClass = tipo === 'success' ? 'alert-success' : 'alert-error';
+            
+            container.innerHTML = `<div class="alert ${alertClass} fade-in">${mensagem}</div>`;
+            
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        // Atualizar lista de despesas
+        async function atualizarListaDespesas() {
+            try {
+                const response = await fetch('/api/despesas');
+                const despesas = await response.json();
+                
+                const container = document.getElementById('despesas-lista');
+                
+                if (despesas.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #b0b0b0; padding: 20px;"><i class="fas fa-info-circle"></i> Nenhuma despesa registrada</p>';
+                    return;
+                }
+                
+                container.innerHTML = despesas.map((despesa, index) => `
+                    <div class="venda-item fade-in">
+                        <div class="venda-info">
+                            <div class="venda-espetinho">${despesa.descricao}</div>
+                            <div class="venda-detalhes">
+                                Data: ${despesa.data} | Valor: R$ ${despesa.valor.toFixed(2)}
+                            </div>
+                        </div>
+                        <div class="venda-actions">
+                            <button class="btn-excluir" onclick="editarDespesa(${index}, '${despesa.descricao}', ${despesa.valor}, '${despesa.data}')" title="Editar despesa">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-excluir" onclick="excluirDespesa(${index})" title="Excluir despesa">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Erro ao carregar despesas:', error);
+                mostrarAlertaDespesas('Erro ao carregar despesas', 'error');
+            }
+        }
+
+        // Editar despesa
+        function editarDespesa(index, descricao, valor, data) {
+            document.getElementById('descricao-despesa').value = descricao;
+            document.getElementById('valor-despesa').value = valor;
+            document.getElementById('data-despesa').value = data;
+            
+            // Mudar botão para editar
+            const form = document.getElementById('despesa-form');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Alterações';
+            submitBtn.onclick = () => salvarEdicaoDespesa(index);
+        }
+
+        // Salvar edição de despesa
+        async function salvarEdicaoDespesa(index) {
+            const descricao = document.getElementById('descricao-despesa').value;
+            const valor = parseFloat(document.getElementById('valor-despesa').value);
+            const data = document.getElementById('data-despesa').value;
+            
+            try {
+                const response = await fetch(`/api/despesas/${index}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        descricao: descricao,
+                        valor: valor,
+                        data: data
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    mostrarAlertaDespesas(result.message, 'success');
+                    limparFormularioDespesa();
+                    atualizarListaDespesas();
+                } else {
+                    mostrarAlertaDespesas(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao editar despesa:', error);
+                mostrarAlertaDespesas('Erro ao editar despesa', 'error');
+            }
+        }
+
+        // Excluir despesa
+        async function excluirDespesa(index) {
+            mostrarModalConfirmacao(
+                '⚠️ Confirmar Exclusão',
+                `Tem certeza que deseja excluir esta despesa?`,
+                () => confirmarExclusaoDespesa(index)
+            );
+        }
+
+        async function confirmarExclusaoDespesa(index) {
+            try {
+                const response = await fetch(`/api/despesas/${index}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    mostrarModalSucesso('✅ Sucesso', result.message);
+                    atualizarListaDespesas();
+                } else {
+                    mostrarModalErro('❌ Erro', result.message);
+                }
+            } catch (error) {
+                console.error('Erro ao excluir despesa:', error);
+                mostrarModalErro('❌ Erro', 'Erro ao excluir despesa');
+            }
+        }
+
+        // ESTOQUE
+        // Atualizar combo de estoque
+        async function atualizarComboEstoque() {
+            try {
+                const response = await fetch('/api/espetinhos');
+                const espetinhos = await response.json();
+                
+                const select = document.getElementById('espetinho-estoque');
+                select.innerHTML = '<option value="">Selecione um espetinho</option>';
+                
+                Object.keys(espetinhos).forEach(nome => {
+                    const option = document.createElement('option');
+                    option.value = nome;
+                    option.textContent = `${nome} (Estoque: ${espetinhos[nome].estoque})`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar espetinhos para estoque:', error);
+            }
+        }
+
+        // Adicionar estoque
+        async function adicionarEstoque() {
+            const espetinho = document.getElementById('espetinho-estoque').value;
+            const quantidade = parseInt(document.getElementById('quantidade-estoque').value) || 0;
+            
+            if (!espetinho) {
+                mostrarAlertaEstoque('Selecione um espetinho', 'error');
+                return;
+            }
+            
+            if (quantidade <= 0) {
+                mostrarAlertaEstoque('Digite uma quantidade válida', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/estoque/adicionar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        espetinho: espetinho,
+                        quantidade: quantidade
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    mostrarAlertaEstoque(result.message, 'success');
+                    document.getElementById('quantidade-estoque').value = '';
+                    atualizarComboEstoque();
+                    atualizarListaEspetinhos();
+                } else {
+                    mostrarAlertaEstoque(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao adicionar estoque:', error);
+                mostrarAlertaEstoque('Erro ao adicionar estoque', 'error');
+            }
+        }
+
+        // Zerar estoque individual
+        async function zerarEstoqueIndividual() {
+            const espetinho = document.getElementById('espetinho-estoque').value;
+            
+            if (!espetinho) {
+                mostrarAlertaEstoque('Selecione um espetinho', 'error');
+                return;
+            }
+            
+            mostrarModalConfirmacao(
+                '⚠️ Confirmar Zerar Estoque',
+                `Tem certeza que deseja zerar o estoque de "${espetinho}"?`,
+                () => confirmarZerarEstoqueIndividual(espetinho)
+            );
+        }
+
+        async function confirmarZerarEstoqueIndividual(espetinho) {
+            try {
+                const response = await fetch('/api/estoque/zerar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        espetinho: espetinho
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    mostrarModalSucesso('✅ Sucesso', result.message);
+                    atualizarComboEstoque();
+                    atualizarListaEspetinhos();
+                } else {
+                    mostrarModalErro('❌ Erro', result.message);
+                }
+            } catch (error) {
+                console.error('Erro ao zerar estoque:', error);
+                mostrarModalErro('❌ Erro', 'Erro ao zerar estoque');
+            }
+        }
+
+        // Zerar todos os estoques
+        async function zerarTodosEstoques() {
+            mostrarModalConfirmacao(
+                '⚠️ Confirmar Zerar Todos os Estoques',
+                'Tem certeza que deseja zerar o estoque de TODOS os espetinhos?',
+                () => confirmarZerarTodosEstoques()
+            );
+        }
+
+        async function confirmarZerarTodosEstoques() {
+            try {
+                const response = await fetch('/api/estoque/zerar-todos', {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    mostrarModalSucesso('✅ Sucesso', result.message);
+                    atualizarComboEstoque();
+                    atualizarListaEspetinhos();
+                } else {
+                    mostrarModalErro('❌ Erro', result.message);
+                }
+            } catch (error) {
+                console.error('Erro ao zerar todos os estoques:', error);
+                mostrarModalErro('❌ Erro', 'Erro ao zerar todos os estoques');
+            }
+        }
+
+        // Mostrar alerta de estoque
+        function mostrarAlertaEstoque(mensagem, tipo) {
+            const container = document.getElementById('alert-estoque');
+            const alertClass = tipo === 'success' ? 'alert-success' : 'alert-error';
+            
+            container.innerHTML = `<div class="alert ${alertClass} fade-in">${mensagem}</div>`;
+            
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
         }
     </script>
 </body>
