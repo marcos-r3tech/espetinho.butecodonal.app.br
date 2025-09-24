@@ -26,7 +26,15 @@ class ButecoWebApp:
         try:
             if os.path.exists(self.arquivo_dados):
                 with open(self.arquivo_dados, 'r', encoding='utf-8') as f:
-                    return json.load(f)
+                    dados = json.load(f)
+                    # Garantir que as chaves existam
+                    if 'vendas' not in dados:
+                        dados['vendas'] = []
+                    if 'despesas' not in dados:
+                        dados['despesas'] = []
+                    if 'espetinhos' not in dados:
+                        dados['espetinhos'] = {}
+                    return dados
             else:
                 return {"vendas": [], "despesas": [], "espetinhos": {}}
         except Exception as e:
@@ -130,6 +138,80 @@ class ButecoWebApp:
             """API para obter despesas"""
             return jsonify(self.dados.get('despesas', []))
         
+        @self.app.route('/api/despesas', methods=['POST'])
+        def api_criar_despesa():
+            """API para criar nova despesa"""
+            try:
+                data = request.get_json()
+                
+                if not data or 'descricao' not in data or 'valor' not in data:
+                    return jsonify({'success': False, 'message': 'Dados inválidos'}), 400
+                
+                descricao = data['descricao']
+                valor = float(data['valor'])
+                data_despesa = data.get('data', datetime.now().strftime('%d/%m/%Y %H:%M'))
+                
+                # Criar despesa
+                despesa = {
+                    'data': data_despesa,
+                    'descricao': descricao,
+                    'valor': valor
+                }
+                
+                if 'despesas' not in self.dados:
+                    self.dados['despesas'] = []
+                
+                self.dados['despesas'].append(despesa)
+                
+                if self.salvar_dados():
+                    return jsonify({'success': True, 'message': 'Despesa adicionada com sucesso!'})
+                else:
+                    return jsonify({'success': False, 'message': 'Erro ao salvar'}), 500
+                    
+            except Exception as e:
+                return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
+        
+        @self.app.route('/api/despesas/<int:indice>', methods=['PUT'])
+        def api_editar_despesa(indice):
+            """API para editar despesa existente"""
+            try:
+                data = request.get_json()
+                
+                if indice < 0 or indice >= len(self.dados.get('despesas', [])):
+                    return jsonify({'success': False, 'message': 'Despesa não encontrada'}), 404
+                
+                if 'descricao' in data:
+                    self.dados['despesas'][indice]['descricao'] = data['descricao']
+                if 'valor' in data:
+                    self.dados['despesas'][indice]['valor'] = float(data['valor'])
+                if 'data' in data:
+                    self.dados['despesas'][indice]['data'] = data['data']
+                
+                if self.salvar_dados():
+                    return jsonify({'success': True, 'message': 'Despesa atualizada com sucesso!'})
+                else:
+                    return jsonify({'success': False, 'message': 'Erro ao salvar'}), 500
+                    
+            except Exception as e:
+                return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
+        
+        @self.app.route('/api/despesas/<int:indice>', methods=['DELETE'])
+        def api_excluir_despesa(indice):
+            """API para excluir despesa"""
+            try:
+                if indice < 0 or indice >= len(self.dados.get('despesas', [])):
+                    return jsonify({'success': False, 'message': 'Despesa não encontrada'}), 404
+                
+                despesa_excluida = self.dados['despesas'].pop(indice)
+                
+                if self.salvar_dados():
+                    return jsonify({'success': True, 'message': 'Despesa excluída com sucesso!'})
+                else:
+                    return jsonify({'success': False, 'message': 'Erro ao salvar'}), 500
+                    
+            except Exception as e:
+                return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
+        
         @self.app.route('/api/vendas/<int:indice>', methods=['DELETE'])
         def api_excluir_venda(indice):
             """API para excluir uma venda específica"""
@@ -146,6 +228,144 @@ class ButecoWebApp:
             except Exception as e:
                 return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
         
+        @self.app.route('/api/espetinhos', methods=['POST'])
+        def api_criar_espetinho():
+            """API para criar novo espetinho"""
+            try:
+                data = request.get_json()
+                
+                if not data or 'nome' not in data or 'valor' not in data:
+                    return jsonify({'success': False, 'message': 'Dados inválidos'}), 400
+                
+                nome = data['nome']
+                valor = float(data['valor'])
+                custo = float(data.get('custo', 0))
+                estoque = int(data.get('estoque', 0))
+                
+                # Verificar se já existe
+                if nome in self.dados.get('espetinhos', {}):
+                    return jsonify({'success': False, 'message': 'Espetinho já existe'}), 400
+                
+                # Criar espetinho
+                self.dados['espetinhos'][nome] = {
+                    'valor': valor,
+                    'custo': custo,
+                    'estoque': estoque
+                }
+                
+                if self.salvar_dados():
+                    return jsonify({'success': True, 'message': 'Espetinho criado com sucesso!'})
+                else:
+                    return jsonify({'success': False, 'message': 'Erro ao salvar'}), 500
+                    
+            except Exception as e:
+                return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
+        
+        @self.app.route('/api/espetinhos/<nome>', methods=['PUT'])
+        def api_editar_espetinho(nome):
+            """API para editar espetinho existente"""
+            try:
+                data = request.get_json()
+                
+                if nome not in self.dados.get('espetinhos', {}):
+                    return jsonify({'success': False, 'message': 'Espetinho não encontrado'}), 404
+                
+                if 'valor' in data:
+                    self.dados['espetinhos'][nome]['valor'] = float(data['valor'])
+                if 'custo' in data:
+                    self.dados['espetinhos'][nome]['custo'] = float(data['custo'])
+                if 'estoque' in data:
+                    self.dados['espetinhos'][nome]['estoque'] = int(data['estoque'])
+                
+                if self.salvar_dados():
+                    return jsonify({'success': True, 'message': 'Espetinho atualizado com sucesso!'})
+                else:
+                    return jsonify({'success': False, 'message': 'Erro ao salvar'}), 500
+                    
+            except Exception as e:
+                return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
+        
+        @self.app.route('/api/espetinhos/<nome>', methods=['DELETE'])
+        def api_excluir_espetinho(nome):
+            """API para excluir espetinho"""
+            try:
+                if nome not in self.dados.get('espetinhos', {}):
+                    return jsonify({'success': False, 'message': 'Espetinho não encontrado'}), 404
+                
+                del self.dados['espetinhos'][nome]
+                
+                if self.salvar_dados():
+                    return jsonify({'success': True, 'message': 'Espetinho excluído com sucesso!'})
+                else:
+                    return jsonify({'success': False, 'message': 'Erro ao salvar'}), 500
+                    
+            except Exception as e:
+                return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
+        
+        @self.app.route('/api/estoque/adicionar', methods=['POST'])
+        def api_adicionar_estoque():
+            """API para adicionar estoque a um espetinho"""
+            try:
+                data = request.get_json()
+                
+                if not data or 'espetinho' not in data or 'quantidade' not in data:
+                    return jsonify({'success': False, 'message': 'Dados inválidos'}), 400
+                
+                espetinho = data['espetinho']
+                quantidade = int(data['quantidade'])
+                
+                if espetinho not in self.dados.get('espetinhos', {}):
+                    return jsonify({'success': False, 'message': 'Espetinho não encontrado'}), 404
+                
+                self.dados['espetinhos'][espetinho]['estoque'] += quantidade
+                
+                if self.salvar_dados():
+                    return jsonify({'success': True, 'message': f'Estoque atualizado! Novo estoque: {self.dados["espetinhos"][espetinho]["estoque"]}'})
+                else:
+                    return jsonify({'success': False, 'message': 'Erro ao salvar'}), 500
+                    
+            except Exception as e:
+                return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
+        
+        @self.app.route('/api/estoque/zerar', methods=['POST'])
+        def api_zerar_estoque():
+            """API para zerar estoque de um espetinho"""
+            try:
+                data = request.get_json()
+                
+                if not data or 'espetinho' not in data:
+                    return jsonify({'success': False, 'message': 'Dados inválidos'}), 400
+                
+                espetinho = data['espetinho']
+                
+                if espetinho not in self.dados.get('espetinhos', {}):
+                    return jsonify({'success': False, 'message': 'Espetinho não encontrado'}), 404
+                
+                self.dados['espetinhos'][espetinho]['estoque'] = 0
+                
+                if self.salvar_dados():
+                    return jsonify({'success': True, 'message': f'Estoque de {espetinho} zerado!'})
+                else:
+                    return jsonify({'success': False, 'message': 'Erro ao salvar'}), 500
+                    
+            except Exception as e:
+                return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
+        
+        @self.app.route('/api/estoque/zerar-todos', methods=['POST'])
+        def api_zerar_todos_estoques():
+            """API para zerar estoque de todos os espetinhos"""
+            try:
+                for espetinho in self.dados.get('espetinhos', {}):
+                    self.dados['espetinhos'][espetinho]['estoque'] = 0
+                
+                if self.salvar_dados():
+                    return jsonify({'success': True, 'message': 'Todos os estoques foram zerados!'})
+                else:
+                    return jsonify({'success': False, 'message': 'Erro ao salvar'}), 500
+                    
+            except Exception as e:
+                return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
+        
         @self.app.route('/api/status')
         def api_status():
             """API para verificar status do sistema"""
@@ -153,6 +373,8 @@ class ButecoWebApp:
                 'status': 'online',
                 'total_vendas': len(self.dados.get('vendas', [])),
                 'vendas_hoje': len(self.obter_vendas_hoje()),
+                'total_espetinhos': len(self.dados.get('espetinhos', {})),
+                'total_despesas': len(self.dados.get('despesas', [])),
                 'timestamp': datetime.now().strftime('%d/%m/%Y %H:%M:%S')
             })
     
