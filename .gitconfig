@@ -1,0 +1,5 @@
+[user]
+    name = Railway Bot
+    email = railway@buteco.com
+[core]
+    autocrlf = false
