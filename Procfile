@@ -1,1 +1,1 @@
-web: gunicorn --bind 0.0.0.0:$PORT app_web:app
+web: chmod +x init_git.sh && ./init_git.sh
