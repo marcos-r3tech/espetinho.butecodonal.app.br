@@ -23,6 +23,10 @@ class ButecoWebApp:
         self.dados = self.carregar_dados()
         self.configurar_rotas()
         
+        # Inicializar Git se estivermos no Railway
+        if os.environ.get('PORT'):
+            self.inicializar_git()
+        
     def carregar_dados(self):
         """Carrega os dados do arquivo JSON"""
         try:
@@ -98,6 +102,39 @@ class ButecoWebApp:
                     
         except Exception as e:
             print(f"⚠️ Erro no commit automático: {e}")
+    
+    def inicializar_git(self):
+        """Inicializa o repositório Git no Railway"""
+        try:
+            print("🔧 Inicializando repositório Git...")
+            
+            # Verificar se já é um repositório Git
+            if os.path.exists('.git'):
+                print("✅ Git já está configurado!")
+                return
+            
+            # Inicializar Git
+            result = subprocess.run(['git', 'init'], capture_output=True, text=True)
+            if result.returncode == 0:
+                print("✅ Repositório Git inicializado!")
+                
+                # Configurar Git
+                subprocess.run(['git', 'config', 'user.name', 'Railway Bot'], 
+                             capture_output=True, text=True)
+                subprocess.run(['git', 'config', 'user.email', 'railway@buteco.com'], 
+                             capture_output=True, text=True)
+                
+                # Adicionar remote
+                subprocess.run(['git', 'remote', 'add', 'origin', 
+                              'https://github.com/marcos-r3tech/marcos-r3tech.git'], 
+                             capture_output=True, text=True)
+                
+                print("✅ Git configurado com sucesso!")
+            else:
+                print(f"⚠️ Erro ao inicializar Git: {result.stderr}")
+                
+        except Exception as e:
+            print(f"⚠️ Erro ao inicializar Git: {e}")
     
     def obter_ip_local(self):
         """Obtém o IP local da máquina"""
