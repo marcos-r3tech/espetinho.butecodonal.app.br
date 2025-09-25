@@ -1486,6 +1486,56 @@
             gap: 10px;
             align-items: center;
         }
+
+        /* RESPONSIVIDADE PARA BACKUPS */
+        @media (max-width: 480px) {
+            .backup-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .backup-info {
+                width: 100%;
+            }
+
+            .backup-acoes {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .backup-nome {
+                font-size: 0.9rem;
+                word-break: break-all;
+            }
+
+            .backup-detalhes {
+                font-size: 0.8rem;
+            }
+
+            .backup-data {
+                font-size: 0.75rem;
+            }
+
+            /* Botões de ação responsivos */
+            .backup-item .btn {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+                min-width: auto;
+            }
+
+            /* Grid dos botões principais */
+            .backup-buttons {
+                grid-template-columns: 1fr !important;
+                gap: 10px !important;
+            }
+
+            .backup-buttons .btn {
+                padding: 12px 15px;
+                font-size: 0.9rem;
+                text-align: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -2052,7 +2102,7 @@
             </div>
             
             <!-- Botões de Ação -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+            <div class="backup-buttons" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
                 <button class="btn btn-primary" onclick="fazerBackupManual()">
                     <i class="fas fa-save"></i> Fazer Backup Agora
                 </button>
