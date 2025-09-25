@@ -1447,6 +1447,45 @@
                 gap: 20px;
             }
         }
+
+        /* BACKUPS */
+        .backup-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #ffd700;
+        }
+
+        .backup-info {
+            flex: 1;
+        }
+
+        .backup-nome {
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 5px;
+        }
+
+        .backup-detalhes {
+            color: #b0b0b0;
+            font-size: 0.9rem;
+            margin-bottom: 3px;
+        }
+
+        .backup-data {
+            color: #00d4aa;
+            font-size: 0.8rem;
+        }
+
+        .backup-acoes {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
@@ -2000,6 +2039,37 @@
     </div>
 
     <!-- Modais Modernos -->
+    <!-- Aba Backups -->
+    <div id="aba-backups" class="tab-content">
+        <div class="relatorio-card fade-in">
+            <div class="relatorio-header">
+                <h3 class="relatorio-title">
+                    <i class="fas fa-download"></i> Gerenciamento de Backups
+                </h3>
+                <button class="btn-atualizar" onclick="atualizarListaBackups()">
+                    <i class="fas fa-sync-alt"></i> Atualizar
+                </button>
+            </div>
+            
+            <!-- Botões de Ação -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <button class="btn btn-primary" onclick="fazerBackupManual()">
+                    <i class="fas fa-save"></i> Fazer Backup Agora
+                </button>
+                <button class="btn btn-secondary" onclick="baixarDadosAtuais()">
+                    <i class="fas fa-download"></i> Baixar Dados Atuais
+                </button>
+            </div>
+            
+            <!-- Lista de Backups -->
+            <div id="lista-backups">
+                <p style="text-align: center; color: #b0b0b0; padding: 20px;">
+                    <i class="fas fa-info-circle"></i> Carregando backups...
+                </p>
+            </div>
+        </div>
+    </div>
+
     <div id="modal-overlay" class="modal-overlay">
         <div class="modal" id="modal">
             <div class="modal-header">
@@ -3954,6 +4024,78 @@
                 console.error('Erro ao carregar estoque:', error);
                 const container = document.getElementById('estoque-lista');
                 container.innerHTML = '<p style="text-align: center; color: #ff6b6b; padding: 20px;"><i class="fas fa-exclamation-triangle"></i> Erro ao carregar estoque</p>';
+            }
+        }
+
+        // BACKUPS
+        async function atualizarListaBackups() {
+            try {
+                const response = await fetch('/api/backups');
+                const backups = await response.json();
+                
+                const container = document.getElementById('lista-backups');
+                
+                if (backups.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #b0b0b0; padding: 20px;"><i class="fas fa-info-circle"></i> Nenhum backup encontrado</p>';
+                    return;
+                }
+                
+                container.innerHTML = backups.map(backup => `
+                    <div class="backup-item fade-in">
+                        <div class="backup-info">
+                            <div class="backup-nome">${backup.arquivo}</div>
+                            <div class="backup-detalhes">
+                                Operação: ${backup.operacao} | Tamanho: ${(backup.tamanho / 1024).toFixed(1)} KB
+                            </div>
+                            <div class="backup-data">${backup.data_criacao}</div>
+                        </div>
+                        <div class="backup-acoes">
+                            <button class="btn btn-secondary" onclick="baixarBackup('${backup.arquivo}')">
+                                <i class="fas fa-download"></i> Baixar
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Erro ao carregar backups:', error);
+                const container = document.getElementById('lista-backups');
+                container.innerHTML = '<p style="text-align: center; color: #ff6b6b; padding: 20px;"><i class="fas fa-exclamation-triangle"></i> Erro ao carregar backups</p>';
+            }
+        }
+
+        async function fazerBackupManual() {
+            try {
+                const response = await fetch('/api/backup');
+                const result = await response.json();
+                
+                if (result.success) {
+                    mostrarModalSucesso('✅ Sucesso', 'Backup criado com sucesso!');
+                    atualizarListaBackups();
+                } else {
+                    mostrarModalErro('❌ Erro', result.message);
+                }
+            } catch (error) {
+                console.error('Erro ao fazer backup:', error);
+                mostrarModalErro('❌ Erro', 'Erro ao fazer backup');
+            }
+        }
+
+        async function baixarDadosAtuais() {
+            try {
+                window.open('/api/download', '_blank');
+            } catch (error) {
+                console.error('Erro ao baixar dados:', error);
+                mostrarModalErro('❌ Erro', 'Erro ao baixar dados');
+            }
+        }
+
+        async function baixarBackup(nomeArquivo) {
+            try {
+                window.open(`/api/backups/${nomeArquivo}`, '_blank');
+            } catch (error) {
+                console.error('Erro ao baixar backup:', error);
+                mostrarModalErro('❌ Erro', 'Erro ao baixar backup');
             }
         }
     </script>
