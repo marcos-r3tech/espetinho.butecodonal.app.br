@@ -53,8 +53,8 @@ class ButecoWebApp:
             with open(self.arquivo_dados, 'w', encoding='utf-8') as f:
                 json.dump(self.dados, f, ensure_ascii=False, indent=2)
             
-            # Tentar fazer commit automático para o GitHub
-            self.fazer_commit_automatico()
+            # Log de salvamento (sem commit automático por enquanto)
+            print(f"💾 Dados salvos em {self.arquivo_dados}")
             return True
         except Exception as e:
             print(f"Erro ao salvar dados: {e}")
@@ -569,6 +569,23 @@ class ButecoWebApp:
                 'total_despesas': len(self.dados.get('despesas', [])),
                 'timestamp': datetime.now().strftime('%d/%m/%Y %H:%M:%S')
             })
+        
+        @self.app.route('/api/backup')
+        def api_backup():
+            """API para fazer backup dos dados"""
+            try:
+                # Salvar dados atuais
+                if self.salvar_dados():
+                    return jsonify({
+                        'success': True, 
+                        'message': 'Backup realizado com sucesso!',
+                        'arquivo': self.arquivo_dados,
+                        'timestamp': datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+                    })
+                else:
+                    return jsonify({'success': False, 'message': 'Erro ao fazer backup'}), 500
+            except Exception as e:
+                return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
     
     def obter_vendas_hoje(self):
         """Obtém vendas do dia atual"""
