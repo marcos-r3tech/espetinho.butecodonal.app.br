@@ -10,7 +10,7 @@ import json
 import os
 import threading
 import time
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import socket
 import subprocess
 import shutil
@@ -47,17 +47,48 @@ class ButecoWebApp:
             print(f"Erro ao carregar dados: {e}")
             return {"vendas": [], "despesas": [], "espetinhos": {}}
     
+    def obter_data_hora_brasil(self):
+        """Obtém data e hora no fuso horário do Brasil"""
+        # Fuso horário do Brasil (UTC-3)
+        brasil_tz = timezone(timedelta(hours=-3))
+        agora = datetime.now(brasil_tz)
+        return agora.strftime('%d/%m/%Y %H:%M')
+    
     def salvar_dados(self):
         """Salva os dados no arquivo JSON"""
         try:
             with open(self.arquivo_dados, 'w', encoding='utf-8') as f:
                 json.dump(self.dados, f, ensure_ascii=False, indent=2)
             
-            # Log de salvamento (sem commit automático por enquanto)
+            # Log de salvamento
             print(f"💾 Dados salvos em {self.arquivo_dados}")
             return True
         except Exception as e:
             print(f"Erro ao salvar dados: {e}")
+            return False
+    
+    def fazer_backup_automatico(self, operacao):
+        """Faz backup automático após operações"""
+        try:
+            # Salvar dados
+            if self.salvar_dados():
+                # Criar arquivo de backup com timestamp
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                backup_file = f"backups/backup_{operacao}_{timestamp}.json"
+                
+                # Criar pasta de backups se não existir
+                os.makedirs('backups', exist_ok=True)
+                
+                # Copiar arquivo para backup
+                with open(self.arquivo_dados, 'r', encoding='utf-8') as source:
+                    with open(backup_file, 'w', encoding='utf-8') as target:
+                        target.write(source.read())
+                
+                print(f"✅ Backup automático criado: {backup_file}")
+                return True
+            return False
+        except Exception as e:
+            print(f"⚠️ Erro no backup automático: {e}")
             return False
     
     def fazer_commit_automatico(self):
@@ -239,7 +270,7 @@ class ButecoWebApp:
                 
                 # Criar venda
                 venda = {
-                    'data': datetime.now().strftime('%d/%m/%Y %H:%M'),
+                    'data': self.obter_data_hora_brasil(),
                     'espetinho': espetinho,
                     'quantidade': quantidade,
                     'valor_unitario': valor_unitario,
@@ -258,8 +289,9 @@ class ButecoWebApp:
                 if alterar_estoque:
                     self.dados['espetinhos'][espetinho]['estoque'] -= quantidade
                 
-                # Salvar dados
+                # Salvar dados e fazer backup
                 if self.salvar_dados():
+                    self.fazer_backup_automatico('venda')
                     return jsonify({'success': True, 'message': 'Venda adicionada com sucesso!'})
                 else:
                     return jsonify({'success': False, 'message': 'Erro ao salvar venda'}), 500
@@ -308,6 +340,7 @@ class ButecoWebApp:
                 self.dados['despesas'].append(despesa)
                 
                 if self.salvar_dados():
+                    self.fazer_backup_automatico('despesa')
                     return jsonify({'success': True, 'message': 'Despesa adicionada com sucesso!'})
                 else:
                     return jsonify({'success': False, 'message': 'Erro ao salvar'}), 500
@@ -332,6 +365,7 @@ class ButecoWebApp:
                     self.dados['despesas'][indice]['data'] = data['data']
                 
                 if self.salvar_dados():
+                    self.fazer_backup_automatico('edicao_despesa')
                     return jsonify({'success': True, 'message': 'Despesa atualizada com sucesso!'})
                 else:
                     return jsonify({'success': False, 'message': 'Erro ao salvar'}), 500
@@ -349,6 +383,7 @@ class ButecoWebApp:
                 despesa_excluida = self.dados['despesas'].pop(indice)
                 
                 if self.salvar_dados():
+                    self.fazer_backup_automatico('exclusao_despesa')
                     return jsonify({'success': True, 'message': 'Despesa excluída com sucesso!'})
                 else:
                     return jsonify({'success': False, 'message': 'Erro ao salvar'}), 500
@@ -389,6 +424,7 @@ class ButecoWebApp:
                 del self.dados['vendas'][indice_real]
                 
                 if self.salvar_dados():
+                    self.fazer_backup_automatico('exclusao_venda')
                     return jsonify({'success': True, 'message': 'Venda excluída com sucesso!'})
                 else:
                     return jsonify({'success': False, 'message': 'Erro ao salvar alterações'}), 500
@@ -412,6 +448,7 @@ class ButecoWebApp:
                             self.dados['espetinhos'][espetinho]['estoque'] += quantidade
                     
                     if self.salvar_dados():
+                        self.fazer_backup_automatico('exclusao_venda')
                         return jsonify({'success': True, 'message': 'Venda excluída com sucesso!'})
                     else:
                         return jsonify({'success': False, 'message': 'Erro ao salvar alterações'}), 500
@@ -446,6 +483,7 @@ class ButecoWebApp:
                 }
                 
                 if self.salvar_dados():
+                    self.fazer_backup_automatico('criacao_espetinho')
                     return jsonify({'success': True, 'message': 'Espetinho criado com sucesso!'})
                 else:
                     return jsonify({'success': False, 'message': 'Erro ao salvar'}), 500
@@ -470,6 +508,7 @@ class ButecoWebApp:
                     self.dados['espetinhos'][nome]['estoque'] = int(data['estoque'])
                 
                 if self.salvar_dados():
+                    self.fazer_backup_automatico('edicao_espetinho')
                     return jsonify({'success': True, 'message': 'Espetinho atualizado com sucesso!'})
                 else:
                     return jsonify({'success': False, 'message': 'Erro ao salvar'}), 500
@@ -487,6 +526,7 @@ class ButecoWebApp:
                 del self.dados['espetinhos'][nome]
                 
                 if self.salvar_dados():
+                    self.fazer_backup_automatico('exclusao_espetinho')
                     return jsonify({'success': True, 'message': 'Espetinho excluído com sucesso!'})
                 else:
                     return jsonify({'success': False, 'message': 'Erro ao salvar'}), 500
@@ -512,6 +552,7 @@ class ButecoWebApp:
                 self.dados['espetinhos'][espetinho]['estoque'] += quantidade
                 
                 if self.salvar_dados():
+                    self.fazer_backup_automatico('alteracao_estoque')
                     return jsonify({'success': True, 'message': f'Estoque atualizado! Novo estoque: {self.dados["espetinhos"][espetinho]["estoque"]}'})
                 else:
                     return jsonify({'success': False, 'message': 'Erro ao salvar'}), 500
@@ -536,6 +577,7 @@ class ButecoWebApp:
                 self.dados['espetinhos'][espetinho]['estoque'] = 0
                 
                 if self.salvar_dados():
+                    self.fazer_backup_automatico('zerar_estoque')
                     return jsonify({'success': True, 'message': f'Estoque de {espetinho} zerado!'})
                 else:
                     return jsonify({'success': False, 'message': 'Erro ao salvar'}), 500
@@ -551,6 +593,7 @@ class ButecoWebApp:
                     self.dados['espetinhos'][espetinho]['estoque'] = 0
                 
                 if self.salvar_dados():
+                    self.fazer_backup_automatico('zerar_todos_estoques')
                     return jsonify({'success': True, 'message': 'Todos os estoques foram zerados!'})
                 else:
                     return jsonify({'success': False, 'message': 'Erro ao salvar'}), 500
@@ -591,9 +634,6 @@ class ButecoWebApp:
         def api_download():
             """API para baixar o arquivo de dados"""
             try:
-                from flask import send_file
-                import os
-                
                 if os.path.exists(self.arquivo_dados):
                     return send_file(
                         self.arquivo_dados,
@@ -603,6 +643,46 @@ class ButecoWebApp:
                     )
                 else:
                     return jsonify({'success': False, 'message': 'Arquivo não encontrado'}), 404
+            except Exception as e:
+                return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
+        
+        @self.app.route('/api/backups')
+        def api_listar_backups():
+            """API para listar todos os backups"""
+            try:
+                backups = []
+                if os.path.exists('backups'):
+                    for arquivo in os.listdir('backups'):
+                        if arquivo.endswith('.json'):
+                            caminho = os.path.join('backups', arquivo)
+                            stat = os.stat(caminho)
+                            backups.append({
+                                'arquivo': arquivo,
+                                'tamanho': stat.st_size,
+                                'data_criacao': datetime.fromtimestamp(stat.st_ctime).strftime('%d/%m/%Y %H:%M:%S'),
+                                'operacao': arquivo.split('_')[1] if '_' in arquivo else 'desconhecida'
+                            })
+                
+                # Ordenar por data de criação (mais recente primeiro)
+                backups.sort(key=lambda x: x['data_criacao'], reverse=True)
+                return jsonify(backups)
+            except Exception as e:
+                return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
+        
+        @self.app.route('/api/backups/<nome_arquivo>')
+        def api_download_backup(nome_arquivo):
+            """API para baixar um backup específico"""
+            try:
+                caminho = os.path.join('backups', nome_arquivo)
+                if os.path.exists(caminho):
+                    return send_file(
+                        caminho,
+                        as_attachment=True,
+                        download_name=nome_arquivo,
+                        mimetype='application/json'
+                    )
+                else:
+                    return jsonify({'success': False, 'message': 'Backup não encontrado'}), 404
             except Exception as e:
                 return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
     
