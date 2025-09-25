@@ -90,8 +90,19 @@ class ButecoWebApp:
                 if result.returncode == 0:
                     print("✅ Commit realizado com sucesso!")
                     
+                    # Verificar se existe branch main
+                    branch_result = subprocess.run(['git', 'branch', '--show-current'], 
+                                                 capture_output=True, text=True)
+                    current_branch = branch_result.stdout.strip()
+                    
+                    if not current_branch:
+                        # Criar branch main se não existir
+                        subprocess.run(['git', 'checkout', '-b', 'main'], 
+                                     capture_output=True, text=True)
+                        current_branch = 'main'
+                    
                     # Tentar fazer push
-                    push_result = subprocess.run(['git', 'push', 'origin', 'main'], 
+                    push_result = subprocess.run(['git', 'push', 'origin', current_branch], 
                                                capture_output=True, text=True)
                     if push_result.returncode == 0:
                         print("✅ Push para GitHub realizado com sucesso!")
@@ -128,6 +139,19 @@ class ButecoWebApp:
                 subprocess.run(['git', 'remote', 'add', 'origin', 
                               'https://github.com/marcos-r3tech/marcos-r3tech.git'], 
                              capture_output=True, text=True)
+                
+                # Fazer pull do repositório existente
+                print("🔄 Fazendo pull do repositório...")
+                pull_result = subprocess.run(['git', 'pull', 'origin', 'main'], 
+                                           capture_output=True, text=True)
+                if pull_result.returncode == 0:
+                    print("✅ Pull realizado com sucesso!")
+                else:
+                    print(f"⚠️ Erro no pull: {pull_result.stderr}")
+                    # Se não conseguir fazer pull, criar branch main
+                    subprocess.run(['git', 'checkout', '-b', 'main'], 
+                                 capture_output=True, text=True)
+                    print("✅ Branch main criada!")
                 
                 print("✅ Git configurado com sucesso!")
             else:
