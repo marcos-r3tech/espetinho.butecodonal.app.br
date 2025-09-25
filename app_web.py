@@ -12,10 +12,12 @@ import threading
 import time
 from datetime import datetime
 import socket
+import subprocess
+import shutil
 
 class ButecoWebApp:
     def __init__(self):
-        self.app = Flask(__name__)
+        self.app = Flask(__name__, static_folder='static')
         self.app.secret_key = 'buteco_do_nal_2024'
         self.arquivo_dados = "dados_espetinho.json"
         self.dados = self.carregar_dados()
@@ -46,10 +48,51 @@ class ButecoWebApp:
         try:
             with open(self.arquivo_dados, 'w', encoding='utf-8') as f:
                 json.dump(self.dados, f, ensure_ascii=False, indent=2)
+            
+            # Tentar fazer commit automático para o GitHub
+            self.fazer_commit_automatico()
             return True
         except Exception as e:
             print(f"Erro ao salvar dados: {e}")
             return False
+    
+    def fazer_commit_automatico(self):
+        """Faz commit automático para o GitHub"""
+        try:
+            # Verificar se estamos no Railway (tem variável PORT)
+            if os.environ.get('PORT'):
+                print("🔄 Tentando fazer commit automático para GitHub...")
+                
+                # Configurar Git (se necessário)
+                subprocess.run(['git', 'config', '--global', 'user.email', 'railway@buteco.com'], 
+                             capture_output=True, text=True)
+                subprocess.run(['git', 'config', '--global', 'user.name', 'Railway Bot'], 
+                             capture_output=True, text=True)
+                
+                # Adicionar arquivo
+                subprocess.run(['git', 'add', self.arquivo_dados], 
+                             capture_output=True, text=True)
+                
+                # Fazer commit
+                commit_msg = f"Atualização automática de vendas - {datetime.now().strftime('%d/%m/%Y %H:%M')}"
+                result = subprocess.run(['git', 'commit', '-m', commit_msg], 
+                                      capture_output=True, text=True)
+                
+                if result.returncode == 0:
+                    print("✅ Commit realizado com sucesso!")
+                    
+                    # Tentar fazer push
+                    push_result = subprocess.run(['git', 'push', 'origin', 'main'], 
+                                               capture_output=True, text=True)
+                    if push_result.returncode == 0:
+                        print("✅ Push para GitHub realizado com sucesso!")
+                    else:
+                        print(f"⚠️ Erro no push: {push_result.stderr}")
+                else:
+                    print(f"⚠️ Erro no commit: {result.stderr}")
+                    
+        except Exception as e:
+            print(f"⚠️ Erro no commit automático: {e}")
     
     def obter_ip_local(self):
         """Obtém o IP local da máquina"""
@@ -71,6 +114,26 @@ class ButecoWebApp:
             return render_template('index.html', 
                                  espetinhos=self.dados.get('espetinhos', {}),
                                  vendas_hoje=self.obter_vendas_hoje())
+        
+        @self.app.route('/favicon.ico')
+        def favicon():
+            """Servir favicon"""
+            return self.app.send_static_file('favicon.ico')
+        
+        @self.app.route('/favicon-<int:size>.png')
+        def favicon_png(size):
+            """Servir favicon PNG"""
+            return self.app.send_static_file(f'favicon-{size}x{size}.png')
+        
+        @self.app.route('/apple-touch-icon.png')
+        def apple_touch_icon():
+            """Servir ícone para Apple"""
+            return self.app.send_static_file('apple-touch-icon.png')
+        
+        @self.app.route('/site.webmanifest')
+        def manifest():
+            """Servir manifest"""
+            return self.app.send_static_file('site.webmanifest')
         
         @self.app.route('/api/espetinhos')
         def api_espetinhos():
