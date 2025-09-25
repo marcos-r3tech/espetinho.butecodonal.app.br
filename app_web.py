@@ -63,10 +63,15 @@ class ButecoWebApp:
             if os.environ.get('PORT'):
                 print("🔄 Tentando fazer commit automático para GitHub...")
                 
+                # Verificar se é um repositório Git
+                if not os.path.exists('.git'):
+                    print("⚠️ Repositório Git não encontrado. Pulando commit automático.")
+                    return
+                
                 # Configurar Git (se necessário)
-                subprocess.run(['git', 'config', '--global', 'user.email', 'railway@buteco.com'], 
+                subprocess.run(['git', 'config', 'user.email', 'railway@buteco.com'], 
                              capture_output=True, text=True)
-                subprocess.run(['git', 'config', '--global', 'user.name', 'Railway Bot'], 
+                subprocess.run(['git', 'config', 'user.name', 'Railway Bot'], 
                              capture_output=True, text=True)
                 
                 # Adicionar arquivo
