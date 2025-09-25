@@ -5,7 +5,7 @@
 Sistema web para lançamento de vendas via celular
 """
 
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_file
 import json
 import os
 import threading
@@ -584,6 +584,25 @@ class ButecoWebApp:
                     })
                 else:
                     return jsonify({'success': False, 'message': 'Erro ao fazer backup'}), 500
+            except Exception as e:
+                return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
+        
+        @self.app.route('/api/download')
+        def api_download():
+            """API para baixar o arquivo de dados"""
+            try:
+                from flask import send_file
+                import os
+                
+                if os.path.exists(self.arquivo_dados):
+                    return send_file(
+                        self.arquivo_dados,
+                        as_attachment=True,
+                        download_name=f'dados_espetinho_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json',
+                        mimetype='application/json'
+                    )
+                else:
+                    return jsonify({'success': False, 'message': 'Arquivo não encontrado'}), 404
             except Exception as e:
                 return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
     
