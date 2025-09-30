@@ -48,11 +48,14 @@ class ButecoWebApp:
             return {"vendas": [], "despesas": [], "espetinhos": {}}
     
     def obter_data_hora_brasil(self):
-        """Obtém data e hora no fuso horário do Brasil"""
-        # Fuso horário do Brasil (UTC-3)
+        """Obtém data e hora no fuso horário do Brasil (UTC-3) formatada."""
         brasil_tz = timezone(timedelta(hours=-3))
         agora = datetime.now(brasil_tz)
         return agora.strftime('%d/%m/%Y %H:%M')
+
+    def agora_brasil(self):
+        """Retorna datetime timezone-aware no fuso do Brasil (UTC-3)."""
+        return datetime.now(timezone(timedelta(hours=-3)))
     
     def salvar_dados(self):
         """Salva os dados no arquivo JSON"""
@@ -72,8 +75,8 @@ class ButecoWebApp:
         try:
             # Salvar dados
             if self.salvar_dados():
-                # Criar arquivo de backup com timestamp
-                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                # Criar arquivo de backup com timestamp no fuso do Brasil
+                timestamp = self.agora_brasil().strftime('%Y%m%d_%H%M%S')
                 backup_file = f"backups/backup_{operacao}_{timestamp}.json"
                 
                 # Criar pasta de backups se não existir
@@ -114,7 +117,7 @@ class ButecoWebApp:
                              capture_output=True, text=True)
                 
                 # Fazer commit
-                commit_msg = f"Atualização automática de vendas - {datetime.now().strftime('%d/%m/%Y %H:%M')}"
+                commit_msg = f"Atualização automática de vendas - {self.agora_brasil().strftime('%d/%m/%Y %H:%M')}"
                 result = subprocess.run(['git', 'commit', '-m', commit_msg], 
                                       capture_output=True, text=True)
                 
@@ -325,7 +328,7 @@ class ButecoWebApp:
                 
                 descricao = data['descricao']
                 valor = float(data['valor'])
-                data_despesa = data.get('data', datetime.now().strftime('%d/%m/%Y %H:%M'))
+                data_despesa = data.get('data', self.obter_data_hora_brasil())
                 
                 # Criar despesa
                 despesa = {
@@ -396,7 +399,7 @@ class ButecoWebApp:
             """API para excluir uma venda de hoje específica"""
             try:
                 # Obter vendas de hoje para encontrar a venda correta
-                hoje = datetime.now().strftime('%d/%m/%Y')
+                hoje = self.agora_brasil().strftime('%d/%m/%Y')
                 vendas_hoje = []
                 indices_hoje = []
                 
@@ -610,7 +613,7 @@ class ButecoWebApp:
                 'vendas_hoje': len(self.obter_vendas_hoje()),
                 'total_espetinhos': len(self.dados.get('espetinhos', {})),
                 'total_despesas': len(self.dados.get('despesas', [])),
-                'timestamp': datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+                'timestamp': self.agora_brasil().strftime('%d/%m/%Y %H:%M:%S')
             })
         
         @self.app.route('/api/backup')
@@ -623,7 +626,7 @@ class ButecoWebApp:
                         'success': True, 
                         'message': 'Backup realizado com sucesso!',
                         'arquivo': self.arquivo_dados,
-                        'timestamp': datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+                        'timestamp': self.agora_brasil().strftime('%d/%m/%Y %H:%M:%S')
                     })
                 else:
                     return jsonify({'success': False, 'message': 'Erro ao fazer backup'}), 500
@@ -656,10 +659,11 @@ class ButecoWebApp:
                         if arquivo.endswith('.json'):
                             caminho = os.path.join('backups', arquivo)
                             stat = os.stat(caminho)
+                            brasil_tz = timezone(timedelta(hours=-3))
                             backups.append({
                                 'arquivo': arquivo,
                                 'tamanho': stat.st_size,
-                                'data_criacao': datetime.fromtimestamp(stat.st_ctime).strftime('%d/%m/%Y %H:%M:%S'),
+                                'data_criacao': datetime.fromtimestamp(stat.st_ctime, tz=timezone.utc).astimezone(brasil_tz).strftime('%d/%m/%Y %H:%M:%S'),
                                 'operacao': arquivo.split('_')[1] if '_' in arquivo else 'desconhecida'
                             })
                 
@@ -688,7 +692,7 @@ class ButecoWebApp:
     
     def obter_vendas_hoje(self):
         """Obtém vendas do dia atual"""
-        hoje = datetime.now().strftime('%d/%m/%Y')
+        hoje = self.agora_brasil().strftime('%d/%m/%Y')
         vendas_hoje = []
         
         for venda in self.dados.get('vendas', []):
