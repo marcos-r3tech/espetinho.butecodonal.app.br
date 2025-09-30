@@ -1689,7 +1689,17 @@
                     <h3 class="relatorio-title">
                         <i class="fas fa-chart-line"></i> Resumo de Vendas
                     </h3>
-                    <button class="btn-atualizar" onclick="atualizarRelatorios()">
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <input type="date" id="relatorio-data-inicial" class="form-control" style="width: 160px; height: 38px; padding: 8px;">
+                        <input type="date" id="relatorio-data-final" class="form-control" style="width: 160px; height: 38px; padding: 8px;">
+                        <button class="btn-atualizar" onclick="atualizarRelatorios(true)">
+                            <i class="fas fa-filter"></i> Aplicar
+                        </button>
+                    </div>
+                    <button class="btn-atualizar" onclick="limparFiltroRelatorios()" style="margin-left: 8px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3);">
+                        <i class="fas fa-broom"></i> Limpar
+                    </button>
+                    <button class="btn-atualizar" onclick="atualizarRelatorios()" style="margin-left: 8px;">
                         <i class="fas fa-sync-alt"></i> Atualizar
                     </button>
                 </div>
@@ -3253,11 +3263,38 @@
         }
 
         // Atualizar relatórios
-        async function atualizarRelatorios() {
+        async function atualizarRelatorios(usandoFiltro = false) {
             try {
-                const response = await fetch('/api/vendas/hoje');
-                const vendas = await response.json();
+                const response = await fetch('/api/vendas/todas');
+                const vendasTodas = await response.json();
                 
+                // Aplicar filtro de período se informado
+                let vendasFiltradas = vendasTodas;
+                if (usandoFiltro) {
+                    const di = document.getElementById('relatorio-data-inicial').value;
+                    const df = document.getElementById('relatorio-data-final').value;
+                    if (di && df) {
+                        const dataInicial = new Date(di + 'T00:00:00');
+                        const dataFinal = new Date(df + 'T23:59:59');
+                        vendasFiltradas = vendasTodas.filter(venda => {
+                            try {
+                                const [d, m, a] = venda.data.split(' ')[0].split('/');
+                                const [hh, mm] = venda.data.split(' ')[1].split(':');
+                                const dv = new Date(parseInt(a), parseInt(m) - 1, parseInt(d), parseInt(hh), parseInt(mm));
+                                return dv >= dataInicial && dv <= dataFinal;
+                            } catch (e) { return false; }
+                        });
+                    }
+                } else {
+                    // Sem filtro: considerar apenas o dia atual (Brasil)
+                    const hoje = new Date();
+                    const ano = hoje.getFullYear();
+                    const mes = (hoje.getMonth() + 1).toString().padStart(2, '0');
+                    const dia = hoje.getDate().toString().padStart(2, '0');
+                    const prefixoHoje = `${dia}/${mes}/${ano}`;
+                    vendasFiltradas = vendasTodas.filter(v => (v.data || '').startsWith(prefixoHoje));
+                }
+
                 // Calcular totais
                 let totalVendas = 0;
                 let totalQuantidade = 0;
@@ -3267,7 +3304,7 @@
                 // Agrupar vendas por espetinho
                 const vendasPorEspetinho = {};
                 
-                vendas.forEach(venda => {
+                vendasFiltradas.forEach(venda => {
                     if (venda.espetinho) {
                         const espetinho = venda.espetinho;
                         const quantidade = venda.quantidade;
@@ -3344,6 +3381,14 @@
                 console.error('Erro ao atualizar relatórios:', error);
                 mostrarModalErro('❌ Erro', 'Erro ao carregar relatórios');
             }
+        }
+
+        function limparFiltroRelatorios() {
+            const di = document.getElementById('relatorio-data-inicial');
+            const df = document.getElementById('relatorio-data-final');
+            if (di) di.value = '';
+            if (df) df.value = '';
+            atualizarRelatorios(false);
         }
 
         // GERENCIAMENTO DE ESPETINHOS
