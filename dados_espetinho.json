@@ -2016,6 +2016,16 @@
       "data": "27/09/2025 17:55",
       "descricao": "COMPRA DE ESPETINHO (ROCHA)",
       "valor": 90.0
+    },
+    {
+      "data": "30/09/2025 21:10",
+      "descricao": "Frango",
+      "valor": 142.5
+    },
+    {
+      "data": "30/09/2025 21:12",
+      "descricao": "Carvão ",
+      "valor": 30.0
     }
   ],
   "espetinhos": {
