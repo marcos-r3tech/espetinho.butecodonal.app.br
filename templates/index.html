@@ -167,6 +167,17 @@
             border-color: #ffd700;
         }
 
+        .btn-outline {
+            background: transparent;
+            color: #ffd700;
+            border: 2px solid #ffd700;
+        }
+
+        .btn-outline:hover {
+            background: #ffd700;
+            color: #1a1a1a;
+        }
+
         .vendas-hoje {
             background: rgba(255, 255, 255, 0.05);
             padding: 20px;
@@ -959,7 +970,7 @@
             height: 300px;
             padding: 20px 0;
             border-bottom: 2px solid #e0e0e0;
-            border-left: 2px solid #e0e0e;
+            border-left: 2px solid #e0e0e0;
             position: relative;
         }
 
@@ -1544,6 +1555,16 @@
         <div class="header fade-in">
             <h1>🍖 BUTECO DO NAL</h1>
             <p>Sistema de Vendas Mobile</p>
+            <div style="margin-top: 20px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                <a href="/cardapio" target="_blank" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 10px; text-decoration: none; padding: 12px 20px; font-size: 1rem;">
+                    <i class="fas fa-utensils"></i>
+                    Ver Cardápio
+                </a>
+                <button onclick="gerarQRCode()" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 10px; padding: 12px 20px; font-size: 1rem;">
+                    <i class="fas fa-qr-code"></i>
+                    Gerar QR Code
+                </button>
+            </div>
         </div>
 
         <!-- Status Bar -->
@@ -4192,6 +4213,112 @@
                 console.error('Erro ao baixar backup:', error);
                 mostrarModalErro('❌ Erro', 'Erro ao baixar backup');
             }
+        }
+
+        // Função para gerar QR Code do cardápio
+        function gerarQRCode() {
+            const url = window.location.origin + '/cardapio';
+            
+            // Criar modal para mostrar QR Code
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+            `;
+            
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                background: #2d2d2d;
+                padding: 30px;
+                border-radius: 20px;
+                text-align: center;
+                max-width: 400px;
+                width: 90%;
+                border: 2px solid #ffd700;
+            `;
+            
+            modalContent.innerHTML = `
+                <h3 style="color: #ffd700; margin-bottom: 20px;">📱 QR Code do Cardápio</h3>
+                <div id="qrcode" style="margin: 20px 0;"></div>
+                <p style="color: #ffffff; margin-bottom: 20px;">
+                    Clientes podem escanear este QR Code para acessar o cardápio online
+                </p>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button onclick="imprimirQRCode()" class="btn btn-primary" style="padding: 10px 20px;">
+                        <i class="fas fa-print"></i> Imprimir
+                    </button>
+                    <button onclick="fecharModal()" class="btn btn-secondary" style="padding: 10px 20px;">
+                        <i class="fas fa-times"></i> Fechar
+                    </button>
+                </div>
+            `;
+            
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+            
+            // Gerar QR Code usando API online
+            const qrImg = document.createElement('img');
+            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
+            qrImg.style.cssText = 'max-width: 200px; width: 100%;';
+            document.getElementById('qrcode').appendChild(qrImg);
+            
+            // Fechar modal ao clicar fora
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    fecharModal();
+                }
+            });
+            
+            function fecharModal() {
+                document.body.removeChild(modal);
+            }
+            
+            function imprimirQRCode() {
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <html>
+                        <head>
+                            <title>QR Code - Cardápio Buteco do Nal</title>
+                            <style>
+                                body { 
+                                    font-family: Arial, sans-serif; 
+                                    text-align: center; 
+                                    padding: 20px;
+                                    background: white;
+                                }
+                                h1 { color: #ffd700; margin-bottom: 20px; }
+                                .qr-container { margin: 20px 0; }
+                                .info { margin-top: 20px; color: #666; }
+                            </style>
+                        </head>
+                        <body>
+                            <h1>🍖 BUTECO DO NAL</h1>
+                            <h2>Cardápio Online</h2>
+                            <div class="qr-container">
+                                <img src="${qrImg.src}" alt="QR Code">
+                            </div>
+                            <div class="info">
+                                <p>Escaneie o QR Code para acessar nosso cardápio online</p>
+                                <p>URL: ${url}</p>
+                            </div>
+                        </body>
+                    </html>
+                `);
+                printWindow.document.close();
+                printWindow.print();
+            }
+            
+            // Disponibilizar funções globalmente
+            window.fecharModal = fecharModal;
+            window.imprimirQRCode = imprimirQRCode;
         }
     </script>
 </body>
