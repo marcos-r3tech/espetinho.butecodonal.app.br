@@ -210,10 +210,33 @@ class ButecoWebApp:
         
         @self.app.route('/')
         def index():
-            """Página principal"""
+            """Página principal - apenas para funcionários"""
+            # Verificar se é um acesso direto ou via login
+            senha = request.args.get('senha', '')
+            if senha != 'buteco2024':  # Senha simples para funcionários
+                return render_template('login.html')
+            
             return render_template('index.html', 
                                  espetinhos=self.dados.get('espetinhos', {}),
                                  vendas_hoje=self.obter_vendas_hoje())
+        
+        @self.app.route('/cardapio')
+        def cardapio():
+            """Cardápio público para clientes"""
+            # Filtrar apenas espetinhos com estoque > 0
+            espetinhos_disponiveis = {}
+            for nome, dados in self.dados.get('espetinhos', {}).items():
+                if dados.get('estoque', 0) > 0:
+                    espetinhos_disponiveis[nome] = dados
+            
+            return render_template('cardapio.html', 
+                                 espetinhos=espetinhos_disponiveis,
+                                 total_espetinhos=len(espetinhos_disponiveis))
+        
+        @self.app.route('/menu')
+        def menu():
+            """Alias para o cardápio - mais fácil de lembrar"""
+            return cardapio()
         
         @self.app.route('/favicon.ico')
         def favicon():
@@ -689,6 +712,20 @@ class ButecoWebApp:
                     return jsonify({'success': False, 'message': 'Backup não encontrado'}), 404
             except Exception as e:
                 return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
+        
+        @self.app.route('/api/info')
+        def api_info_estabelecimento():
+            """API para obter informações do estabelecimento"""
+            return jsonify({
+                'nome': 'Buteco do Nal',
+                'telefone': '(77) 98107-3054',
+                'whatsapp': '(77) 98107-3054',
+                'endereco': 'Travessa Santa Mônica, 42 - Nossa Senhora Aparecida',
+                'endereco_maps': 'Travessa Santa Mônica, 42, Nossa Senhora Aparecida',
+                'horario': 'Sexta a partir das 18h | Sábado e Domingo a partir do meio-dia',
+                'descricao': 'Espetinhos fresquinhos e saborosos!',
+                'mensagem_whatsapp': 'Olá! Gostaria de fazer um pedido no Buteco do Nal! 🍖'
+            })
     
     def obter_vendas_hoje(self):
         """Obtém vendas do dia atual"""
