@@ -354,7 +354,7 @@
                         <div class="espetinho-preco">R$ {{ "%.2f"|format(dados.valor) }}</div>
                         <div class="espetinho-estoque">
                             <i class="fas fa-check-circle"></i>
-                            {{ dados.estoque }} disponível{{ 'is' if dados.estoque != 1 else '' }}
+                            {{ dados.estoque }} disponíve{{ 'l' if dados.estoque == 1 else 'is' }}
                         </div>
                     </div>
                     <div class="espetinho-descricao">
@@ -485,3 +485,4 @@
     </script>
 </body>
 </html>
+
