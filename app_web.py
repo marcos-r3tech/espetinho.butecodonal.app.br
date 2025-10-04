@@ -14,6 +14,7 @@ from datetime import datetime, timezone, timedelta
 import socket
 import subprocess
 import shutil
+from email_utils import enviar_email_backup
 
 class ButecoWebApp:
     def __init__(self):
@@ -71,7 +72,7 @@ class ButecoWebApp:
             return False
     
     def fazer_backup_automatico(self, operacao):
-        """Faz backup automático após operações"""
+        """Faz backup automático após operações e envia por e-mail"""
         try:
             # Salvar dados
             if self.salvar_dados():
@@ -88,6 +89,13 @@ class ButecoWebApp:
                         target.write(source.read())
                 
                 print(f"✅ Backup automático criado: {backup_file}")
+
+                # Enviar backup por e-mail
+                destinatario = "marcos.rdstec@gmail.com"
+                remetente = "marcos.rdstec@gmail.com"
+                senha = "efba kzjg jcia momr"
+                enviar_email_backup(destinatario, remetente, senha, backup_file)
+
                 return True
             return False
         except Exception as e:
