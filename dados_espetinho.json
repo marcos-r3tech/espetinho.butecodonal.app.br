@@ -2026,6 +2026,46 @@
       "data": "30/09/2025 21:12",
       "descricao": "Carvão ",
       "valor": 30.0
+    },
+    {
+      "data": "02/10/2025 18:08",
+      "descricao": "Compra de carne (índio)",
+      "valor": 130.0
+    },
+    {
+      "data": "02/10/2025 18:09",
+      "descricao": "Compra de carne (Mineirão)",
+      "valor": 63.0
+    },
+    {
+      "data": "02/10/2025 18:09",
+      "descricao": "Compra de carne (atacarejo)",
+      "valor": 64.52
+    },
+    {
+      "data": "02/10/2025 18:09",
+      "descricao": "Compra de carne (Mineirão)",
+      "valor": 146.65
+    },
+    {
+      "data": "02/10/2025 18:10",
+      "descricao": "Compra de carne (Mineirão)",
+      "valor": 73.19
+    },
+    {
+      "data": "03/10/2025 10:57",
+      "descricao": "COMPRA DE ESPETINHO (ROCHA)",
+      "valor": 285.0
+    },
+    {
+      "data": "03/10/2025 12:17",
+      "descricao": "Compra de carne de porco (indio)",
+      "valor": 44.0
+    },
+    {
+      "data": "03/10/2025 12:17",
+      "descricao": "Melaço ",
+      "valor": 12.0
     }
   ],
   "espetinhos": {
@@ -2052,22 +2092,22 @@
     "CORAÇÃO": {
       "valor": 6.0,
       "custo": 3.0,
-      "estoque": 0
+      "estoque": 20
     },
     "MEDALHÃO DE CARNE": {
       "valor": 9.0,
       "custo": 4.5,
-      "estoque": 0
+      "estoque": 10
     },
     "MEDALHÃO DE FRANGO": {
       "valor": 9.0,
       "custo": 4.5,
-      "estoque": 0
+      "estoque": 10
     },
     "QUEIJO": {
       "valor": 9.0,
       "custo": 4.5,
-      "estoque": 0
+      "estoque": 10
     },
     "KAFTA": {
       "valor": 7.0,
@@ -2088,6 +2128,11 @@
       "valor": 10.0,
       "custo": 5.0,
       "estoque": 0
+    },
+    "CUPIM": {
+      "valor": 6.5,
+      "custo": 2.68,
+      "estoque": 25
     }
   }
 }
