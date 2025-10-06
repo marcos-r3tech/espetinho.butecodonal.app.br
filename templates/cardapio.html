@@ -167,6 +167,315 @@
             border-color: rgba(255, 215, 0, 0.5);
         }
 
+        /* CARRINHO DE COMPRAS */
+        .carrinho-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .carrinho-btn {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #1a1a1a;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .carrinho-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(255, 215, 0, 0.6);
+        }
+
+        .carrinho-badge {
+            background: #ff4444;
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            position: absolute;
+            top: -5px;
+            right: -5px;
+        }
+
+        .carrinho-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            display: none;
+        }
+
+        .carrinho-modal.show {
+            display: block !important;
+        }
+
+        .carrinho-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1a1a1a;
+            padding: 30px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+
+        .carrinho-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .carrinho-title {
+            color: #ffd700;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .carrinho-close {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .carrinho-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .carrinho-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-nome {
+            color: #ffd700;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .item-ponto {
+            color: #b0b0b0;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .item-preco {
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        .item-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .qtd-btn {
+            background: rgba(255, 215, 0, 0.2);
+            border: 1px solid #ffd700;
+            color: #ffd700;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .qtd-btn:hover {
+            background: #ffd700;
+            color: #1a1a1a;
+        }
+
+        .qtd-display {
+            color: #ffffff;
+            font-weight: bold;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .remove-btn {
+            background: #ff4444;
+            border: none;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .remove-btn:hover {
+            background: #ff6666;
+            transform: scale(1.1);
+        }
+
+        .carrinho-total {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid rgba(255, 215, 0, 0.3);
+            text-align: center;
+        }
+
+        .total-label {
+            color: #b0b0b0;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        .total-value {
+            color: #ffd700;
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .finalizar-btn {
+            background: linear-gradient(135deg, #00aa00 0%, #00cc00 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .finalizar-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 170, 0, 0.4);
+        }
+
+        .finalizar-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* FORMULÁRIO DE PEDIDO */
+        .pedido-form {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            color: #ffd700;
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .form-input::placeholder {
+            color: #b0b0b0;
+        }
+
+        .ponto-carne {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .ponto-option {
+            flex: 1;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .ponto-option:hover {
+            background: rgba(255, 215, 0, 0.1);
+            border-color: #ffd700;
+        }
+
+        .ponto-option.selected {
+            background: #ffd700;
+            color: #1a1a1a;
+            border-color: #ffd700;
+        }
+
+        .carrinho-vazio {
+            text-align: center;
+            padding: 40px 20px;
+            color: #b0b0b0;
+        }
+
+        .carrinho-vazio .icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #ffd700;
+        }
+
         .espetinho-nome {
             font-size: 1.4rem;
             font-weight: bold;
@@ -203,6 +512,33 @@
             font-size: 0.9rem;
             text-align: center;
             font-style: italic;
+            margin-bottom: 15px;
+        }
+
+        .adicionar-btn {
+            background: linear-gradient(135deg, #00aa00 0%, #00cc00 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .adicionar-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 170, 0, 0.4);
+        }
+
+        .adicionar-btn:active {
+            transform: translateY(0);
         }
 
         .contato-section {
@@ -379,6 +715,9 @@
                             Espetinho especial do buteco
                         {% endif %}
                     </div>
+                    <button class="adicionar-btn" data-nome="{{ nome }}" data-preco="{{ dados.valor }}" onclick="adicionarAoCarrinhoComData(this)">
+                        <i class="fas fa-plus"></i> Adicionar ao Carrinho
+                    </button>
                 </div>
                 {% endfor %}
             </div>
@@ -413,6 +752,74 @@
                     <i class="fas fa-clock icon"></i>
                     <span id="horario-contato">18h às 23h</span>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CARRINHO DE COMPRAS -->
+    <div class="carrinho-container">
+        <button class="carrinho-btn" onclick="abrirCarrinho()">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Carrinho</span>
+            <div class="carrinho-badge" id="carrinho-badge" style="display: none;">0</div>
+        </button>
+    </div>
+
+
+    <!-- MODAL DO CARRINHO -->
+    <div class="carrinho-modal" id="carrinho-modal">
+        <div class="carrinho-content">
+            <div class="carrinho-header">
+                <h3 class="carrinho-title">🛒 Seu Pedido</h3>
+                <button class="carrinho-close" onclick="fecharCarrinho()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div id="carrinho-itens">
+                <!-- Itens do carrinho serão inseridos aqui -->
+            </div>
+
+            <div class="carrinho-total" id="carrinho-total" style="display: none;">
+                <div class="total-label">Total do Pedido:</div>
+                <div class="total-value" id="total-value">R$ 0,00</div>
+                
+                <!-- Formulário de Pedido -->
+                <div class="pedido-form">
+                    <div class="form-group">
+                        <label class="form-label">Nome (opcional)</label>
+                        <input type="text" class="form-input" id="nome-cliente" placeholder="Seu nome para identificarmos">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Telefone/WhatsApp (opcional)</label>
+                        <input type="tel" class="form-input" id="telefone-cliente" placeholder="(77) 99999-9999">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Ponto da carne (para todos os espetinhos)</label>
+                        <div class="ponto-carne">
+                            <div class="ponto-option" data-ponto="mal-passado" onclick="selecionarPonto(this)">Mal Passado</div>
+                            <div class="ponto-option selected" data-ponto="ao-ponto" onclick="selecionarPonto(this)">Ao Ponto</div>
+                            <div class="ponto-option" data-ponto="bem-passado" onclick="selecionarPonto(this)">Bem Passado</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Observações (opcional)</label>
+                        <input type="text" class="form-input" id="observacoes-cliente" placeholder="Alguma observação especial?">
+                    </div>
+                    
+                    <button class="finalizar-btn" id="finalizar-btn" onclick="finalizarPedido()" disabled>
+                        <i class="fab fa-whatsapp"></i> Finalizar Pedido no WhatsApp
+                    </button>
+                </div>
+            </div>
+
+            <div class="carrinho-vazio" id="carrinho-vazio">
+                <div class="icon">🛒</div>
+                <h3>Seu carrinho está vazio</h3>
+                <p>Adicione alguns espetinhos deliciosos!</p>
             </div>
         </div>
     </div>
@@ -454,9 +861,478 @@
         }
 
         // Auto-refresh a cada 30 segundos para atualizar estoque
-        setInterval(function() {
-            location.reload();
-        }, 30000);
+        let autoRefreshInterval;
+        let carrinhoAberto = false;
+        let pedidoEmAndamento = false;
+
+        function iniciarAutoRefresh() {
+            autoRefreshInterval = setInterval(function() {
+                // Só recarregar se não tiver carrinho aberto, sem itens e sem pedido em andamento
+                if (!carrinhoAberto && !pedidoEmAndamento && (!carrinho || carrinho.length === 0)) {
+                    console.log('Auto-refresh: Recarregando página...');
+                    location.reload();
+                } else {
+                    console.log('Auto-refresh: Pulado - carrinho aberto, com itens ou pedido em andamento');
+                }
+            }, 30000);
+        }
+
+        function pararAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+        }
+
+        // Iniciar auto-refresh
+        iniciarAutoRefresh();
+
+        // === SISTEMA DE CARRINHO ===
+        let carrinho = [];
+        let pontoCarneSelecionado = 'ao-ponto';
+
+        function adicionarAoCarrinhoComData(botao) {
+            const nome = botao.getAttribute('data-nome');
+            const preco = parseFloat(botao.getAttribute('data-preco'));
+            adicionarAoCarrinho(nome, preco);
+        }
+
+        function adicionarAoCarrinho(nome, preco) {
+            try {
+                console.log('Adicionando ao carrinho:', nome, preco);
+                
+                // Verificar se carrinho existe
+                if (!carrinho) {
+                    carrinho = [];
+                }
+                
+                const itemExistente = carrinho.find(item => item.nome === nome && item.ponto === pontoCarneSelecionado);
+                
+                if (itemExistente) {
+                    itemExistente.quantidade += 1;
+                } else {
+                    carrinho.push({
+                        nome: nome,
+                        preco: preco,
+                        quantidade: 1,
+                        ponto: pontoCarneSelecionado
+                    });
+                }
+                
+                console.log('Carrinho após adicionar:', carrinho);
+                atualizarCarrinho();
+                // Removido alert - não precisa
+                
+            } catch (error) {
+                console.error('Erro ao adicionar ao carrinho:', error);
+                alert('Erro ao adicionar item');
+            }
+        }
+
+        function removerDoCarrinho(nome, ponto) {
+            carrinho = carrinho.filter(item => !(item.nome === nome && item.ponto === ponto));
+            atualizarCarrinho();
+        }
+
+        function alterarQuantidade(nome, ponto, novaQuantidade) {
+            const item = carrinho.find(item => item.nome === nome && item.ponto === ponto);
+            if (item) {
+                if (novaQuantidade <= 0) {
+                    removerDoCarrinho(nome, ponto);
+                } else {
+                    item.quantidade = novaQuantidade;
+                    atualizarCarrinho();
+                }
+            }
+        }
+
+        function selecionarPonto(elemento) {
+            // Remover seleção anterior
+            document.querySelectorAll('.ponto-option').forEach(opt => opt.classList.remove('selected'));
+            // Selecionar novo ponto
+            elemento.classList.add('selected');
+            pontoCarneSelecionado = elemento.dataset.ponto;
+            
+            console.log('Ponto selecionado:', pontoCarneSelecionado);
+            
+            // Atualizar pontos de todos os itens existentes no carrinho
+            carrinho.forEach(item => {
+                item.ponto = pontoCarneSelecionado;
+            });
+            
+            // Re-renderizar carrinho
+            renderizarCarrinho();
+        }
+
+        function atualizarCarrinho() {
+            try {
+                const badge = document.getElementById('carrinho-badge');
+                if (badge) {
+                    const totalItens = carrinho.reduce((sum, item) => sum + item.quantidade, 0);
+                    
+                    if (totalItens > 0) {
+                        badge.textContent = totalItens;
+                        badge.style.display = 'flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+
+                renderizarCarrinho();
+            } catch (error) {
+                console.error('Erro ao atualizar carrinho:', error);
+            }
+        }
+
+        function renderizarCarrinho() {
+            try {
+                const container = document.getElementById('carrinho-itens');
+                const totalContainer = document.getElementById('carrinho-total');
+                const vazioContainer = document.getElementById('carrinho-vazio');
+                const finalizarBtn = document.getElementById('finalizar-btn');
+
+                if (!container || !totalContainer || !vazioContainer || !finalizarBtn) {
+                    console.error('Elementos do carrinho não encontrados');
+                    return;
+                }
+
+                if (carrinho.length === 0) {
+                    container.innerHTML = '';
+                    totalContainer.style.display = 'none';
+                    vazioContainer.style.display = 'block';
+                    finalizarBtn.disabled = true;
+                    return;
+                }
+
+                vazioContainer.style.display = 'none';
+                totalContainer.style.display = 'block';
+
+                let html = '';
+                let total = 0;
+
+                carrinho.forEach(item => {
+                    const subtotal = item.preco * item.quantidade;
+                    total += subtotal;
+
+                    // Escapar aspas para evitar problemas no HTML
+                    const nomeEscapado = item.nome.replace(/'/g, "\\'");
+                    const pontoEscapado = item.ponto.replace(/'/g, "\\'");
+
+                    html += `
+                        <div class="carrinho-item">
+                            <div class="item-info">
+                                <div class="item-nome">${nomeEscapado}</div>
+                                <div class="item-ponto">Ponto: ${formatarPonto(item.ponto)}</div>
+                                <div class="item-preco">R$ ${item.preco.toFixed(2)} cada</div>
+                            </div>
+                            <div class="item-controls">
+                                <button class="qtd-btn" onclick="alterarQuantidade('${nomeEscapado}', '${pontoEscapado}', ${item.quantidade - 1})">-</button>
+                                <span class="qtd-display">${item.quantidade}</span>
+                                <button class="qtd-btn" onclick="alterarQuantidade('${nomeEscapado}', '${pontoEscapado}', ${item.quantidade + 1})">+</button>
+                                <button class="remove-btn" onclick="removerDoCarrinho('${nomeEscapado}', '${pontoEscapado}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+                
+                const totalValueElement = document.getElementById('total-value');
+                if (totalValueElement) {
+                    totalValueElement.textContent = `R$ ${total.toFixed(2)}`;
+                }
+                
+                // Habilitar botão finalizar sempre que tiver itens
+                finalizarBtn.disabled = false;
+                
+            } catch (error) {
+                console.error('Erro ao renderizar carrinho:', error);
+                alert('Erro ao carregar carrinho');
+            }
+        }
+
+        function formatarPonto(ponto) {
+            const pontos = {
+                'mal-passado': 'Mal Passado',
+                'ao-ponto': 'Ao Ponto',
+                'bem-passado': 'Bem Passado'
+            };
+            return pontos[ponto] || ponto;
+        }
+
+        function abrirCarrinho() {
+            console.log('=== ABRINDO CARRINHO ===');
+            
+            const modal = document.getElementById('carrinho-modal');
+            console.log('Modal:', modal);
+            
+            if (modal) {
+                console.log('Modal encontrado, mostrando...');
+                modal.style.display = 'block';
+                modal.classList.add('show');
+                console.log('Modal display:', modal.style.display);
+                console.log('Modal classes:', modal.className);
+                
+                // Parar auto-refresh quando carrinho estiver aberto
+                carrinhoAberto = true;
+                pararAutoRefresh();
+                
+                // Renderizar carrinho
+                renderizarCarrinho();
+            } else {
+                console.error('ERRO: Modal não encontrado!');
+                alert('ERRO: Modal do carrinho não encontrado!');
+            }
+        }
+
+        function fecharCarrinho() {
+            try {
+                const modal = document.getElementById('carrinho-modal');
+                if (modal) {
+                    modal.classList.remove('show');
+                    modal.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                    
+                    // Reiniciar auto-refresh quando carrinho fechar
+                    carrinhoAberto = false;
+                    if (carrinho.length === 0) {
+                        iniciarAutoRefresh();
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao fechar carrinho:', error);
+            }
+        }
+
+        async function finalizarPedido() {
+            console.log('=== FINALIZANDO PEDIDO ===');
+            
+            // Marcar que pedido está em andamento
+            pedidoEmAndamento = true;
+            
+            const nome = document.getElementById('nome-cliente').value.trim() || 'Cliente';
+            const telefone = document.getElementById('telefone-cliente').value.trim();
+            const observacoes = document.getElementById('observacoes-cliente').value.trim();
+
+            console.log('Dados do pedido:', { nome, telefone, observacoes, carrinho });
+
+            // Verificar se tem itens no carrinho
+            if (!carrinho || carrinho.length === 0) {
+                alert('Adicione pelo menos um item ao carrinho!');
+                pedidoEmAndamento = false;
+                return;
+            }
+
+            // Calcular total
+            const total = carrinho.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
+
+            // Criar pedido no sistema
+            try {
+                const response = await fetch('/api/pedidos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        nome_cliente: nome,
+                        telefone: telefone,
+                        endereco: 'Retirada no local', // Sempre retirada no local
+                        observacoes: observacoes,
+                        itens: carrinho,
+                        total: total
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Gerar mensagem para WhatsApp
+                    const mensagem = gerarMensagemWhatsApp(nome, telefone, carrinho, total, observacoes);
+                    
+                    // Obter próximo número WhatsApp (rotação)
+                    try {
+                        const whatsappResponse = await fetch('/api/whatsapp/next');
+                        const whatsappData = await whatsappResponse.json();
+                        
+                        // Abrir WhatsApp com número selecionado
+                        const numero = whatsappData.numero;
+                        const nomeNumero = whatsappData.nome;
+                        const url = `https://wa.me/55${numero}?text=${encodeURIComponent(mensagem)}`;
+                        
+                        console.log(`Abrindo WhatsApp para: ${nomeNumero} (${numero})`);
+                        window.open(url, '_blank');
+                    } catch (error) {
+                        console.error('Erro ao obter número WhatsApp:', error);
+                        // Fallback para número principal
+                        const numero = '77981073054';
+                        const url = `https://wa.me/55${numero}?text=${encodeURIComponent(mensagem)}`;
+                        window.open(url, '_blank');
+                    }
+                    
+                    // Limpar carrinho
+                    carrinho = [];
+                    atualizarCarrinho();
+                    fecharCarrinho();
+                    
+                    // Limpar formulário
+                    document.getElementById('nome-cliente').value = '';
+                    document.getElementById('telefone-cliente').value = '';
+                    document.getElementById('observacoes-cliente').value = '';
+                    
+                    alert('Pedido enviado com sucesso!');
+                } else {
+                    alert('Erro ao processar pedido: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Erro ao finalizar pedido:', error);
+                alert('Erro ao processar pedido. Tente novamente.');
+            } finally {
+                // Resetar variável de pedido em andamento
+                pedidoEmAndamento = false;
+            }
+        }
+
+        function gerarMensagemWhatsApp(nome, telefone, itens, total, observacoes) {
+            let mensagem = `🍖 *PEDIDO - BUTECO DO NAL*\n\n`;
+            mensagem += `👤 *Cliente:* ${nome}\n`;
+            if (telefone) mensagem += `📞 *Telefone:* ${telefone}\n`;
+            mensagem += `📍 *Retirada:* No local (Travessa Santa Mônica, 42)\n\n`;
+            
+            mensagem += `📋 *Resumo do Pedido:*\n`;
+            itens.forEach(item => {
+                const subtotal = item.preco * item.quantidade;
+                mensagem += `• ${item.nome} (${formatarPonto(item.ponto)}) x${item.quantidade} = R$ ${subtotal.toFixed(2)}\n`;
+            });
+            
+            mensagem += `\n💰 *Total:* R$ ${total.toFixed(2)}\n`;
+            
+            if (observacoes) {
+                mensagem += `\n📝 *Observações:* ${observacoes}\n`;
+            }
+            
+            mensagem += `\n⏰ *Pedido feito em:* ${new Date().toLocaleString('pt-BR')}\n`;
+            mensagem += `\nAguardo confirmação! 🍖`;
+            
+            return mensagem;
+        }
+
+        function mostrarNotificacao(mensagem, tipo = 'info') {
+            // Criar elemento de notificação
+            const notificacao = document.createElement('div');
+            notificacao.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${tipo === 'success' ? '#00aa00' : tipo === 'error' ? '#ff4444' : '#ffd700'};
+                color: ${tipo === 'error' ? 'white' : '#1a1a1a'};
+                padding: 15px 20px;
+                border-radius: 10px;
+                font-weight: bold;
+                z-index: 3000;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            `;
+            notificacao.textContent = mensagem;
+            
+            document.body.appendChild(notificacao);
+            
+            // Animar entrada
+            setTimeout(() => {
+                notificacao.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Remover após 3 segundos
+            setTimeout(() => {
+                notificacao.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    document.body.removeChild(notificacao);
+                }, 300);
+            }, 3000);
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar se todos os elementos estão presentes
+            console.log('Verificando elementos do carrinho...');
+            const elementos = [
+                'carrinho-itens',
+                'carrinho-total', 
+                'carrinho-vazio',
+                'finalizar-btn',
+                'carrinho-modal',
+                'carrinho-badge'
+            ];
+            
+            elementos.forEach(id => {
+                const elemento = document.getElementById(id);
+                console.log(`${id}:`, elemento ? 'OK' : 'ERRO - não encontrado');
+            });
+            
+            // Inicializar carrinho vazio
+            atualizarCarrinho();
+        });
+
+        // Event listener removido - não precisamos mais do campo endereço
+
+        // Fechar modal clicando fora
+        document.getElementById('carrinho-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                fecharCarrinho();
+            }
+        });
+
+        // Função de teste para o carrinho
+        window.testarCarrinho = function() {
+            console.log('=== TESTE DO CARRINHO ===');
+            console.log('Carrinho atual:', carrinho);
+            console.log('Elementos encontrados:');
+            console.log('carrinho-modal:', document.getElementById('carrinho-modal'));
+            console.log('carrinho-itens:', document.getElementById('carrinho-itens'));
+            console.log('carrinho-total:', document.getElementById('carrinho-total'));
+            console.log('carrinho-vazio:', document.getElementById('carrinho-vazio'));
+            
+            // Testar adicionar item
+            console.log('Adicionando GADO...');
+            adicionarAoCarrinho('GADO', 6.00);
+            console.log('Após adicionar GADO:', carrinho);
+            
+            // Testar abrir carrinho
+            console.log('Tentando abrir carrinho...');
+            abrirCarrinho();
+        };
+
+        // Função para forçar abertura do carrinho
+        window.forcarCarrinho = function() {
+            console.log('=== FORÇANDO ABERTURA DO CARRINHO ===');
+            const modal = document.getElementById('carrinho-modal');
+            if (modal) {
+                modal.style.display = 'block';
+                modal.classList.add('show');
+                modal.style.opacity = '1';
+                console.log('Carrinho forçado a abrir!');
+            } else {
+                console.error('Modal não encontrado!');
+            }
+        };
+
+        // Teste simples para verificar se o modal existe
+        window.testeModal = function() {
+            console.log('=== TESTE SIMPLES DO MODAL ===');
+            const modal = document.getElementById('carrinho-modal');
+            console.log('Modal existe?', !!modal);
+            if (modal) {
+                console.log('Modal HTML:', modal.outerHTML.substring(0, 200) + '...');
+                console.log('Modal display atual:', modal.style.display);
+                console.log('Modal classes:', modal.className);
+                
+                // Tentar mostrar
+                modal.style.display = 'block';
+                modal.style.background = 'red';
+                console.log('Modal forçado a aparecer (vermelho)');
+            }
+        };
 
         // Adicionar efeito de clique nos cards
         document.querySelectorAll('.espetinho-card').forEach(card => {
