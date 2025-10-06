@@ -1,1 +1,23 @@
 
+{
+    "name": "Buteco do Nal - Cardápio Online",
+    "short_name": "Buteco do Nal",
+    "description": "Cardápio online do Buteco do Nal - Espetinhos fresquinhos e saborosos",
+    "icons": [
+        {
+            "src": "/favicon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/favicon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "theme_color": "#ffd700",
+    "background_color": "#1a1a1a",
+    "display": "standalone",
+    "start_url": "/cardapio",
+    "scope": "/"
+}
