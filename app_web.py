@@ -716,6 +716,13 @@ class ButecoWebApp:
         @self.app.route('/api/info')
         def api_info_estabelecimento():
             """API para obter informações do estabelecimento"""
+            # Obter números WhatsApp configurados
+            whatsapp_numbers = self.dados.get('whatsapp_numbers', [
+                {'numero': '77981073054', 'nome': 'Nal - Principal', 'ativo': True},
+                {'numero': '77999999999', 'nome': 'Backup 1', 'ativo': False},
+                {'numero': '77988888888', 'nome': 'Backup 2', 'ativo': False}
+            ])
+            
             return jsonify({
                 'nome': 'Buteco do Nal',
                 'telefone': '(77) 98107-3054',
@@ -724,8 +731,298 @@ class ButecoWebApp:
                 'endereco_maps': 'Travessa Santa Mônica, 42, Nossa Senhora Aparecida',
                 'horario': 'Sexta a partir das 18h | Sábado e Domingo a partir do meio-dia',
                 'descricao': 'Espetinhos fresquinhos e saborosos!',
-                'mensagem_whatsapp': 'Olá! Gostaria de fazer um pedido no Buteco do Nal! 🍖'
+                'mensagem_whatsapp': 'Olá! Gostaria de fazer um pedido no Buteco do Nal! 🍖',
+                'whatsapp_numbers': whatsapp_numbers
             })
+        
+        # === SISTEMA DE PEDIDOS ===
+        @self.app.route('/api/pedidos', methods=['POST'])
+        def api_criar_pedido():
+            """API para criar novo pedido"""
+            try:
+                data = request.get_json()
+                
+                # Validar dados básicos
+                if not data or 'itens' not in data:
+                    return jsonify({'success': False, 'message': 'Dados inválidos'}), 400
+                
+                # Criar pedido
+                pedido = {
+                    'id': len(self.dados.get('pedidos', [])) + 1,
+                    'data': self.obter_data_hora_brasil(),
+                    'nome_cliente': data.get('nome_cliente', 'Cliente'),
+                    'telefone': data.get('telefone', ''),
+                    'endereco': data.get('endereco', ''),
+                    'observacoes': data.get('observacoes', ''),
+                    'itens': data['itens'],
+                    'status': 'pendente',
+                    'tempo_status': {
+                        'pendente': self.obter_data_hora_brasil(),
+                        'aceito': None,
+                        'preparando': None,
+                        'pronto': None
+                    },
+                    'total': data.get('total', 0)
+                }
+                
+                # Adicionar pedido
+                if 'pedidos' not in self.dados:
+                    self.dados['pedidos'] = []
+                
+                self.dados['pedidos'].append(pedido)
+                
+                # Salvar dados
+                if self.salvar_dados():
+                    return jsonify({
+                        'success': True, 
+                        'message': 'Pedido criado com sucesso!',
+                        'pedido_id': pedido['id']
+                    })
+                else:
+                    return jsonify({'success': False, 'message': 'Erro ao salvar pedido'}), 500
+                    
+            except Exception as e:
+                return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
+        
+        @self.app.route('/api/pedidos')
+        def api_listar_pedidos():
+            """API para listar todos os pedidos"""
+            return jsonify(self.dados.get('pedidos', []))
+        
+        @self.app.route('/api/pedidos/<int:pedido_id>/status', methods=['PUT'])
+        def api_atualizar_status_pedido(pedido_id):
+            """API para atualizar status do pedido"""
+            try:
+                data = request.get_json()
+                novo_status = data.get('status')
+                
+                if not novo_status or novo_status not in ['aceito', 'preparando', 'pronto']:
+                    return jsonify({'success': False, 'message': 'Status inválido'}), 400
+                
+                # Encontrar pedido
+                pedidos = self.dados.get('pedidos', [])
+                pedido = next((p for p in pedidos if p['id'] == pedido_id), None)
+                
+                if not pedido:
+                    return jsonify({'success': False, 'message': 'Pedido não encontrado'}), 404
+                
+                # Atualizar status e tempo
+                pedido['status'] = novo_status
+                pedido['tempo_status'][novo_status] = self.obter_data_hora_brasil()
+                
+                # Se o pedido foi marcado como PRONTO, registrar vendas e baixar estoque
+                if novo_status == 'pronto':
+                    print(f"\n🔔 Pedido #{pedido_id} marcado como PRONTO - Registrando vendas...")
+                    print(f"📋 Itens do pedido: {pedido['itens']}")
+                    
+                    vendas_registradas = 0
+                    
+                    # Registrar cada item do pedido como venda
+                    for item in pedido['itens']:
+                        print(f"\n  Processando item: {item}")
+                        
+                        venda = {
+                            'espetinho': item['nome'],
+                            'quantidade': item['quantidade'],
+                            'valor_unitario': item['preco'],
+                            'total': item['preco'] * item['quantidade'],
+                            'data': self.obter_data_hora_brasil(),
+                            'origem': 'online',  # Marcar como venda online
+                            'pedido_id': pedido_id  # Referência ao pedido
+                        }
+                        
+                        print(f"  Venda criada: {venda}")
+                        
+                        # Adicionar venda
+                        if 'vendas' not in self.dados:
+                            self.dados['vendas'] = []
+                            print("  Criando lista de vendas...")
+                        
+                        self.dados['vendas'].append(venda)
+                        vendas_registradas += 1
+                        print(f"  ✅ Venda adicionada! Total de vendas: {len(self.dados['vendas'])}")
+                        
+                        # Baixar estoque
+                        print(f"  Verificando estoque de: {item['nome']}")
+                        print(f"  Espetinhos disponíveis: {list(self.dados.get('espetinhos', {}).keys())}")
+                        
+                        if item['nome'] in self.dados.get('espetinhos', {}):
+                            espetinho_estoque = self.dados['espetinhos'][item['nome']]
+                            if 'estoque' in espetinho_estoque:
+                                estoque_atual = espetinho_estoque['estoque']
+                                novo_estoque = max(0, estoque_atual - item['quantidade'])
+                                self.dados['espetinhos'][item['nome']]['estoque'] = novo_estoque
+                                print(f"  📦 {item['nome']}: {estoque_atual} → {novo_estoque} (vendeu {item['quantidade']})")
+                            else:
+                                print(f"  ⚠️ {item['nome']} não tem campo 'estoque'")
+                        else:
+                            print(f"  ⚠️ {item['nome']} não encontrado nos espetinhos!")
+                    
+                    print(f"\n✅ Pedido #{pedido_id}: {vendas_registradas} vendas registradas!")
+                    print(f"📊 Total de vendas no sistema: {len(self.dados.get('vendas', []))}\n")
+                    
+                    # Remover pedido da lista (já foi convertido em vendas)
+                    self.dados['pedidos'] = [p for p in pedidos if p['id'] != pedido_id]
+                    print(f"🗑️ Pedido #{pedido_id} removido da lista (convertido em vendas)")
+                
+                # Salvar dados
+                if self.salvar_dados():
+                    mensagem = f'Pedido {novo_status} com sucesso!'
+                    if novo_status == 'pronto':
+                        mensagem += ' Vendas registradas e pedido concluído!'
+                    return jsonify({'success': True, 'message': mensagem})
+                else:
+                    return jsonify({'success': False, 'message': 'Erro ao atualizar pedido'}), 500
+                    
+            except Exception as e:
+                print(f"❌ Erro ao atualizar pedido: {str(e)}")
+                return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
+        
+        @self.app.route('/api/pedidos/<int:pedido_id>', methods=['DELETE'])
+        def api_excluir_pedido(pedido_id):
+            """API para excluir pedido"""
+            try:
+                pedidos = self.dados.get('pedidos', [])
+                pedido = next((p for p in pedidos if p['id'] == pedido_id), None)
+                
+                if not pedido:
+                    return jsonify({'success': False, 'message': 'Pedido não encontrado'}), 404
+                
+                # Remover pedido
+                self.dados['pedidos'] = [p for p in pedidos if p['id'] != pedido_id]
+                
+                if self.salvar_dados():
+                    return jsonify({'success': True, 'message': 'Pedido excluído com sucesso!'})
+                else:
+                    return jsonify({'success': False, 'message': 'Erro ao excluir pedido'}), 500
+                    
+            except Exception as e:
+                return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
+        
+        # === GESTÃO DE NÚMEROS WHATSAPP ===
+        @self.app.route('/api/whatsapp/numbers')
+        def api_listar_numeros_whatsapp():
+            """API para listar números WhatsApp configurados"""
+            return jsonify(self.dados.get('whatsapp_numbers', []))
+        
+        @self.app.route('/api/whatsapp/numbers', methods=['POST'])
+        def api_adicionar_numero_whatsapp():
+            """API para adicionar novo número WhatsApp"""
+            try:
+                data = request.get_json()
+                print(f"DEBUG - Dados recebidos: {data}")
+                
+                if not data:
+                    print("DEBUG - Nenhum dado recebido")
+                    return jsonify({'success': False, 'message': 'Nenhum dado recebido'}), 400
+                
+                if 'numero' not in data:
+                    print("DEBUG - Campo 'numero' não encontrado")
+                    return jsonify({'success': False, 'message': 'Campo número é obrigatório'}), 400
+                
+                if 'nome' not in data:
+                    print("DEBUG - Campo 'nome' não encontrado")
+                    return jsonify({'success': False, 'message': 'Campo nome é obrigatório'}), 400
+                
+                numero = ''.join(filter(str.isdigit, data['numero']))  # Remove caracteres não numéricos
+                nome = data['nome']
+                ativo = data.get('ativo', True)
+                
+                print(f"DEBUG - Processando: numero={numero}, nome={nome}, ativo={ativo}")
+                
+                # Verificar se número já existe
+                whatsapp_numbers = self.dados.get('whatsapp_numbers', [])
+                if any(w['numero'] == numero for w in whatsapp_numbers):
+                    return jsonify({'success': False, 'message': 'Número já existe'}), 400
+                
+                # Adicionar número
+                novo_numero = {
+                    'numero': numero,
+                    'nome': nome,
+                    'ativo': ativo
+                }
+                
+                whatsapp_numbers.append(novo_numero)
+                self.dados['whatsapp_numbers'] = whatsapp_numbers
+                
+                if self.salvar_dados():
+                    return jsonify({'success': True, 'message': 'Número adicionado com sucesso!'})
+                else:
+                    return jsonify({'success': False, 'message': 'Erro ao salvar'}), 500
+                    
+            except Exception as e:
+                return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
+        
+        @self.app.route('/api/whatsapp/numbers/<int:indice>', methods=['PUT'])
+        def api_editar_numero_whatsapp(indice):
+            """API para editar número WhatsApp"""
+            try:
+                data = request.get_json()
+                whatsapp_numbers = self.dados.get('whatsapp_numbers', [])
+                
+                if indice < 0 or indice >= len(whatsapp_numbers):
+                    return jsonify({'success': False, 'message': 'Número não encontrado'}), 404
+                
+                if 'numero' in data:
+                    whatsapp_numbers[indice]['numero'] = ''.join(filter(str.isdigit, data['numero']))
+                if 'nome' in data:
+                    whatsapp_numbers[indice]['nome'] = data['nome']
+                if 'ativo' in data:
+                    whatsapp_numbers[indice]['ativo'] = data['ativo']
+                
+                if self.salvar_dados():
+                    return jsonify({'success': True, 'message': 'Número atualizado com sucesso!'})
+                else:
+                    return jsonify({'success': False, 'message': 'Erro ao salvar'}), 500
+                    
+            except Exception as e:
+                return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
+        
+        @self.app.route('/api/whatsapp/numbers/<int:indice>', methods=['DELETE'])
+        def api_excluir_numero_whatsapp(indice):
+            """API para excluir número WhatsApp"""
+            try:
+                whatsapp_numbers = self.dados.get('whatsapp_numbers', [])
+                
+                if indice < 0 or indice >= len(whatsapp_numbers):
+                    return jsonify({'success': False, 'message': 'Número não encontrado'}), 404
+                
+                whatsapp_numbers.pop(indice)
+                
+                if self.salvar_dados():
+                    return jsonify({'success': True, 'message': 'Número excluído com sucesso!'})
+                else:
+                    return jsonify({'success': False, 'message': 'Erro ao salvar'}), 500
+                    
+            except Exception as e:
+                return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
+        
+        @self.app.route('/api/whatsapp/next')
+        def api_proximo_numero_whatsapp():
+            """API para obter próximo número WhatsApp ativo (rotação)"""
+            try:
+                whatsapp_numbers = self.dados.get('whatsapp_numbers', [])
+                numeros_ativos = [w for w in whatsapp_numbers if w.get('ativo', True)]
+                
+                if not numeros_ativos:
+                    # Fallback para número principal
+                    return jsonify({'numero': '77981073054', 'nome': 'Principal'})
+                
+                # Implementar rotação simples
+                if 'whatsapp_rotation_index' not in self.dados:
+                    self.dados['whatsapp_rotation_index'] = 0
+                
+                indice = self.dados['whatsapp_rotation_index'] % len(numeros_ativos)
+                numero_selecionado = numeros_ativos[indice]
+                
+                # Avançar para próximo
+                self.dados['whatsapp_rotation_index'] = (indice + 1) % len(numeros_ativos)
+                self.salvar_dados()
+                
+                return jsonify(numero_selecionado)
+                
+            except Exception as e:
+                return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
     
     def obter_vendas_hoje(self):
         """Obtém vendas do dia atual"""
