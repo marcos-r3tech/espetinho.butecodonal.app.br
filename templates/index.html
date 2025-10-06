@@ -403,6 +403,269 @@
             color: #ffd700;
         }
 
+        .tab-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* ESTILOS PARA PEDIDOS */
+        .pedido-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .pedido-card:hover {
+            border-color: rgba(255, 215, 0, 0.5);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.1);
+        }
+
+        .pedido-card.pendente {
+            border-left: 4px solid #ffd700;
+        }
+
+        .pedido-card.aceito {
+            border-left: 4px solid #00aa00;
+        }
+
+        .pedido-card.preparando {
+            border-left: 4px solid #ff8800;
+        }
+
+        .pedido-card.pronto {
+            border-left: 4px solid #00cc00;
+        }
+
+        .pedido-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .pedido-info {
+            flex: 1;
+        }
+
+        .pedido-numero {
+            color: #ffd700;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .pedido-cliente {
+            color: #ffffff;
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+
+        .pedido-data {
+            color: #b0b0b0;
+            font-size: 0.9rem;
+        }
+
+        .pedido-status {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .pedido-status.pendente {
+            background: rgba(255, 215, 0, 0.2);
+            color: #ffd700;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .pedido-status.aceito {
+            background: rgba(0, 170, 0, 0.2);
+            color: #00aa00;
+            border: 1px solid rgba(0, 170, 0, 0.3);
+        }
+
+        .pedido-status.preparando {
+            background: rgba(255, 136, 0, 0.2);
+            color: #ff8800;
+            border: 1px solid rgba(255, 136, 0, 0.3);
+        }
+
+        .pedido-status.pronto {
+            background: rgba(0, 204, 0, 0.2);
+            color: #00cc00;
+            border: 1px solid rgba(0, 204, 0, 0.3);
+        }
+
+        .pedido-itens {
+            margin-bottom: 15px;
+        }
+
+        .pedido-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .pedido-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-nome {
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .item-detalhes {
+            color: #b0b0b0;
+            font-size: 0.9rem;
+        }
+
+        .item-total {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .pedido-total {
+            background: rgba(255, 215, 0, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .total-label {
+            color: #b0b0b0;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .total-value {
+            color: #ffd700;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .pedido-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-status {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-aceitar {
+            background: linear-gradient(135deg, #00aa00 0%, #00cc00 100%);
+            color: white;
+        }
+
+        .btn-aceitar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 170, 0, 0.3);
+        }
+
+        .btn-preparar {
+            background: linear-gradient(135deg, #ff8800 0%, #ffaa00 100%);
+            color: white;
+        }
+
+        .btn-preparar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 136, 0, 0.3);
+        }
+
+        .btn-finalizar {
+            background: linear-gradient(135deg, #00cc00 0%, #00ff00 100%);
+            color: white;
+        }
+
+        .btn-finalizar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 204, 0, 0.3);
+        }
+
+        .btn-excluir {
+            background: #ff4444;
+            color: white;
+        }
+
+        .btn-excluir:hover {
+            background: #ff6666;
+            transform: translateY(-2px);
+        }
+
+        .pedidos-vazios {
+            text-align: center;
+            padding: 60px 20px;
+            color: #b0b0b0;
+        }
+
+        .pedidos-vazios .icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #ffd700;
+        }
+
+        .tempo-status {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+        }
+
+        .tempo-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .tempo-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .tempo-label {
+            color: #b0b0b0;
+        }
+
+        .tempo-value {
+            color: #ffffff;
+        }
+
         .tab-content {
             display: none;
         }
@@ -1540,7 +1803,115 @@
                 grid-template-columns: 1fr !important;
                 gap: 10px !important;
             }
+        }
 
+        /* WHATSAPP */
+        .whatsapp-content {
+            padding: 20px 0;
+        }
+
+        .whatsapp-form {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .whatsapp-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            display: grid;
+            grid-template-columns: 1fr auto auto auto;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .whatsapp-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .whatsapp-numero {
+            font-weight: bold;
+            color: #ffd700;
+            font-size: 1.1rem;
+        }
+
+        .whatsapp-nome {
+            color: #b0b0b0;
+            font-size: 0.9rem;
+        }
+
+        .whatsapp-status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-align: center;
+            min-width: 60px;
+        }
+
+        .whatsapp-status.ativo {
+            background: #00aa00;
+            color: white;
+        }
+
+        .whatsapp-status.inativo {
+            background: #666;
+            color: white;
+        }
+
+        .whatsapp-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-whatsapp {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-whatsapp.edit {
+            background: #ffd700;
+            color: #1a1a1a;
+        }
+
+        .btn-whatsapp.delete {
+            background: #ff4444;
+            color: white;
+        }
+
+        .btn-whatsapp:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+        }
+
+        /* RESPONSIVIDADE WHATSAPP */
+        @media (max-width: 768px) {
+            .whatsapp-form div {
+                grid-template-columns: 1fr !important;
+                gap: 10px !important;
+            }
+
+            .whatsapp-item {
+                grid-template-columns: 1fr !important;
+                gap: 10px !important;
+                text-align: center;
+            }
+
+            .whatsapp-actions {
+                justify-content: center;
+            }
+            
             .backup-buttons .btn {
                 padding: 12px 15px;
                 font-size: 0.9rem;
@@ -1591,6 +1962,10 @@
             <div class="tab active" onclick="mostrarAba('vendas')">
                 <i class="fas fa-shopping-cart"></i> Vendas
             </div>
+            <div class="tab" onclick="mostrarAba('pedidos')">
+                <i class="fas fa-mobile-alt"></i> Pedidos
+                <div class="tab-badge" id="pedidos-badge" style="display: none;">0</div>
+            </div>
             <div class="tab" onclick="mostrarAba('relatorios')">
                 <i class="fas fa-chart-bar"></i> Relatórios
             </div>
@@ -1611,6 +1986,9 @@
             </div>
             <div class="tab" onclick="mostrarAba('backups')">
                 <i class="fas fa-download"></i> Backups
+            </div>
+            <div class="tab" onclick="mostrarAba('whatsapp')">
+                <i class="fab fa-whatsapp"></i> WhatsApp
             </div>
         </div>
 
@@ -1699,6 +2077,27 @@
                     <p style="text-align: center; color: #b0b0b0; padding: 20px;">
                         <i class="fas fa-info-circle"></i> Nenhuma venda registrada hoje
                     </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba Pedidos -->
+        <div id="aba-pedidos" class="tab-content">
+            <div class="relatorio-card fade-in">
+                <div class="relatorio-header">
+                    <h3 class="relatorio-title">
+                        <i class="fas fa-mobile-alt"></i> Pedidos Online
+                    </h3>
+                    <button class="btn-atualizar" onclick="atualizarPedidos()">
+                        <i class="fas fa-sync-alt"></i> Atualizar
+                    </button>
+                </div>
+                
+                <div id="pedidos-container">
+                    <div style="text-align: center; padding: 40px; color: #b0b0b0;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 15px;"></i>
+                        <p>Carregando pedidos...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2166,6 +2565,52 @@
         </div>
     </div>
 
+    <!-- Aba WhatsApp -->
+    <div id="aba-whatsapp" class="tab-content">
+        <div class="relatorio-card fade-in">
+            <div class="relatorio-header">
+                <h3 class="relatorio-title">
+                    <i class="fab fa-whatsapp"></i> Configuração WhatsApp
+                </h3>
+                <button class="btn-atualizar" onclick="atualizarListaWhatsApp()">
+                    <i class="fas fa-sync-alt"></i> Atualizar
+                </button>
+            </div>
+            
+            <div class="whatsapp-content">
+                <div class="whatsapp-info">
+                    <p style="color: #b0b0b0; margin-bottom: 20px;">
+                        <i class="fas fa-info-circle"></i> 
+                        Configure os números que receberão os pedidos do cardápio online. 
+                        O sistema fará rotação automática entre os números ativos.
+                    </p>
+                </div>
+
+                <!-- Formulário para adicionar número -->
+                <div class="whatsapp-form">
+                    <h4 style="color: #ffd700; margin-bottom: 15px;">
+                        <i class="fas fa-plus"></i> Adicionar Número
+                    </h4>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; align-items: end;">
+                        <input type="text" id="whatsapp-numero" placeholder="Número (ex: 77999999999)" class="form-input">
+                        <input type="text" id="whatsapp-nome" placeholder="Nome (ex: João)" class="form-input">
+                        <label style="display: flex; align-items: center; gap: 5px; color: #b0b0b0;">
+                            <input type="checkbox" id="whatsapp-ativo" checked> Ativo
+                        </label>
+                        <button class="btn btn-primary" onclick="adicionarNumeroWhatsApp()">
+                            <i class="fas fa-plus"></i> Adicionar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Lista de números -->
+                <div class="whatsapp-lista" id="whatsapp-lista">
+                    <!-- Será preenchida via JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         let espetinhos = {};
         let vendasHoje = [];
@@ -2229,6 +2674,11 @@
         // Atualizar lista de vendas
         function atualizarListaVendas() {
             const container = document.getElementById('vendas-lista');
+            
+            if (!container) {
+                console.log('Container vendas-lista não encontrado');
+                return;
+            }
             
             if (vendasHoje.length === 0) {
                 container.innerHTML = '<p style="text-align: center; color: #b0b0b0; padding: 20px;"><i class="fas fa-info-circle"></i> Nenhuma venda registrada hoje</p>';
@@ -2617,6 +3067,16 @@
             
             // Adicionar active na tab selecionada
             event.target.classList.add('active');
+            
+            // Se for aba de pedidos, atualizar dados
+            if (aba === 'pedidos') {
+                atualizarPedidos();
+            }
+            
+            // Se for aba de WhatsApp, carregar números
+            if (aba === 'whatsapp') {
+                atualizarListaWhatsApp();
+            }
             
             // Se for aba de relatórios, atualizar dados
             if (aba === 'relatorios') {
@@ -4319,7 +4779,577 @@
             // Disponibilizar funções globalmente
             window.fecharModal = fecharModal;
             window.imprimirQRCode = imprimirQRCode;
+
+            // === SISTEMA DE PEDIDOS ===
+            // Movido para escopo global
         }
+
+        // === FUNÇÕES WHATSAPP (GLOBAIS) ===
+        let numerosWhatsApp = [];
+
+        // === FUNÇÕES PEDIDOS (GLOBAIS) ===
+        let pedidos = [];
+        let ultimoPedidoId = 0;
+
+        window.atualizarPedidos = async function() {
+            try {
+                console.log('=== ATUALIZANDO PEDIDOS ===');
+                const response = await fetch('/api/pedidos');
+                const pedidosAtuais = await response.json();
+                
+                console.log('Pedidos recebidos:', pedidosAtuais);
+                
+                // Verificar se algum pedido foi removido (finalizado)
+                const pedidosRemovidos = pedidos.filter(p => !pedidosAtuais.find(pa => pa.id === p.id));
+                const algumPedidoFinalizado = pedidosRemovidos.length > 0;
+                
+                // Atualizar lista de pedidos
+                pedidos = pedidosAtuais;
+                
+                // Ordenar pedidos por data (mais recentes primeiro)
+                pedidos.sort((a, b) => new Date(b.data) - new Date(a.data));
+                
+                renderizarPedidos();
+                atualizarBadgePedidos();
+                
+                // Verificar novos pedidos
+                verificarNovosPedidos();
+                
+                // Se algum pedido foi finalizado, atualizar vendas também
+                if (algumPedidoFinalizado) {
+                    console.log('🔄 Pedido finalizado detectado - Atualizando vendas...');
+                    if (typeof carregarVendasHoje === 'function') {
+                        await carregarVendasHoje();
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Erro ao carregar pedidos:', error);
+                const container = document.getElementById('pedidos-container');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="pedidos-vazios">
+                            <div class="icon">⚠️</div>
+                            <h3>Erro ao carregar pedidos</h3>
+                            <p>Tente novamente em alguns instantes</p>
+                        </div>
+                    `;
+                }
+            }
+        };
+
+        function renderizarPedidos() {
+            const container = document.getElementById('pedidos-container');
+            
+            if (!container) {
+                console.error('Container pedidos-container não encontrado');
+                return;
+            }
+            
+            if (pedidos.length === 0) {
+                container.innerHTML = `
+                    <div class="pedidos-vazios">
+                        <div class="icon">📱</div>
+                        <h3>Nenhum pedido recebido</h3>
+                        <p>Os pedidos aparecerão aqui quando chegarem pelo cardápio online</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            pedidos.forEach(pedido => {
+                html += renderizarPedido(pedido);
+            });
+
+            container.innerHTML = html;
+        }
+
+        function renderizarPedido(pedido) {
+            const statusLabels = {
+                'pendente': 'Pendente',
+                'aceito': 'Aceito',
+                'preparando': 'Preparando',
+                'pronto': 'Pronto'
+            };
+
+            const statusIcons = {
+                'pendente': '⏳',
+                'aceito': '✅',
+                'preparando': '🔥',
+                'pronto': '🍖'
+            };
+
+            // Calcular tempos entre status
+            const tempos = calcularTemposStatus(pedido);
+
+            let acoesHtml = '';
+            switch (pedido.status) {
+                case 'pendente':
+                    acoesHtml = `
+                        <button class="btn-status btn-aceitar" onclick="atualizarStatusPedido(${pedido.id}, 'aceito')">
+                            <i class="fas fa-check"></i> Aceitar
+                        </button>
+                        <button class="btn-status btn-excluir" onclick="excluirPedido(${pedido.id})">
+                            <i class="fas fa-trash"></i> Excluir
+                        </button>
+                    `;
+                    break;
+                case 'aceito':
+                    acoesHtml = `
+                        <button class="btn-status btn-preparar" onclick="atualizarStatusPedido(${pedido.id}, 'preparando')">
+                            <i class="fas fa-fire"></i> Preparar
+                        </button>
+                        <button class="btn-status btn-excluir" onclick="excluirPedido(${pedido.id})">
+                            <i class="fas fa-trash"></i> Excluir
+                        </button>
+                    `;
+                    break;
+                case 'preparando':
+                    acoesHtml = `
+                        <button class="btn-status btn-finalizar" onclick="atualizarStatusPedido(${pedido.id}, 'pronto')">
+                            <i class="fas fa-check-circle"></i> Finalizar
+                        </button>
+                    `;
+                    break;
+                case 'pronto':
+                    acoesHtml = `
+                        <button class="btn-status btn-excluir" onclick="excluirPedido(${pedido.id})">
+                            <i class="fas fa-trash"></i> Excluir
+                        </button>
+                    `;
+                    break;
+            }
+
+            // Renderizar itens do pedido
+            let itensHtml = '';
+            pedido.itens.forEach(item => {
+                const subtotal = item.preco * item.quantidade;
+                const pontoFormatado = formatarPontoCarne(item.ponto);
+                itensHtml += `
+                    <div class="pedido-item">
+                        <div>
+                            <div class="item-nome">${item.nome}</div>
+                            <div class="item-detalhes">${item.quantidade}x • Ponto: ${pontoFormatado}</div>
+                        </div>
+                        <div class="item-total">R$ ${subtotal.toFixed(2)}</div>
+                    </div>
+                `;
+            });
+
+            return `
+                <div class="pedido-card ${pedido.status} fade-in">
+                    <div class="pedido-header">
+                        <div class="pedido-info">
+                            <div class="pedido-numero">Pedido #${pedido.id}</div>
+                            <div class="pedido-cliente">${pedido.nome_cliente}</div>
+                            <div class="pedido-data">${pedido.data}</div>
+                            ${pedido.telefone ? `<div style="color: #b0b0b0; font-size: 0.9rem;">📞 ${pedido.telefone}</div>` : ''}
+                            ${pedido.endereco ? `<div style="color: #b0b0b0; font-size: 0.9rem;">📍 ${pedido.endereco}</div>` : ''}
+                        </div>
+                        <div class="pedido-status ${pedido.status}">
+                            ${statusIcons[pedido.status]} ${statusLabels[pedido.status]}
+                        </div>
+                    </div>
+
+                    <div class="pedido-itens">
+                        ${itensHtml}
+                    </div>
+
+                    <div class="pedido-total">
+                        <div class="total-label">Total do Pedido</div>
+                        <div class="total-value">R$ ${pedido.total.toFixed(2)}</div>
+                    </div>
+
+                    ${pedido.observacoes ? `
+                        <div style="background: rgba(255, 215, 0, 0.1); padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+                            <strong style="color: #ffd700;">Observações:</strong>
+                            <div style="color: #ffffff; margin-top: 5px;">${pedido.observacoes}</div>
+                        </div>
+                    ` : ''}
+
+                    <div class="tempo-status">
+                        <div class="tempo-item">
+                            <span class="tempo-label">Pedido recebido:</span>
+                            <span class="tempo-value">${pedido.tempo_status.pendente || 'N/A'}</span>
+                        </div>
+                        ${pedido.tempo_status.aceito ? `
+                            <div class="tempo-item">
+                                <span class="tempo-label">Aceito:</span>
+                                <span class="tempo-value">${pedido.tempo_status.aceito}</span>
+                            </div>
+                        ` : ''}
+                        ${pedido.tempo_status.preparando ? `
+                            <div class="tempo-item">
+                                <span class="tempo-label">Preparando:</span>
+                                <span class="tempo-value">${pedido.tempo_status.preparando}</span>
+                            </div>
+                        ` : ''}
+                        ${pedido.tempo_status.pronto ? `
+                            <div class="tempo-item">
+                                <span class="tempo-label">Pronto:</span>
+                                <span class="tempo-value">${pedido.tempo_status.pronto}</span>
+                            </div>
+                        ` : ''}
+                        ${tempos.total ? `
+                            <div class="tempo-item">
+                                <span class="tempo-label">Tempo total:</span>
+                                <span class="tempo-value" style="color: #ffd700; font-weight: bold;">${tempos.total}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="pedido-actions">
+                        ${acoesHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        function calcularTemposStatus(pedido) {
+            const tempos = {};
+            
+            if (pedido.tempo_status.pendente && pedido.tempo_status.aceito) {
+                tempos.aceito = calcularDiferencaTempo(pedido.tempo_status.pendente, pedido.tempo_status.aceito);
+            }
+            
+            if (pedido.tempo_status.aceito && pedido.tempo_status.preparando) {
+                tempos.preparando = calcularDiferencaTempo(pedido.tempo_status.aceito, pedido.tempo_status.preparando);
+            }
+            
+            if (pedido.tempo_status.preparando && pedido.tempo_status.pronto) {
+                tempos.preparo = calcularDiferencaTempo(pedido.tempo_status.preparando, pedido.tempo_status.pronto);
+            }
+            
+            if (pedido.tempo_status.pendente && pedido.tempo_status.pronto) {
+                tempos.total = calcularDiferencaTempo(pedido.tempo_status.pendente, pedido.tempo_status.pronto);
+            }
+            
+            return tempos;
+        }
+
+        function calcularDiferencaTempo(inicio, fim) {
+            try {
+                const [dataInicio, horaInicio] = inicio.split(' ');
+                const [dataFim, horaFim] = fim.split(' ');
+                
+                const [diaIni, mesIni, anoIni] = dataInicio.split('/');
+                const [diaFim, mesFim, anoFim] = dataFim.split('/');
+                const [hIni, mIni] = horaInicio.split(':');
+                const [hFim, mFim] = horaFim.split(':');
+                
+                const dataIni = new Date(anoIni, mesIni - 1, diaIni, hIni, mIni);
+                const dataFimDate = new Date(anoFim, mesFim - 1, diaFim, hFim, mFim);
+                
+                const diffMs = dataFimDate - dataIni;
+                const diffMin = Math.floor(diffMs / 60000);
+                
+                if (diffMin < 60) {
+                    return `${diffMin}min`;
+                } else {
+                    const horas = Math.floor(diffMin / 60);
+                    const minutos = diffMin % 60;
+                    return `${horas}h${minutos > 0 ? minutos + 'min' : ''}`;
+                }
+            } catch (error) {
+                return 'N/A';
+            }
+        }
+
+        function formatarPontoCarne(ponto) {
+            const pontos = {
+                'mal-passado': 'Mal Passado',
+                'ao-ponto': 'Ao Ponto',
+                'bem-passado': 'Bem Passado'
+            };
+            return pontos[ponto] || ponto;
+        }
+
+        window.atualizarStatusPedido = async function(pedidoId, novoStatus) {
+            try {
+                const response = await fetch(`/api/pedidos/${pedidoId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status: novoStatus })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    console.log(`✅ Pedido ${novoStatus} com sucesso!`);
+                    // Removido alert - atualiza direto
+                    window.atualizarPedidos();
+                } else {
+                    alert('Erro ao atualizar pedido: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar status:', error);
+                alert('Erro ao atualizar pedido');
+            }
+        };
+
+        window.excluirPedido = async function(pedidoId) {
+            if (!confirm('Tem certeza que deseja excluir este pedido?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/pedidos/${pedidoId}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    console.log('✅ Pedido excluído com sucesso!');
+                    // Removido alert - atualiza direto
+                    window.atualizarPedidos();
+                } else {
+                    alert('Erro ao excluir pedido: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Erro ao excluir pedido:', error);
+                alert('Erro ao excluir pedido');
+            }
+        };
+
+        function atualizarBadgePedidos() {
+            const badge = document.getElementById('pedidos-badge');
+            if (!badge) return;
+            
+            const pedidosPendentes = pedidos.filter(p => p.status === 'pendente').length;
+            
+            if (pedidosPendentes > 0) {
+                badge.textContent = pedidosPendentes;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function verificarNovosPedidos() {
+            // Verificar se há pedidos novos (pendentes)
+            const pedidosPendentes = pedidos.filter(p => p.status === 'pendente');
+            
+            if (pedidosPendentes.length > 0) {
+                // Tocar som de notificação
+                tocarSomNotificacao();
+                
+                // Log no console - sem alert chato
+                console.log(`🔔 ${pedidosPendentes.length} novo(s) pedido(s) recebido(s)!`);
+            }
+        }
+
+        function tocarSomNotificacao() {
+            try {
+                // Tentar tocar arquivo de áudio (tenta .wav primeiro, depois .mp3)
+                const audio = new Audio('/static/notification.wav');
+                audio.volume = 0.7;
+                audio.play().catch(e => {
+                    console.log('Tentando .mp3...');
+                    // Tentar MP3 se WAV falhar
+                    const audioMp3 = new Audio('/static/notification.mp3');
+                    audioMp3.volume = 0.7;
+                    audioMp3.play().catch(err => {
+                        console.log('Arquivo de áudio não encontrado, usando som sintético...');
+                        
+                        // Criar som sintético com Web Audio API
+                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        
+                        // Criar oscilador para o "ding dong"
+                        const oscillator1 = audioContext.createOscillator();
+                        const oscillator2 = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        
+                        // Configurar frequências (notas musicais)
+                        oscillator1.frequency.value = 800; // Nota alta
+                        oscillator2.frequency.value = 600; // Nota média
+                        
+                        // Conectar ao output
+                        oscillator1.connect(gainNode);
+                        oscillator2.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        // Configurar volume (envelope)
+                        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                        
+                        // Tocar
+                        oscillator1.start(audioContext.currentTime);
+                        oscillator1.stop(audioContext.currentTime + 0.2);
+                        
+                        oscillator2.start(audioContext.currentTime + 0.15);
+                        oscillator2.stop(audioContext.currentTime + 0.5);
+                    });
+                });
+            } catch (error) {
+                console.error('Erro ao tocar notificação:', error);
+            }
+        }
+
+        // Iniciar atualização automática de pedidos
+        setInterval(window.atualizarPedidos, 30000);
+
+        // Definir funções globalmente
+        window.atualizarListaWhatsApp = async function() {
+            try {
+                const response = await fetch('/api/whatsapp/numbers');
+                numerosWhatsApp = await response.json();
+                window.renderizarListaWhatsApp();
+            } catch (error) {
+                console.error('Erro ao carregar números WhatsApp:', error);
+                alert('Erro ao carregar números WhatsApp');
+            }
+        };
+
+        window.renderizarListaWhatsApp = function() {
+            const container = document.getElementById('whatsapp-lista');
+            
+            if (!container) {
+                console.error('Container whatsapp-lista não encontrado');
+                return;
+            }
+            
+            if (numerosWhatsApp.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #b0b0b0; padding: 20px;"><i class="fas fa-info-circle"></i> Nenhum número WhatsApp configurado</p>';
+                return;
+            }
+            
+            container.innerHTML = numerosWhatsApp.map((numero, index) => `
+                <div class="whatsapp-item fade-in">
+                    <div class="whatsapp-info">
+                        <div class="whatsapp-numero">${numero.numero}</div>
+                        <div class="whatsapp-nome">${numero.nome}</div>
+                    </div>
+                    <div class="whatsapp-status ${numero.ativo ? 'ativo' : 'inativo'}">
+                        ${numero.ativo ? 'Ativo' : 'Inativo'}
+                    </div>
+                    <div class="whatsapp-actions">
+                        <button class="btn-whatsapp edit" onclick="editarNumeroWhatsApp(${index})" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-whatsapp delete" onclick="excluirNumeroWhatsApp(${index})" title="Excluir">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        };
+
+        window.adicionarNumeroWhatsApp = async function() {
+            console.log('=== ADICIONANDO NÚMERO WHATSAPP ===');
+            
+            const numero = document.getElementById('whatsapp-numero').value.trim();
+            const nome = document.getElementById('whatsapp-nome').value.trim();
+            const ativo = document.getElementById('whatsapp-ativo').checked;
+
+            console.log('Dados do formulário:', { numero, nome, ativo });
+
+            if (!numero || !nome) {
+                alert('Preencha todos os campos!');
+                return;
+            }
+
+            // Validar formato do número
+            const numeroLimpo = numero.replace(/\D/g, '');
+            if (numeroLimpo.length < 10) {
+                alert('Número inválido!');
+                return;
+            }
+
+            console.log('Enviando para API:', { numero: numeroLimpo, nome, ativo });
+
+            try {
+                const response = await fetch('/api/whatsapp/numbers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        numero: numeroLimpo,
+                        nome: nome,
+                        ativo: ativo
+                    })
+                });
+
+                console.log('Resposta da API:', response.status);
+                const result = await response.json();
+                console.log('Resultado:', result);
+                
+                if (result.success) {
+                    alert('Número adicionado com sucesso!');
+                    document.getElementById('whatsapp-numero').value = '';
+                    document.getElementById('whatsapp-nome').value = '';
+                    document.getElementById('whatsapp-ativo').checked = true;
+                    window.atualizarListaWhatsApp();
+                } else {
+                    alert('Erro: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Erro na requisição:', error);
+                alert('Erro ao adicionar número');
+            }
+        };
+
+        window.editarNumeroWhatsApp = async function(index) {
+            const numero = numerosWhatsApp[index];
+            const novoNome = prompt('Novo nome:', numero.nome);
+            
+            if (novoNome === null) return;
+            
+            const novoAtivo = confirm(`Número ${numero.numero} deve estar ativo?`);
+            
+            try {
+                const response = await fetch(`/api/whatsapp/numbers/${index}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        nome: novoNome,
+                        ativo: novoAtivo
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Número atualizado com sucesso!');
+                    window.atualizarListaWhatsApp();
+                } else {
+                    alert('Erro: ' + result.message);
+                }
+            } catch (error) {
+                alert('Erro ao atualizar número');
+            }
+        };
+
+        window.excluirNumeroWhatsApp = async function(index) {
+            const numero = numerosWhatsApp[index];
+            
+            if (!confirm(`Tem certeza que deseja excluir o número ${numero.numero}?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/whatsapp/numbers/${index}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Número excluído com sucesso!');
+                    window.atualizarListaWhatsApp();
+                } else {
+                    alert('Erro: ' + result.message);
+                }
+            } catch (error) {
+                alert('Erro ao excluir número');
+            }
+        };
     </script>
 </body>
 </html>
