@@ -5,37 +5,37 @@
     "GADO": {
       "valor": 6.0,
       "custo": 2.14,
-      "estoque": 176
+      "estoque": 29
     },
     "PORCO": {
       "valor": 6.0,
       "custo": 3.0,
-      "estoque": 2
+      "estoque": 50
     },
     "FRANGO": {
       "valor": 6.0,
       "custo": 3.0,
-      "estoque": 74
+      "estoque": 41
     },
     "TULIPA": {
       "valor": 8.0,
       "custo": 4.33,
-      "estoque": 20
+      "estoque": 13
     },
     "CORAÇÃO": {
       "valor": 6.0,
       "custo": 3.0,
-      "estoque": 18
+      "estoque": 31
     },
     "MEDALHÃO DE CARNE": {
       "valor": 9.0,
       "custo": 4.5,
-      "estoque": 14
+      "estoque": 1
     },
     "MEDALHÃO DE FRANGO": {
       "valor": 9.0,
       "custo": 4.5,
-      "estoque": 11
+      "estoque": 4
     },
     "QUEIJO": {
       "valor": 9.0,
@@ -55,12 +55,12 @@
     "PÃO DE ALHO": {
       "valor": 4.0,
       "custo": 1.996,
-      "estoque": 1
+      "estoque": 0
     },
     "CAMARÃO": {
       "valor": 10.0,
       "custo": 5.0,
-      "estoque": 0
+      "estoque": 2
     },
     "CUPIM": {
       "valor": 7.0,
@@ -70,3 +70,4 @@
   },
   "fechamentos_mes": []
 }
+
