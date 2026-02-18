@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, font
+from tkinter import ttk, messagebox, font, filedialog
 import json
 import os
 from datetime import datetime, timedelta
@@ -478,6 +478,22 @@ class ServidorWeb:
                 dados_espetinho = self.sistema.dados['espetinhos'][espetinho]
                 valor_unitario = dados_espetinho['valor']
                 total = valor_unitario * quantidade
+
+                # Tipo de venda (normal / bonificação)
+                tipo_venda = data.get('tipo_venda', 'normal')
+
+                # Tipo de consumo (para app mobile, padrão local)
+                tipo_consumo = data.get('tipo_consumo', 'local')
+
+                # Valor realmente cobrado
+                valor_cobrado = 0.0 if tipo_venda == 'bonificacao' else total
+
+                # Data/hora e competência
+                data_venda = datetime.now().strftime('%d/%m/%Y %H:%M')
+                try:
+                    competencia = datetime.now().strftime('%Y-%m')
+                except Exception:
+                    competencia = None
                 
                 # Verificar se deve alterar estoque
                 alterar_estoque = data.get('alterar_estoque', True)
@@ -490,13 +506,17 @@ class ServidorWeb:
                 
                 # Criar venda
                 venda = {
-                    'data': datetime.now().strftime('%d/%m/%Y %H:%M'),
+                    'data': data_venda,
                     'espetinho': espetinho,
                     'quantidade': quantidade,
                     'valor_unitario': valor_unitario,
                     'total': total,
                     'alterou_estoque': alterar_estoque,
-                    'origem': 'mobile'  # Identificar venda mobile
+                    'origem': 'mobile',  # Identificar venda mobile
+                    'tipo_venda': tipo_venda,
+                    'valor_cobrado': valor_cobrado,
+                    'tipo_consumo': tipo_consumo,
+                    'competencia': competencia
                 }
                 
                 # Adicionar venda
@@ -907,6 +927,239 @@ class SistemaEspetinho:
         except Exception as e:
             messagebox.showerror("Erro", f"Erro ao salvar dados: {str(e)}")
             return False
+
+    def consolidar_bancos(self):
+        """Importa e consolida múltiplos arquivos JSON em um único banco"""
+        try:
+            # Abrir diálogo para selecionar múltiplos arquivos
+            arquivos = filedialog.askopenfilenames(
+                title="Selecione os arquivos JSON para consolidar",
+                filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
+            )
+            
+            if not arquivos:
+                return
+            
+            if len(arquivos) == 0:
+                messagebox.showinfo("Info", "Nenhum arquivo selecionado.")
+                return
+            
+            # Confirmar ação
+            resposta = messagebox.askyesno(
+                "Confirmar Consolidação",
+                f"Você selecionou {len(arquivos)} arquivo(s).\n\n"
+                "Isso irá:\n"
+                "- Juntar todas as vendas (evitando duplicatas)\n"
+                "- Juntar todas as despesas (evitando duplicatas)\n"
+                "- Manter espetinhos do arquivo principal\n"
+                "- Fazer backup antes de consolidar\n\n"
+                "Deseja continuar?"
+            )
+            
+            if not resposta:
+                return
+            
+            # Fazer backup antes
+            try:
+                backup_nome = f"backup_antes_consolidacao_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                with open(backup_nome, 'w', encoding='utf-8') as f:
+                    json.dump(self.dados, f, ensure_ascii=False, indent=2)
+            except Exception as e:
+                messagebox.showwarning("Aviso", f"Não foi possível fazer backup: {str(e)}")
+            
+            # Dados consolidados (começar com dados atuais)
+            # Suportar ambos os nomes: fechamentos_mensais e fechamentos_mes
+            fechamentos_atuais = self.dados.get("fechamentos_mensais", self.dados.get("fechamentos_mes", {}))
+            dados_consolidados = {
+                "vendas": list(self.dados.get("vendas", [])),
+                "despesas": list(self.dados.get("despesas", [])),
+                "espetinhos": dict(self.dados.get("espetinhos", {})),
+                "fechamentos_mensais": dict(fechamentos_atuais),
+                "pedidos": list(self.dados.get("pedidos", [])),
+                "whatsapp_numbers": list(self.dados.get("whatsapp_numbers", [])),
+                "whatsapp_rotation_index": self.dados.get("whatsapp_rotation_index", 0)
+            }
+            
+            # Criar sets para evitar duplicatas
+            vendas_unicas = set()
+            despesas_unicas = set()
+            
+            # Função para criar chave única de venda
+            # Considera também origem e pedido_id para evitar duplicatas de pedidos online
+            def chave_venda(venda):
+                return (
+                    venda.get("data", ""),
+                    venda.get("espetinho", ""),
+                    venda.get("quantidade", 0),
+                    venda.get("valor_unitario", 0),
+                    venda.get("total", 0),
+                    venda.get("origem", ""),
+                    venda.get("pedido_id", None)
+                )
+            
+            # Função para criar chave única de despesa
+            def chave_despesa(despesa):
+                return (
+                    despesa.get("data", ""),
+                    despesa.get("descricao", ""),
+                    despesa.get("valor", 0)
+                )
+            
+            # Adicionar vendas e despesas atuais aos sets
+            for venda in dados_consolidados["vendas"]:
+                vendas_unicas.add(chave_venda(venda))
+            for despesa in dados_consolidados["despesas"]:
+                despesas_unicas.add(chave_despesa(despesa))
+            
+            # Processar cada arquivo
+            total_vendas_adicionadas = 0
+            total_despesas_adicionadas = 0
+            arquivos_processados = 0
+            
+            for arquivo_path in arquivos:
+                try:
+                    with open(arquivo_path, 'r', encoding='utf-8') as f:
+                        dados_arquivo = json.load(f)
+                    
+                    # Processar vendas (preservando TODOS os campos, incluindo data/hora completa)
+                    vendas_arquivo = dados_arquivo.get("vendas", [])
+                    for venda in vendas_arquivo:
+                        chave = chave_venda(venda)
+                        if chave not in vendas_unicas:
+                            # Criar cópia completa da venda preservando TODOS os campos
+                            venda_completa = dict(venda)  # Copia todos os campos existentes
+                            
+                            # Garantir que campos obrigatórios existam
+                            if "data" not in venda_completa:
+                                continue  # Pula vendas sem data
+                            
+                            # Preservar todos os campos: data/hora, tipo_venda, valor_cobrado, 
+                            # tipo_consumo, competencia, origem, pedido_id, alterou_estoque, etc.
+                            dados_consolidados["vendas"].append(venda_completa)
+                            vendas_unicas.add(chave)
+                            total_vendas_adicionadas += 1
+                    
+                    # Processar despesas (preservando TODOS os campos, incluindo data completa)
+                    despesas_arquivo = dados_arquivo.get("despesas", [])
+                    for despesa in despesas_arquivo:
+                        chave = chave_despesa(despesa)
+                        if chave not in despesas_unicas:
+                            # Criar cópia completa da despesa preservando TODOS os campos
+                            despesa_completa = dict(despesa)  # Copia todos os campos existentes
+                            
+                            # Garantir que campos obrigatórios existam
+                            if "data" not in despesa_completa or "descricao" not in despesa_completa:
+                                continue  # Pula despesas sem dados essenciais
+                            
+                            # Preservar todos os campos da despesa
+                            dados_consolidados["despesas"].append(despesa_completa)
+                            despesas_unicas.add(chave)
+                            total_despesas_adicionadas += 1
+                    
+                    # Processar fechamentos mensais (se existirem)
+                    # Suportar ambos os nomes: fechamentos_mensais e fechamentos_mes
+                    fechamentos_arquivo = dados_arquivo.get("fechamentos_mensais", dados_arquivo.get("fechamentos_mes", {}))
+                    for competencia, fechamento in fechamentos_arquivo.items():
+                        if competencia not in dados_consolidados["fechamentos_mensais"]:
+                            dados_consolidados["fechamentos_mensais"][competencia] = fechamento
+                    
+                    # Atualizar espetinhos (adicionar novos tipos, mas NÃO importar estoque)
+                    # O estoque deve permanecer o do arquivo principal (atual)
+                    espetinhos_arquivo = dados_arquivo.get("espetinhos", {})
+                    for nome_espetinho, dados_espetinho in espetinhos_arquivo.items():
+                        if nome_espetinho not in dados_consolidados["espetinhos"]:
+                            # Adicionar novo tipo de espetinho, mas sem estoque (ou com estoque 0)
+                            dados_consolidados["espetinhos"][nome_espetinho] = {
+                                "valor": dados_espetinho.get("valor", 0),
+                                "custo": dados_espetinho.get("custo", 0),
+                                "estoque": 0  # Sempre começa com estoque 0 para novos tipos
+                            }
+                        # Se o espetinho já existe, mantém o estoque atual (não sobrescreve)
+                    
+                    arquivos_processados += 1
+                    
+                except Exception as e:
+                    messagebox.showerror("Erro", f"Erro ao processar arquivo {os.path.basename(arquivo_path)}:\n{str(e)}")
+                    continue
+            
+            # Ordenar vendas e despesas por data E hora (preservando hora completa)
+            def parse_data_hora(item):
+                try:
+                    data_str = item.get("data", "")
+                    if not data_str:
+                        return datetime.min
+                    
+                    # Tentar formatos com hora primeiro
+                    formatos_com_hora = [
+                        "%d/%m/%Y %H:%M",      # 19/09/2025 13:52
+                        "%d/%m/%Y %H:%M:%S",   # 19/09/2025 13:52:30
+                        "%Y-%m-%d %H:%M",      # 2025-09-19 13:52
+                        "%Y-%m-%d %H:%M:%S",   # 2025-09-19 13:52:30
+                    ]
+                    
+                    # Tentar formatos sem hora
+                    formatos_sem_hora = [
+                        "%d/%m/%Y",            # 19/09/2025
+                        "%Y-%m-%d",            # 2025-09-19
+                    ]
+                    
+                    # Tentar todos os formatos com hora primeiro
+                    for formato in formatos_com_hora:
+                        try:
+                            return datetime.strptime(data_str, formato)
+                        except:
+                            continue
+                    
+                    # Se não funcionou, tentar formatos sem hora
+                    for formato in formatos_sem_hora:
+                        try:
+                            return datetime.strptime(data_str, formato)
+                        except:
+                            continue
+                    
+                    return datetime.min
+                except:
+                    return datetime.min
+            
+            # Ordenar preservando data e hora completa
+            dados_consolidados["vendas"].sort(key=parse_data_hora)
+            dados_consolidados["despesas"].sort(key=parse_data_hora)
+            
+            # Atualizar dados do sistema
+            self.dados = dados_consolidados
+            
+            # Salvar dados consolidados
+            if self.salvar_dados():
+                # Atualizar interface
+                self.atualizar_dashboard()
+                self.atualizar_lista_vendas()
+                self.atualizar_lista_despesas()
+                
+                messagebox.showinfo(
+                    "✅ Consolidação Concluída!",
+                    f"Consolidação realizada com sucesso!\n\n"
+                    f"📊 Arquivos processados: {arquivos_processados}/{len(arquivos)}\n"
+                    f"💰 Vendas adicionadas: {total_vendas_adicionadas}\n"
+                    f"💸 Despesas adicionadas: {total_despesas_adicionadas}\n"
+                    f"📦 Total de vendas: {len(dados_consolidados['vendas'])}\n"
+                    f"📋 Total de despesas: {len(dados_consolidados['despesas'])}\n\n"
+                    f"Backup salvo como: {backup_nome}"
+                )
+            else:
+                messagebox.showerror("Erro", "Erro ao salvar dados consolidados.")
+                
+        except Exception as e:
+            messagebox.showerror("Erro", f"Erro ao consolidar bancos:\n{str(e)}")
+
+    def get_valor_cobrado(self, venda):
+        """
+        Retorna o valor realmente cobrado de uma venda.
+        Compatível com vendas antigas (sem campo valor_cobrado).
+        """
+        try:
+            return float(venda.get('valor_cobrado', venda.get('total', 0)))
+        except Exception:
+            return venda.get('total', 0)
     
     def criar_interface(self):
         """Cria a interface moderna do sistema"""
@@ -1132,7 +1385,7 @@ class SistemaEspetinho:
         """Atualiza as métricas do dashboard"""
         # Calcular vendas de hoje
         hoje = datetime.now().strftime('%d/%m/%Y')
-        vendas_hoje = sum(venda['total'] for venda in self.dados['vendas'] 
+        vendas_hoje = sum(self.get_valor_cobrado(venda) for venda in self.dados['vendas'] 
                          if venda['data'].startswith(hoje))
         
         # Calcular estoque baixo
@@ -1149,7 +1402,7 @@ class SistemaEspetinho:
                     lucro_hoje += (venda['valor_unitario'] - custo_unitario) * venda['quantidade']
         
         # Calcular total de vendas
-        total_vendas = sum(venda['total'] for venda in self.dados['vendas'])
+        total_vendas = sum(self.get_valor_cobrado(venda) for venda in self.dados['vendas'])
         
         # Atualizar cards do dashboard
         try:
@@ -1507,9 +1760,23 @@ class SistemaEspetinho:
                                           activebackground=self.cores['fundo_principal'],
                                           activeforeground=self.cores['texto_principal'])
         self.check_estoque.grid(row=3, column=0, columnspan=4, sticky='w', padx=5, pady=5)
+
+        # Tipo de venda (normal / bonificação)
+        ttk.Label(frame_form, text="Tipo de Venda:", font=self.fonte_principal).grid(row=4, column=0, sticky='w', padx=5, pady=5)
+        self.combo_tipo_venda = ttk.Combobox(frame_form, width=20, state='readonly', style='Modern.TCombobox')
+        self.combo_tipo_venda['values'] = ("Normal", "Bonificação")
+        self.combo_tipo_venda.grid(row=4, column=1, padx=5, pady=5)
+        self.combo_tipo_venda.set("Normal")
+
+        # Tipo de consumo (local / entrega / interno)
+        ttk.Label(frame_form, text="Tipo de Consumo:", font=self.fonte_principal).grid(row=4, column=2, sticky='w', padx=5, pady=5)
+        self.combo_tipo_consumo = ttk.Combobox(frame_form, width=20, state='readonly', style='Modern.TCombobox')
+        self.combo_tipo_consumo['values'] = ("Local", "Entrega", "Interno")
+        self.combo_tipo_consumo.grid(row=4, column=3, padx=5, pady=5)
+        self.combo_tipo_consumo.set("Local")
         
         # Botão adicionar
-        ttk.Button(frame_form, text="🍖 Adicionar Venda", command=self.adicionar_venda, style='Modern.TButton').grid(row=4, column=0, columnspan=4, padx=5, pady=8)
+        ttk.Button(frame_form, text="🍖 Adicionar Venda", command=self.adicionar_venda, style='Modern.TButton').grid(row=5, column=0, columnspan=4, padx=5, pady=8)
         
         # Atualizar lista de espetinhos no combobox
         self.atualizar_combo_espetinhos()
@@ -1703,6 +1970,11 @@ class SistemaEspetinho:
         # Botões de relatório
         ttk.Button(frame_filtros_rel, text="📊 Relatório por Período", command=self.gerar_relatorio_periodo, style='Modern.TButton').grid(row=0, column=4, padx=10, pady=10)
         ttk.Button(frame_filtros_rel, text="📈 Relatório Completo", command=self.atualizar_relatorios, style='Modern.TButton').grid(row=0, column=5, padx=10, pady=10)
+
+        # Linha para fechamento mensal (usa mês/ano da data final)
+        ttk.Label(frame_filtros_rel, text="Fechamento Mensal usa o mês da Data Final", font=self.fonte_pequena).grid(row=1, column=0, columnspan=3, sticky='w', padx=10, pady=(0, 10))
+        ttk.Button(frame_filtros_rel, text="📅 Fechamento Mensal", command=self.gerar_fechamento_mensal, style='Modern.TButton').grid(row=1, column=3, padx=10, pady=(0, 10))
+        ttk.Button(frame_filtros_rel, text="📚 Histórico de Fechamentos", command=self.gerar_relatorio_fechamentos_mensais, style='Secondary.TButton').grid(row=1, column=4, padx=10, pady=(0, 10))
         
         # Frame para botões de relatórios específicos
         frame_relatorios_especificos = ttk.LabelFrame(frame_relatorios, text="📋 Relatórios Específicos")
@@ -1718,6 +1990,7 @@ class SistemaEspetinho:
         ttk.Button(frame_relatorios_especificos, text="📱 Vendas Mobile", command=self.gerar_relatorio_mobile, style='Modern.TButton').grid(row=1, column=0, padx=10, pady=10)
         ttk.Button(frame_relatorios_especificos, text="💻 Vendas Desktop", command=self.gerar_relatorio_desktop, style='Secondary.TButton').grid(row=1, column=1, padx=10, pady=10)
         ttk.Button(frame_relatorios_especificos, text="🕐 Vendas por Hora", command=self.gerar_relatorio_vendas_por_hora, style='Modern.TButton').grid(row=1, column=2, padx=10, pady=10)
+        ttk.Button(frame_relatorios_especificos, text="📦 Consolidar Bancos", command=self.consolidar_bancos, style='Modern.TButton').grid(row=1, column=3, padx=10, pady=10)
         
         # Frame para mostrar resumo
         frame_resumo = ttk.LabelFrame(frame_relatorios, text="📊 Resumo Financeiro")
@@ -1748,7 +2021,9 @@ class SistemaEspetinho:
             valor_unitario = float(self.entry_valor_venda.get().replace(',', '.'))
             alterar_estoque = self.var_alterar_estoque.get()
             data_venda = self.entry_data_venda.get().strip()
-            
+            tipo_venda_str = self.combo_tipo_venda.get() or "Normal"
+            tipo_consumo_str = self.combo_tipo_consumo.get() or "Local"
+
             if not espetinho:
                 self.mostrar_notificacao_erro("❌ Selecione um espetinho!")
                 return
@@ -1765,10 +2040,25 @@ class SistemaEspetinho:
             
             try:
                 # Validar formato da data
-                datetime.strptime(data_venda, '%d/%m/%Y %H:%M')
+                dt_obj = datetime.strptime(data_venda, '%d/%m/%Y %H:%M')
             except ValueError:
                 self.mostrar_notificacao_erro("❌ Formato de data inválido! Use DD/MM/AAAA HH:MM")
                 return
+
+            # Definir competência (ano-mês)
+            competencia = dt_obj.strftime('%Y-%m')
+
+            # Mapear tipo de venda
+            tipo_venda = 'bonificacao' if tipo_venda_str.lower().startswith('boni') else 'normal'
+
+            # Mapear tipo de consumo
+            tipo_consumo_lower = tipo_consumo_str.lower()
+            if tipo_consumo_lower.startswith('entre'):
+                tipo_consumo = 'entrega'
+            elif tipo_consumo_lower.startswith('inter'):
+                tipo_consumo = 'interno'
+            else:
+                tipo_consumo = 'local'
             
             # Verificar estoque apenas se a opção estiver marcada
             if alterar_estoque:
@@ -1776,15 +2066,22 @@ class SistemaEspetinho:
                 if estoque_atual < quantidade:
                     self.mostrar_notificacao_erro(f"❌ Estoque insuficiente! Disponível: {estoque_atual} unidades")
                     return
-            
+
+            total = quantidade * valor_unitario
+            valor_cobrado = 0.0 if tipo_venda == 'bonificacao' else total
+
             venda = {
                 'data': data_venda,
                 'espetinho': espetinho,
                 'quantidade': quantidade,
                 'valor_unitario': valor_unitario,
-                'total': quantidade * valor_unitario,
+                'total': total,
                 'alterou_estoque': alterar_estoque,
-                'origem': 'desktop'  # Identificar venda desktop
+                'origem': 'desktop',  # Identificar venda desktop
+                'tipo_venda': tipo_venda,
+                'valor_cobrado': valor_cobrado,
+                'tipo_consumo': tipo_consumo,
+                'competencia': competencia
             }
             
             # Adicionar venda
@@ -1861,13 +2158,14 @@ class SistemaEspetinho:
             descricao = venda.get('espetinho', venda.get('descricao', ''))
             origem = venda.get('origem', 'desktop')
             origem_emoji = "📱 MOBILE" if origem == 'mobile' else "💻 DESKTOP"
+            valor_cobrado = self.get_valor_cobrado(venda)
             
             self.tree_vendas.insert('', 'end', values=(
                 venda['data'],
                 descricao,
                 venda['quantidade'],
                 f"R$ {venda['valor_unitario']:.2f}",
-                f"R$ {venda['total']:.2f}",
+                f"R$ {valor_cobrado:.2f}",
                 origem_emoji
             ))
     
@@ -1887,8 +2185,8 @@ class SistemaEspetinho:
     
     def atualizar_relatorios(self):
         """Atualiza os relatórios financeiros com análise completa"""
-        # Calcular totais básicos
-        total_vendas = sum(venda['total'] for venda in self.dados['vendas'])
+        # Calcular totais básicos (usando valor realmente cobrado)
+        total_vendas = sum(self.get_valor_cobrado(venda) for venda in self.dados['vendas'])
         total_despesas = sum(despesa['valor'] for despesa in self.dados['despesas'])
         
         # Calcular custo total das vendas (baseado nos custos definidos por espetinho)
@@ -1916,7 +2214,7 @@ class SistemaEspetinho:
                         'quantidade': 0, 'valor_total': 0, 'custo_total': 0
                     }
                 vendas_por_espetinho[espetinho]['quantidade'] += venda['quantidade']
-                vendas_por_espetinho[espetinho]['valor_total'] += venda['total']
+                vendas_por_espetinho[espetinho]['valor_total'] += self.get_valor_cobrado(venda)
                 if espetinho in self.dados['espetinhos']:
                     custo_unitario = self.dados['espetinhos'][espetinho]['custo']
                     vendas_por_espetinho[espetinho]['custo_total'] += venda['quantidade'] * custo_unitario
@@ -1945,7 +2243,13 @@ class SistemaEspetinho:
 
 📈 SEU LUCRO:
    • Lucro: R$ {saldo_final:,.2f}
-   • Margem: {(saldo_final/total_vendas*100):.1f}%
+   • Margem: {(saldo_final/total_vendas*100):.1f}%""" if total_vendas > 0 else f"""
+📈 SEU LUCRO:
+   • Lucro: R$ {saldo_final:,.2f}
+   • Margem: N/A (sem vendas no período)
+"""
+        resumo += """
+
    • Fórmula: VENDAS - DESPESAS = LUCRO
 
 🏆 TOP ESPETINHOS:
@@ -1987,7 +2291,7 @@ class SistemaEspetinho:
                         'quantidade': 0, 'valor_total': 0, 'custo_total': 0
                     }
                 vendas_por_espetinho[espetinho]['quantidade'] += venda['quantidade']
-                vendas_por_espetinho[espetinho]['valor_total'] += venda['total']
+                vendas_por_espetinho[espetinho]['valor_total'] += self.get_valor_cobrado(venda)
                 if espetinho in self.dados['espetinhos']:
                     custo_unitario = self.dados['espetinhos'][espetinho]['custo']
                     vendas_por_espetinho[espetinho]['custo_total'] += venda['quantidade'] * custo_unitario
@@ -2044,7 +2348,7 @@ class SistemaEspetinho:
                         'quantidade': 0, 'valor_total': 0, 'custo_total': 0, 'vendas': []
                     }
                 vendas_por_espetinho[espetinho]['quantidade'] += venda['quantidade']
-                vendas_por_espetinho[espetinho]['valor_total'] += venda['total']
+                vendas_por_espetinho[espetinho]['valor_total'] += self.get_valor_cobrado(venda)
                 vendas_por_espetinho[espetinho]['vendas'].append(venda)
                 if espetinho in self.dados['espetinhos']:
                     custo_unitario = self.dados['espetinhos'][espetinho]['custo']
@@ -2090,7 +2394,7 @@ class SistemaEspetinho:
     
     def gerar_relatorio_lucro(self):
         """Gera relatório focado em análise de lucro"""
-        total_vendas = sum(venda['total'] for venda in self.dados['vendas'])
+        total_vendas = sum(self.get_valor_cobrado(venda) for venda in self.dados['vendas'])
         total_despesas = sum(despesa['valor'] for despesa in self.dados['despesas'])
         
         # Calcular custo total das vendas
@@ -2126,7 +2430,12 @@ class SistemaEspetinho:
 
 📈 SEU LUCRO REAL:
    • Lucro: R$ {saldo_final:,.2f}
-   • Margem de Lucro: {(saldo_final/total_vendas*100):.1f}%
+   • Margem de Lucro: {(saldo_final/total_vendas*100):.1f}%""" if total_vendas > 0 else f"""
+📈 SEU LUCRO REAL:
+   • Lucro: R$ {saldo_final:,.2f}
+   • Margem de Lucro: N/A (sem vendas no período)
+"""
+        relatorio += """
    • Fórmula: VENDAS - DESPESAS = LUCRO
 
 🎯 INDICADORES DE PERFORMANCE:
@@ -2155,7 +2464,7 @@ class SistemaEspetinho:
         vendas_hoje = [venda for venda in self.dados['vendas'] if venda['data'].startswith(hoje)]
         despesas_hoje = [despesa for despesa in self.dados['despesas'] if despesa['data'].startswith(hoje)]
         
-        total_vendas_hoje = sum(venda['total'] for venda in vendas_hoje)
+        total_vendas_hoje = sum(self.get_valor_cobrado(venda) for venda in vendas_hoje)
         total_despesas_hoje = sum(despesa['valor'] for despesa in despesas_hoje)
         
         # Análise por espetinho hoje
@@ -2166,7 +2475,7 @@ class SistemaEspetinho:
                 if espetinho not in vendas_por_espetinho_hoje:
                     vendas_por_espetinho_hoje[espetinho] = {'quantidade': 0, 'valor': 0}
                 vendas_por_espetinho_hoje[espetinho]['quantidade'] += venda['quantidade']
-                vendas_por_espetinho_hoje[espetinho]['valor'] += venda['total']
+                vendas_por_espetinho_hoje[espetinho]['valor'] += self.get_valor_cobrado(venda)
         
         relatorio = f"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
@@ -2189,6 +2498,20 @@ class SistemaEspetinho:
                 relatorio += f"   • {espetinho}: {dados['quantidade']} unid. | R$ {dados['valor']:,.2f} | Ticket: R$ {ticket_medio:.2f}\n"
         else:
             relatorio += "   • Nenhuma venda registrada hoje\n"
+        
+        # Quebra por tipo de consumo (local, entrega, interno)
+        consumo_por_tipo = {'local': 0, 'entrega': 0, 'interno': 0}
+        for venda in vendas_hoje:
+            tipo_consumo = venda.get('tipo_consumo', 'local')
+            if tipo_consumo in consumo_por_tipo:
+                consumo_por_tipo[tipo_consumo] += venda.get('quantidade', 0)
+
+        relatorio += """
+📌 CONSUMO POR TIPO:
+   • Local: {local} unidades
+   • Entrega: {entrega} unidades
+   • Interno: {interno} unidades
+""".format(**consumo_por_tipo)
         
         # Calcular ticket médio com proteção contra divisão por zero
         ticket_medio_hoje = total_vendas_hoje / len(vendas_hoje) if len(vendas_hoje) > 0 else 0
@@ -2217,8 +2540,8 @@ class SistemaEspetinho:
 💡 Lance vendas pelo celular para ver os dados aqui.
             """
         else:
-            # Calcular totais mobile
-            total_vendas_mobile = sum(venda['total'] for venda in vendas_mobile)
+            # Calcular totais mobile (usando valor cobrado)
+            total_vendas_mobile = sum(self.get_valor_cobrado(venda) for venda in vendas_mobile)
             total_quantidade_mobile = sum(venda['quantidade'] for venda in vendas_mobile)
             
             # Análise por espetinho mobile
@@ -2230,7 +2553,7 @@ class SistemaEspetinho:
                         'quantidade': 0, 'valor_total': 0, 'vendas': []
                     }
                 vendas_por_espetinho_mobile[espetinho]['quantidade'] += venda['quantidade']
-                vendas_por_espetinho_mobile[espetinho]['valor_total'] += venda['total']
+                vendas_por_espetinho_mobile[espetinho]['valor_total'] += self.get_valor_cobrado(venda)
                 vendas_por_espetinho_mobile[espetinho]['vendas'].append(venda)
             
             # Encontrar mais vendido mobile
@@ -2291,8 +2614,8 @@ class SistemaEspetinho:
 💡 Lance vendas pelo sistema desktop para ver os dados aqui.
             """
         else:
-            # Calcular totais desktop
-            total_vendas_desktop = sum(venda['total'] for venda in vendas_desktop)
+            # Calcular totais desktop (usando valor cobrado)
+            total_vendas_desktop = sum(self.get_valor_cobrado(venda) for venda in vendas_desktop)
             total_quantidade_desktop = sum(venda['quantidade'] for venda in vendas_desktop)
             
             # Análise por espetinho desktop
@@ -2304,7 +2627,7 @@ class SistemaEspetinho:
                         'quantidade': 0, 'valor_total': 0, 'vendas': []
                     }
                 vendas_por_espetinho_desktop[espetinho]['quantidade'] += venda['quantidade']
-                vendas_por_espetinho_desktop[espetinho]['valor_total'] += venda['total']
+                vendas_por_espetinho_desktop[espetinho]['valor_total'] += self.get_valor_cobrado(venda)
                 vendas_por_espetinho_desktop[espetinho]['vendas'].append(venda)
             
             # Encontrar mais vendido desktop
@@ -2374,7 +2697,7 @@ class SistemaEspetinho:
                     }
                 
                 vendas_por_hora[hora_int]['quantidade'] += venda['quantidade']
-                vendas_por_hora[hora_int]['valor_total'] += venda['total']
+                vendas_por_hora[hora_int]['valor_total'] += self.get_valor_cobrado(venda)
                 vendas_por_hora[hora_int]['vendas'] += 1
                 
             except (ValueError, IndexError):
@@ -3336,8 +3659,8 @@ Mostra a rentabilidade real do produto
                 if data_ini <= data_despesa <= data_fim:
                     despesas_periodo.append(despesa)
             
-            # Calcular totais
-            total_vendas = sum(venda['total'] for venda in vendas_periodo)
+            # Calcular totais (usando valor cobrado)
+            total_vendas = sum(self.get_valor_cobrado(venda) for venda in vendas_periodo)
             total_despesas = sum(despesa['valor'] for despesa in despesas_periodo)
             saldo = total_vendas - total_despesas
             
@@ -3379,6 +3702,699 @@ Despesas: {len(despesas_periodo)} registros
             messagebox.showerror("Erro", "Formato de data inválido! Use DD/MM/AAAA")
         except Exception as e:
             messagebox.showerror("Erro", f"Erro ao gerar relatório: {str(e)}")
+
+    def gerar_fechamento_mensal(self):
+        """Gera relatório de fechamento mensal (por competência) e grava resumo no JSON"""
+        try:
+            data_final_str = self.entry_data_final_rel.get().strip()
+            data_inicial_str = self.entry_data_inicial_rel.get().strip()
+
+            # Usar data final como referência; se vazia, usar inicial
+            data_ref_str = data_final_str or data_inicial_str
+            if not data_ref_str:
+                messagebox.showerror("Erro", "Preencha pelo menos a Data Final para definir o mês.")
+                return
+
+            dt_ref = datetime.strptime(data_ref_str, '%d/%m/%Y')
+            ano = dt_ref.year
+            mes = dt_ref.month
+            competencia = f"{ano:04d}-{mes:02d}"
+
+            # Filtrar vendas do mês pela competência (se existir) ou pela data
+            vendas_mes = []
+            for venda in self.dados['vendas']:
+                comp_venda = venda.get('competencia')
+                if comp_venda:
+                    if comp_venda == competencia:
+                        vendas_mes.append(venda)
+                else:
+                    # Fallback para vendas antigas: usar data string
+                    try:
+                        data_str = venda.get('data', '').split(' ')[0]
+                        dt_venda = datetime.strptime(data_str, '%d/%m/%Y')
+                        if dt_venda.year == ano and dt_venda.month == mes:
+                            vendas_mes.append(venda)
+                    except Exception:
+                        continue
+
+            # Filtrar despesas do mês
+            despesas_mes = []
+            for despesa in self.dados['despesas']:
+                try:
+                    data_str = despesa.get('data', '').split(' ')[0]
+                    dt_desp = datetime.strptime(data_str, '%d/%m/%Y')
+                    if dt_desp.year == ano and dt_desp.month == mes:
+                        despesas_mes.append(despesa)
+                except Exception:
+                    continue
+
+            # Totais principais
+            total_cobrado = sum(self.get_valor_cobrado(v) for v in vendas_mes)
+            total_bonificacoes_valor_tabela = sum(v.get('total', 0) for v in vendas_mes if v.get('tipo_venda') == 'bonificacao')
+            qtd_bonificada = sum(v.get('quantidade', 0) for v in vendas_mes if v.get('tipo_venda') == 'bonificacao')
+
+            # Consumo por tipo (quantidade e valor cobrado)
+            consumo_por_tipo = {
+                'local': {'qtd': 0, 'valor': 0.0},
+                'entrega': {'qtd': 0, 'valor': 0.0},
+                'interno': {'qtd': 0, 'valor': 0.0},
+            }
+            for v in vendas_mes:
+                tipo = v.get('tipo_consumo', 'local')
+                if tipo in consumo_por_tipo:
+                    consumo_por_tipo[tipo]['qtd'] += v.get('quantidade', 0)
+                    consumo_por_tipo[tipo]['valor'] += self.get_valor_cobrado(v)
+
+            # Custo das vendas no mês
+            total_custo_vendas = 0.0
+            for v in vendas_mes:
+                espetinho = v.get('espetinho')
+                if espetinho and espetinho in self.dados['espetinhos']:
+                    custo_unit = self.dados['espetinhos'][espetinho]['custo']
+                    total_custo_vendas += custo_unit * v.get('quantidade', 0)
+
+            total_despesas = sum(d['valor'] for d in despesas_mes)
+
+            lucro_bruto = total_cobrado - total_custo_vendas
+            margem_bruta = (lucro_bruto / total_cobrado * 100) if total_cobrado > 0 else 0
+            saldo_final = total_cobrado - total_despesas
+
+            # Ticket médio (só vendas pagas)
+            qtd_vendas_pagas = sum(1 for v in vendas_mes if self.get_valor_cobrado(v) > 0)
+            ticket_medio = total_cobrado / qtd_vendas_pagas if qtd_vendas_pagas > 0 else 0
+
+            # Resumo textual
+            nome_mes = [
+                'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+            ][mes-1]
+
+            resumo = f"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    📅 FECHAMENTO MENSAL - {nome_mes}/{ano} ({competencia})                    ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+📌 RESUMO GERAL:
+   • Vendas: {len(vendas_mes)} lançamentos (pagas + bonificações)
+   • Despesas: {len(despesas_mes)} registros
+
+💰 FATURAMENTO (PAGO):
+   • Total Cobrado: R$ {total_cobrado:,.2f}
+   • Ticket Médio (pagas): R$ {ticket_medio:,.2f}
+
+🎁 BONIFICAÇÕES:
+   • Quantidade Bonificada: {qtd_bonificada} unidades
+   • Valor de Tabela Bonificado: R$ {total_bonificacoes_valor_tabela:,.2f}
+
+📦 CONSUMO POR TIPO:
+   • Local:   {consumo_por_tipo['local']['qtd']} unid. | R$ {consumo_por_tipo['local']['valor']:,.2f}
+   • Entrega: {consumo_por_tipo['entrega']['qtd']} unid. | R$ {consumo_por_tipo['entrega']['valor']:,.2f}
+   • Interno: {consumo_por_tipo['interno']['qtd']} unid. | R$ {consumo_por_tipo['interno']['valor']:,.2f}
+
+💸 CUSTOS E DESPESAS:
+   • Custo dos Espetinhos Vendidos: R$ {total_custo_vendas:,.2f}
+   • Outras Despesas (caixa):       R$ {total_despesas:,.2f}
+
+📈 RESULTADO DO MÊS:
+   • Lucro Bruto (Vendas - Custo): R$ {lucro_bruto:,.2f}
+   • Margem Bruta: {margem_bruta:.1f}%{" (sobre o que foi cobrado)" if total_cobrado > 0 else ""}
+   • Saldo Final (Cobrado - Despesas): R$ {saldo_final:,.2f}
+   • Status: {'✅ LUCRO' if saldo_final > 0 else '❌ PREJUÍZO' if saldo_final < 0 else '⚖️ NO ZERO A ZERO'}
+"""
+
+            # Mostrar no painel de texto
+            self.text_resumo.delete(1.0, tk.END)
+            self.text_resumo.insert(1.0, resumo)
+
+            # Gravar fechamento no JSON para histórico
+            fechamentos = self.dados.get('fechamentos_mensais', {})
+            fechamentos[competencia] = {
+                'ano': ano,
+                'mes': mes,
+                'nome_mes': nome_mes,
+                'total_cobrado': total_cobrado,
+                'total_bonificacoes_valor_tabela': total_bonificacoes_valor_tabela,
+                'qtd_bonificada': qtd_bonificada,
+                'consumo_por_tipo': consumo_por_tipo,
+                'total_custo_vendas': total_custo_vendas,
+                'total_despesas': total_despesas,
+                'lucro_bruto': lucro_bruto,
+                'margem_bruta': margem_bruta,
+                'saldo_final': saldo_final,
+                'ticket_medio': ticket_medio,
+                'qtd_vendas': len(vendas_mes),
+                'qtd_despesas': len(despesas_mes),
+                'gerado_em': datetime.now().strftime('%d/%m/%Y %H:%M')
+            }
+            self.dados['fechamentos_mensais'] = fechamentos
+            self.salvar_dados()
+
+        except ValueError:
+            messagebox.showerror("Erro", "Formato de data inválido! Use DD/MM/AAAA")
+        except Exception as e:
+            messagebox.showerror("Erro", f"Erro ao gerar fechamento mensal: {str(e)}")
+    
+    def gerar_relatorio_fechamentos_mensais(self):
+        """Mostra um comparativo de todos os fechamentos mensais já gravados"""
+        fechamentos = self.dados.get('fechamentos_mensais', {})
+        if not fechamentos:
+            self.text_resumo.delete(1.0, tk.END)
+            self.text_resumo.insert(1.0, "❌ Ainda não há fechamentos mensais gravados.\n\nUse o botão '📅 Fechamento Mensal' para gerar o primeiro.")
+            return
+
+        # Ordenar por competência (AAAAMM)
+        competencias_ordenadas = sorted(fechamentos.keys())
+
+        linhas = []
+        linhas.append("╔════════════════════════════════════════════════════════════════════╗")
+        linhas.append("║                  📚 HISTÓRICO DE FECHAMENTOS MENSAIS               ║")
+        linhas.append("╚════════════════════════════════════════════════════════════════════╝")
+        linhas.append("")
+
+        linhas.append(f"{'Comp.':<8} {'Mês/Ano':<12} {'Faturado':>12} {'Despesas':>12} {'Saldo':>12} {'Bonif. Tbl':>12}")
+        linhas.append("-" * 70)
+
+        total_faturado = 0.0
+        total_despesas = 0.0
+        total_saldo = 0.0
+        total_bonif = 0.0
+
+        for comp in competencias_ordenadas:
+            f = fechamentos.get(comp, {})
+            nome_mes = f.get('nome_mes', '')
+            ano = f.get('ano', '')
+            faturado = float(f.get('total_cobrado', 0))
+            despesas = float(f.get('total_despesas', 0))
+            saldo = float(f.get('saldo_final', faturado - despesas))
+            bonif = float(f.get('total_bonificacoes_valor_tabela', 0))
+
+            total_faturado += faturado
+            total_despesas += despesas
+            total_saldo += saldo
+            total_bonif += bonif
+
+            linhas.append(f"{comp:<8} {nome_mes}/{ano:<10} R$ {faturado:>9.2f} R$ {despesas:>9.2f} R$ {saldo:>9.2f} R$ {bonif:>9.2f}")
+
+        linhas.append("-" * 70)
+        linhas.append(f"{'TOTAL':<20} R$ {total_faturado:>9.2f} R$ {total_despesas:>9.2f} R$ {total_saldo:>9.2f} R$ {total_bonif:>9.2f}")
+        linhas.append("")
+
+        # Pequena análise
+        linhas.append("📈 RESUMO RÁPIDO:")
+        linhas.append(f"   • Meses fechados: {len(competencias_ordenadas)}")
+        linhas.append(f"   • Média de faturamento/mês: R$ {(total_faturado/len(competencias_ordenadas)):.2f}")
+        linhas.append(f"   • Média de saldo/mês:       R$ {(total_saldo/len(competencias_ordenadas)):.2f}")
+
+        texto = "\n".join(linhas)
+        self.text_resumo.delete(1.0, tk.END)
+        self.text_resumo.insert(1.0, texto)
+    
+    def atualizar_lista_vendas_filtrada(self, vendas_filtradas):
+        """Atualiza a lista de vendas com dados filtrados"""
+        # Limpar lista atual
+        for item in self.tree_vendas.get_children():
+            self.tree_vendas.delete(item)
+        
+        # Adicionar vendas filtradas
+        for venda in vendas_filtradas:
+            descricao = venda.get('espetinho', venda.get('descricao', ''))
+            origem = venda.get('origem', 'desktop')
+            origem_emoji = "📱 MOBILE" if origem == 'mobile' else "💻 DESKTOP"
+            
+            self.tree_vendas.insert('', 'end', values=(
+                venda['data'],
+                descricao,
+                venda['quantidade'],
+                f"R$ {venda['valor_unitario']:.2f}",
+                f"R$ {venda['total']:.2f}",
+                origem_emoji
+            ))
+    
+    def atualizar_lista_despesas_filtrada(self, despesas_filtradas):
+        """Atualiza a lista de despesas com dados filtrados"""
+        # Limpar lista atual
+        for item in self.tree_despesas.get_children():
+            self.tree_despesas.delete(item)
+        
+        # Adicionar despesas filtradas
+        for despesa in despesas_filtradas:
+            self.tree_despesas.insert('', 'end', values=(
+                despesa['data'],
+                despesa['descricao'],
+                f"R$ {despesa['valor']:.2f}"
+            ))
+    
+    def executar(self):
+        """Executa o sistema"""
+        # Debug: mostrar dados carregados
+        print("=== DADOS CARREGADOS ===")
+        print(f"Total de vendas: {len(self.dados['vendas'])}")
+        print(f"Total de despesas: {len(self.dados['despesas'])}")
+        print(f"Total de espetinhos: {len(self.dados['espetinhos'])}")
+        print("========================")
+        
+        self.root.mainloop()
+
+if __name__ == "__main__":
+    sistema = SistemaEspetinho()
+    sistema.executar()
+
+                    diferenca = quantidade - quantidade_antiga
+                    
+                    # Verificar se há estoque suficiente
+                    estoque_atual = self.dados['espetinhos'][espetinho]['estoque']
+                    if estoque_atual < diferenca:
+                        self.mostrar_notificacao_erro(f"❌ Estoque insuficiente! Disponível: {estoque_atual} unidades")
+                        return
+                    
+                    # Atualizar estoque
+                    self.dados['espetinhos'][espetinho]['estoque'] -= diferenca
+                
+                # Atualizar venda
+                self.dados['vendas'][indice] = {
+                    'data': data_venda,
+                    'espetinho': espetinho,
+                    'quantidade': quantidade,
+                    'valor_unitario': valor_unitario,
+                    'total': quantidade * valor_unitario,
+                    'alterou_estoque': venda.get('alterou_estoque', True)
+                }
+                
+                if self.salvar_dados():
+                    self.atualizar_lista_vendas()
+                    self.atualizar_lista_espetinhos()
+                    self.atualizar_dashboard()
+                    janela.destroy()
+                    self.mostrar_notificacao_sucesso("✅ Venda editada com sucesso!")
+                
+            except ValueError:
+                self.mostrar_notificacao_erro("❌ Valores inválidos!")
+            except Exception as e:
+                self.mostrar_notificacao_erro(f"❌ Erro ao editar venda: {str(e)}")
+        
+        ttk.Button(frame_botoes, text="💾 Salvar", command=salvar_edicao, style='Modern.TButton').pack(side='left', padx=10)
+        ttk.Button(frame_botoes, text="❌ Cancelar", command=janela.destroy, style='Secondary.TButton').pack(side='left', padx=10)
+    
+    def criar_janela_edicao_despesa(self, indice, despesa):
+        """Cria janela para editar despesa"""
+        janela = tk.Toplevel(self.root)
+        janela.title("Editar Despesa")
+        janela.geometry("400x250")
+        janela.grab_set()  # Modal
+        
+        # Frame principal
+        frame = ttk.Frame(janela)
+        frame.pack(fill='both', expand=True, padx=10, pady=10)
+        
+        ttk.Label(frame, text="Editar Despesa", font=('Arial', 14, 'bold')).pack(pady=10)
+        
+        # Campos de edição
+        ttk.Label(frame, text="Descrição:").pack(anchor='w')
+        entry_desc = ttk.Entry(frame, width=30)
+        entry_desc.pack(fill='x', pady=5)
+        entry_desc.insert(0, despesa['descricao'])
+        
+        ttk.Label(frame, text="Valor:").pack(anchor='w')
+        entry_valor = ttk.Entry(frame, width=30)
+        entry_valor.pack(fill='x', pady=5)
+        entry_valor.insert(0, str(despesa['valor']))
+        
+        # Botões
+        frame_botoes = ttk.Frame(frame)
+        frame_botoes.pack(fill='x', pady=10)
+        
+        def salvar_edicao():
+            try:
+                descricao = entry_desc.get().strip()
+                valor = float(entry_valor.get().replace(',', '.'))
+                
+                if not descricao:
+                    messagebox.showerror("Erro", "Descrição é obrigatória!")
+                    return
+                
+                # Atualizar despesa
+                self.dados['despesas'][indice] = {
+                    'data': despesa['data'],
+                    'descricao': descricao,
+                    'valor': valor
+                }
+                
+                if self.salvar_dados():
+                    self.atualizar_lista_despesas()
+                    janela.destroy()
+                    messagebox.showinfo("Sucesso", "Despesa editada com sucesso!")
+                
+            except ValueError:
+                messagebox.showerror("Erro", "Valor inválido!")
+            except Exception as e:
+                messagebox.showerror("Erro", f"Erro ao editar despesa: {str(e)}")
+        
+        ttk.Button(frame_botoes, text="Salvar", command=salvar_edicao).pack(side='left', padx=5)
+        ttk.Button(frame_botoes, text="Cancelar", command=janela.destroy).pack(side='left', padx=5)
+    
+    def filtrar_vendas(self):
+        """Filtra vendas por período"""
+        try:
+            data_inicial = self.entry_data_inicial.get().strip()
+            data_final = self.entry_data_final.get().strip()
+            
+            if not data_inicial or not data_final:
+                messagebox.showerror("Erro", "Preencha as datas inicial e final!")
+                return
+            
+            # Converter datas para datetime
+            data_ini = datetime.strptime(data_inicial, '%d/%m/%Y')
+            data_fim = datetime.strptime(data_final, '%d/%m/%Y')
+            
+            # Filtrar vendas
+            vendas_filtradas = []
+            for venda in self.dados['vendas']:
+                data_venda = datetime.strptime(venda['data'].split(' ')[0], '%d/%m/%Y')
+                if data_ini <= data_venda <= data_fim:
+                    vendas_filtradas.append(venda)
+            
+            # Atualizar lista
+            self.atualizar_lista_vendas_filtrada(vendas_filtradas)
+            
+        except ValueError:
+            messagebox.showerror("Erro", "Formato de data inválido! Use DD/MM/AAAA")
+        except Exception as e:
+            messagebox.showerror("Erro", f"Erro ao filtrar vendas: {str(e)}")
+    
+    def mostrar_todas_vendas(self):
+        """Mostra todas as vendas"""
+        self.atualizar_lista_vendas()
+    
+    def filtrar_despesas(self):
+        """Filtra despesas por período"""
+        try:
+            data_inicial = self.entry_data_inicial_despesa.get().strip()
+            data_final = self.entry_data_final_despesa.get().strip()
+            
+            if not data_inicial or not data_final:
+                messagebox.showerror("Erro", "Preencha as datas inicial e final!")
+                return
+            
+            # Converter datas para datetime
+            data_ini = datetime.strptime(data_inicial, '%d/%m/%Y')
+            data_fim = datetime.strptime(data_final, '%d/%m/%Y')
+            
+            # Filtrar despesas
+            despesas_filtradas = []
+            for despesa in self.dados['despesas']:
+                data_despesa = datetime.strptime(despesa['data'].split(' ')[0], '%d/%m/%Y')
+                if data_ini <= data_despesa <= data_fim:
+                    despesas_filtradas.append(despesa)
+            
+            # Atualizar lista
+            self.atualizar_lista_despesas_filtrada(despesas_filtradas)
+            
+        except ValueError:
+            messagebox.showerror("Erro", "Formato de data inválido! Use DD/MM/AAAA")
+        except Exception as e:
+            messagebox.showerror("Erro", f"Erro ao filtrar despesas: {str(e)}")
+    
+    def mostrar_todas_despesas(self):
+        """Mostra todas as despesas"""
+        self.atualizar_lista_despesas()
+    
+    def gerar_relatorio_periodo(self):
+        """Gera relatório para um período específico"""
+        try:
+            data_inicial = self.entry_data_inicial_rel.get().strip()
+            data_final = self.entry_data_final_rel.get().strip()
+            
+            if not data_inicial or not data_final:
+                messagebox.showerror("Erro", "Preencha as datas inicial e final!")
+                return
+            
+            # Converter datas para datetime
+            data_ini = datetime.strptime(data_inicial, '%d/%m/%Y')
+            data_fim = datetime.strptime(data_final, '%d/%m/%Y')
+            
+            # Filtrar vendas e despesas
+            vendas_periodo = []
+            despesas_periodo = []
+            
+            for venda in self.dados['vendas']:
+                data_venda = datetime.strptime(venda['data'].split(' ')[0], '%d/%m/%Y')
+                if data_ini <= data_venda <= data_fim:
+                    vendas_periodo.append(venda)
+            
+            for despesa in self.dados['despesas']:
+                data_despesa = datetime.strptime(despesa['data'].split(' ')[0], '%d/%m/%Y')
+                if data_ini <= data_despesa <= data_fim:
+                    despesas_periodo.append(despesa)
+            
+            # Calcular totais (usando valor cobrado)
+            total_vendas = sum(self.get_valor_cobrado(venda) for venda in vendas_periodo)
+            total_despesas = sum(despesa['valor'] for despesa in despesas_periodo)
+            saldo = total_vendas - total_despesas
+            
+            # Calcular custo total das vendas do período
+            total_custo_vendas = 0
+            for venda in vendas_periodo:
+                if 'espetinho' in venda:
+                    espetinho = venda['espetinho']
+                    quantidade = venda['quantidade']
+                    custo_unitario = self.dados['espetinhos'][espetinho]['custo']
+                    total_custo_vendas += quantidade * custo_unitario
+            
+            lucro_bruto = total_vendas - total_custo_vendas
+            margem_lucro = (lucro_bruto / total_vendas * 100) if total_vendas > 0 else 0
+            
+            resumo = f"""
+RELATÓRIO FINANCEIRO - PERÍODO: {data_inicial} a {data_final}
+
+RECEITAS:
+Total de Vendas: R$ {total_vendas:.2f}
+
+CUSTOS:
+Custo Total das Vendas: R$ {total_custo_vendas:.2f}
+Outras Despesas: R$ {total_despesas:.2f}
+
+LUCRO:
+Lucro Bruto: R$ {lucro_bruto:.2f}
+Margem de Lucro: {margem_lucro:.1f}%
+Saldo do Período: R$ {saldo:.2f}
+
+QUANTIDADES:
+Vendas: {len(vendas_periodo)} transações
+Despesas: {len(despesas_periodo)} registros
+            """
+            
+            self.label_resumo.config(text=resumo)
+            
+        except ValueError:
+            messagebox.showerror("Erro", "Formato de data inválido! Use DD/MM/AAAA")
+        except Exception as e:
+            messagebox.showerror("Erro", f"Erro ao gerar relatório: {str(e)}")
+
+    def gerar_fechamento_mensal(self):
+        """Gera relatório de fechamento mensal (por competência) e grava resumo no JSON"""
+        try:
+            data_final_str = self.entry_data_final_rel.get().strip()
+            data_inicial_str = self.entry_data_inicial_rel.get().strip()
+
+            # Usar data final como referência; se vazia, usar inicial
+            data_ref_str = data_final_str or data_inicial_str
+            if not data_ref_str:
+                messagebox.showerror("Erro", "Preencha pelo menos a Data Final para definir o mês.")
+                return
+
+            dt_ref = datetime.strptime(data_ref_str, '%d/%m/%Y')
+            ano = dt_ref.year
+            mes = dt_ref.month
+            competencia = f"{ano:04d}-{mes:02d}"
+
+            # Filtrar vendas do mês pela competência (se existir) ou pela data
+            vendas_mes = []
+            for venda in self.dados['vendas']:
+                comp_venda = venda.get('competencia')
+                if comp_venda:
+                    if comp_venda == competencia:
+                        vendas_mes.append(venda)
+                else:
+                    # Fallback para vendas antigas: usar data string
+                    try:
+                        data_str = venda.get('data', '').split(' ')[0]
+                        dt_venda = datetime.strptime(data_str, '%d/%m/%Y')
+                        if dt_venda.year == ano and dt_venda.month == mes:
+                            vendas_mes.append(venda)
+                    except Exception:
+                        continue
+
+            # Filtrar despesas do mês
+            despesas_mes = []
+            for despesa in self.dados['despesas']:
+                try:
+                    data_str = despesa.get('data', '').split(' ')[0]
+                    dt_desp = datetime.strptime(data_str, '%d/%m/%Y')
+                    if dt_desp.year == ano and dt_desp.month == mes:
+                        despesas_mes.append(despesa)
+                except Exception:
+                    continue
+
+            # Totais principais
+            total_cobrado = sum(self.get_valor_cobrado(v) for v in vendas_mes)
+            total_bonificacoes_valor_tabela = sum(v.get('total', 0) for v in vendas_mes if v.get('tipo_venda') == 'bonificacao')
+            qtd_bonificada = sum(v.get('quantidade', 0) for v in vendas_mes if v.get('tipo_venda') == 'bonificacao')
+
+            # Consumo por tipo (quantidade e valor cobrado)
+            consumo_por_tipo = {
+                'local': {'qtd': 0, 'valor': 0.0},
+                'entrega': {'qtd': 0, 'valor': 0.0},
+                'interno': {'qtd': 0, 'valor': 0.0},
+            }
+            for v in vendas_mes:
+                tipo = v.get('tipo_consumo', 'local')
+                if tipo in consumo_por_tipo:
+                    consumo_por_tipo[tipo]['qtd'] += v.get('quantidade', 0)
+                    consumo_por_tipo[tipo]['valor'] += self.get_valor_cobrado(v)
+
+            # Custo das vendas no mês
+            total_custo_vendas = 0.0
+            for v in vendas_mes:
+                espetinho = v.get('espetinho')
+                if espetinho and espetinho in self.dados['espetinhos']:
+                    custo_unit = self.dados['espetinhos'][espetinho]['custo']
+                    total_custo_vendas += custo_unit * v.get('quantidade', 0)
+
+            total_despesas = sum(d['valor'] for d in despesas_mes)
+
+            lucro_bruto = total_cobrado - total_custo_vendas
+            margem_bruta = (lucro_bruto / total_cobrado * 100) if total_cobrado > 0 else 0
+            saldo_final = total_cobrado - total_despesas
+
+            # Ticket médio (só vendas pagas)
+            qtd_vendas_pagas = sum(1 for v in vendas_mes if self.get_valor_cobrado(v) > 0)
+            ticket_medio = total_cobrado / qtd_vendas_pagas if qtd_vendas_pagas > 0 else 0
+
+            # Resumo textual
+            nome_mes = [
+                'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+            ][mes-1]
+
+            resumo = f"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    📅 FECHAMENTO MENSAL - {nome_mes}/{ano} ({competencia})                    ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+📌 RESUMO GERAL:
+   • Vendas: {len(vendas_mes)} lançamentos (pagas + bonificações)
+   • Despesas: {len(despesas_mes)} registros
+
+💰 FATURAMENTO (PAGO):
+   • Total Cobrado: R$ {total_cobrado:,.2f}
+   • Ticket Médio (pagas): R$ {ticket_medio:,.2f}
+
+🎁 BONIFICAÇÕES:
+   • Quantidade Bonificada: {qtd_bonificada} unidades
+   • Valor de Tabela Bonificado: R$ {total_bonificacoes_valor_tabela:,.2f}
+
+📦 CONSUMO POR TIPO:
+   • Local:   {consumo_por_tipo['local']['qtd']} unid. | R$ {consumo_por_tipo['local']['valor']:,.2f}
+   • Entrega: {consumo_por_tipo['entrega']['qtd']} unid. | R$ {consumo_por_tipo['entrega']['valor']:,.2f}
+   • Interno: {consumo_por_tipo['interno']['qtd']} unid. | R$ {consumo_por_tipo['interno']['valor']:,.2f}
+
+💸 CUSTOS E DESPESAS:
+   • Custo dos Espetinhos Vendidos: R$ {total_custo_vendas:,.2f}
+   • Outras Despesas (caixa):       R$ {total_despesas:,.2f}
+
+📈 RESULTADO DO MÊS:
+   • Lucro Bruto (Vendas - Custo): R$ {lucro_bruto:,.2f}
+   • Margem Bruta: {margem_bruta:.1f}%{" (sobre o que foi cobrado)" if total_cobrado > 0 else ""}
+   • Saldo Final (Cobrado - Despesas): R$ {saldo_final:,.2f}
+   • Status: {'✅ LUCRO' if saldo_final > 0 else '❌ PREJUÍZO' if saldo_final < 0 else '⚖️ NO ZERO A ZERO'}
+"""
+
+            # Mostrar no painel de texto
+            self.text_resumo.delete(1.0, tk.END)
+            self.text_resumo.insert(1.0, resumo)
+
+            # Gravar fechamento no JSON para histórico
+            fechamentos = self.dados.get('fechamentos_mensais', {})
+            fechamentos[competencia] = {
+                'ano': ano,
+                'mes': mes,
+                'nome_mes': nome_mes,
+                'total_cobrado': total_cobrado,
+                'total_bonificacoes_valor_tabela': total_bonificacoes_valor_tabela,
+                'qtd_bonificada': qtd_bonificada,
+                'consumo_por_tipo': consumo_por_tipo,
+                'total_custo_vendas': total_custo_vendas,
+                'total_despesas': total_despesas,
+                'lucro_bruto': lucro_bruto,
+                'margem_bruta': margem_bruta,
+                'saldo_final': saldo_final,
+                'ticket_medio': ticket_medio,
+                'qtd_vendas': len(vendas_mes),
+                'qtd_despesas': len(despesas_mes),
+                'gerado_em': datetime.now().strftime('%d/%m/%Y %H:%M')
+            }
+            self.dados['fechamentos_mensais'] = fechamentos
+            self.salvar_dados()
+
+        except ValueError:
+            messagebox.showerror("Erro", "Formato de data inválido! Use DD/MM/AAAA")
+        except Exception as e:
+            messagebox.showerror("Erro", f"Erro ao gerar fechamento mensal: {str(e)}")
+    
+    def gerar_relatorio_fechamentos_mensais(self):
+        """Mostra um comparativo de todos os fechamentos mensais já gravados"""
+        fechamentos = self.dados.get('fechamentos_mensais', {})
+        if not fechamentos:
+            self.text_resumo.delete(1.0, tk.END)
+            self.text_resumo.insert(1.0, "❌ Ainda não há fechamentos mensais gravados.\n\nUse o botão '📅 Fechamento Mensal' para gerar o primeiro.")
+            return
+
+        # Ordenar por competência (AAAAMM)
+        competencias_ordenadas = sorted(fechamentos.keys())
+
+        linhas = []
+        linhas.append("╔════════════════════════════════════════════════════════════════════╗")
+        linhas.append("║                  📚 HISTÓRICO DE FECHAMENTOS MENSAIS               ║")
+        linhas.append("╚════════════════════════════════════════════════════════════════════╝")
+        linhas.append("")
+
+        linhas.append(f"{'Comp.':<8} {'Mês/Ano':<12} {'Faturado':>12} {'Despesas':>12} {'Saldo':>12} {'Bonif. Tbl':>12}")
+        linhas.append("-" * 70)
+
+        total_faturado = 0.0
+        total_despesas = 0.0
+        total_saldo = 0.0
+        total_bonif = 0.0
+
+        for comp in competencias_ordenadas:
+            f = fechamentos.get(comp, {})
+            nome_mes = f.get('nome_mes', '')
+            ano = f.get('ano', '')
+            faturado = float(f.get('total_cobrado', 0))
+            despesas = float(f.get('total_despesas', 0))
+            saldo = float(f.get('saldo_final', faturado - despesas))
+            bonif = float(f.get('total_bonificacoes_valor_tabela', 0))
+
+            total_faturado += faturado
+            total_despesas += despesas
+            total_saldo += saldo
+            total_bonif += bonif
+
+            linhas.append(f"{comp:<8} {nome_mes}/{ano:<10} R$ {faturado:>9.2f} R$ {despesas:>9.2f} R$ {saldo:>9.2f} R$ {bonif:>9.2f}")
+
+        linhas.append("-" * 70)
+        linhas.append(f"{'TOTAL':<20} R$ {total_faturado:>9.2f} R$ {total_despesas:>9.2f} R$ {total_saldo:>9.2f} R$ {total_bonif:>9.2f}")
+        linhas.append("")
+
+        # Pequena análise
+        linhas.append("📈 RESUMO RÁPIDO:")
+        linhas.append(f"   • Meses fechados: {len(competencias_ordenadas)}")
+        linhas.append(f"   • Média de faturamento/mês: R$ {(total_faturado/len(competencias_ordenadas)):.2f}")
+        linhas.append(f"   • Média de saldo/mês:       R$ {(total_saldo/len(competencias_ordenadas)):.2f}")
+
+        texto = "\n".join(linhas)
+        self.text_resumo.delete(1.0, tk.END)
+        self.text_resumo.insert(1.0, texto)
     
     def atualizar_lista_vendas_filtrada(self, vendas_filtradas):
         """Atualiza a lista de vendas com dados filtrados"""
