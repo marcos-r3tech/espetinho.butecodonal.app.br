@@ -268,60 +268,80 @@ class ButecoWebApp:
             """API para adicionar nova venda"""
             try:
                 data = request.get_json()
-                
+
                 # Validar dados
                 if not data or 'espetinho' not in data or 'quantidade' not in data:
                     return jsonify({'success': False, 'message': 'Dados inválidos'}), 400
-                
+
                 espetinho = data['espetinho']
                 quantidade = int(data['quantidade'])
-                
+
                 # Verificar se espetinho existe
                 if espetinho not in self.dados.get('espetinhos', {}):
                     return jsonify({'success': False, 'message': 'Espetinho não encontrado'}), 400
-                
+
                 # Obter dados do espetinho
                 dados_espetinho = self.dados['espetinhos'][espetinho]
                 valor_unitario = dados_espetinho['valor']
                 total = valor_unitario * quantidade
-                
+
+                # Tipo de venda: normal ou bonificação (sem cobrança)
+                tipo_venda = data.get('tipo_venda', 'normal')
+
+                # Tipo de consumo: local, entrega ou interno
+                tipo_consumo = data.get('tipo_consumo', 'local')
+
+                # Valor realmente cobrado do cliente
+                valor_cobrado = 0.0 if tipo_venda == 'bonificacao' else total
+
+                # Data/hora da venda e competência (ano-mês) no fuso do Brasil
+                data_venda = self.obter_data_hora_brasil()
+                try:
+                    competencia = datetime.strptime(data_venda, '%d/%m/%Y %H:%M').strftime('%Y-%m')
+                except Exception:
+                    competencia = None
+
                 # Verificar se deve alterar estoque
                 alterar_estoque = data.get('alterar_estoque', True)
-                
+
                 # Verificar estoque se necessário
                 if alterar_estoque:
                     estoque_atual = self.dados['espetinhos'][espetinho]['estoque']
                     if estoque_atual < quantidade:
                         return jsonify({'success': False, 'message': f'Estoque insuficiente! Disponível: {estoque_atual} unidades'}), 400
-                
+
                 # Criar venda
                 venda = {
-                    'data': self.obter_data_hora_brasil(),
+                    'data': data_venda,
                     'espetinho': espetinho,
                     'quantidade': quantidade,
                     'valor_unitario': valor_unitario,
                     'total': total,
                     'alterou_estoque': alterar_estoque,
-                    'origem': 'web'
+                    'origem': 'web',
+                    'tipo_venda': tipo_venda,
+                    'valor_cobrado': valor_cobrado,
+                    'tipo_consumo': tipo_consumo,
+                    'competencia': competencia
                 }
-                
+
                 # Adicionar venda
                 if 'vendas' not in self.dados:
                     self.dados['vendas'] = []
-                
+
                 self.dados['vendas'].append(venda)
-                
+
                 # Atualizar estoque apenas se necessário
                 if alterar_estoque:
                     self.dados['espetinhos'][espetinho]['estoque'] -= quantidade
-                
+
                 # Salvar dados e fazer backup
                 if self.salvar_dados():
                     self.fazer_backup_automatico('venda')
                     return jsonify({'success': True, 'message': 'Venda adicionada com sucesso!'})
                 else:
                     return jsonify({'success': False, 'message': 'Erro ao salvar venda'}), 500
-                    
+
             except Exception as e:
                 return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
         
@@ -713,6 +733,203 @@ class ButecoWebApp:
             except Exception as e:
                 return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
         
+        @self.app.route('/api/consolidar-bancos', methods=['POST'])
+        def api_consolidar_bancos():
+            """API para consolidar múltiplos arquivos JSON em um único banco"""
+            try:
+                # Fazer backup antes
+                backup_nome = f"backup_antes_consolidacao_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                try:
+                    with open(backup_nome, 'w', encoding='utf-8') as f:
+                        json.dump(self.dados, f, ensure_ascii=False, indent=2)
+                except Exception as e:
+                    return jsonify({'success': False, 'message': f'Erro ao fazer backup: {str(e)}'}), 500
+                
+                # Dados consolidados (começar com dados atuais)
+                fechamentos_atuais = self.dados.get("fechamentos_mensais", self.dados.get("fechamentos_mes", {}))
+                dados_consolidados = {
+                    "vendas": list(self.dados.get("vendas", [])),
+                    "despesas": list(self.dados.get("despesas", [])),
+                    "espetinhos": dict(self.dados.get("espetinhos", {})),
+                    "fechamentos_mensais": dict(fechamentos_atuais),
+                    "pedidos": list(self.dados.get("pedidos", [])),
+                    "whatsapp_numbers": list(self.dados.get("whatsapp_numbers", [])),
+                    "whatsapp_rotation_index": self.dados.get("whatsapp_rotation_index", 0)
+                }
+                
+                # Criar sets para evitar duplicatas
+                vendas_unicas = set()
+                despesas_unicas = set()
+                
+                # Função para criar chave única de venda
+                def chave_venda(venda):
+                    return (
+                        venda.get("data", ""),
+                        venda.get("espetinho", ""),
+                        venda.get("quantidade", 0),
+                        venda.get("valor_unitario", 0),
+                        venda.get("total", 0),
+                        venda.get("origem", ""),
+                        venda.get("pedido_id", None)
+                    )
+                
+                # Função para criar chave única de despesa
+                def chave_despesa(despesa):
+                    return (
+                        despesa.get("data", ""),
+                        despesa.get("descricao", ""),
+                        despesa.get("valor", 0)
+                    )
+                
+                # Adicionar vendas e despesas atuais aos sets
+                for venda in dados_consolidados["vendas"]:
+                    vendas_unicas.add(chave_venda(venda))
+                for despesa in dados_consolidados["despesas"]:
+                    despesas_unicas.add(chave_despesa(despesa))
+                
+                # Processar cada arquivo enviado
+                total_vendas_adicionadas = 0
+                total_despesas_adicionadas = 0
+                arquivos_processados = 0
+                
+                for key in request.files:
+                    arquivo = request.files[key]
+                    if arquivo.filename == '':
+                        continue
+                    
+                    try:
+                        # Ler conteúdo do arquivo
+                        conteudo = arquivo.read().decode('utf-8')
+                        dados_arquivo = json.loads(conteudo)
+                        
+                        # Processar vendas
+                        vendas_arquivo = dados_arquivo.get("vendas", [])
+                        for venda in vendas_arquivo:
+                            chave = chave_venda(venda)
+                            if chave not in vendas_unicas:
+                                # Criar cópia completa da venda preservando TODOS os campos
+                                venda_completa = dict(venda)  # Copia todos os campos existentes
+                                
+                                # Garantir que campos obrigatórios existam
+                                if "data" not in venda_completa:
+                                    continue  # Pula vendas sem data
+                                
+                                # Preservar todos os campos, incluindo os novos:
+                                # - tipo_venda (normal/bonificacao)
+                                # - valor_cobrado (valor realmente cobrado)
+                                # - tipo_consumo (local/entrega/interno)
+                                # - competencia (YYYY-MM)
+                                # - origem (web/desktop/online)
+                                # - pedido_id (se existir)
+                                # - alterou_estoque
+                                # - e qualquer outro campo que existir
+                                
+                                dados_consolidados["vendas"].append(venda_completa)
+                                vendas_unicas.add(chave)
+                                total_vendas_adicionadas += 1
+                        
+                        # Processar despesas
+                        despesas_arquivo = dados_arquivo.get("despesas", [])
+                        for despesa in despesas_arquivo:
+                            chave = chave_despesa(despesa)
+                            if chave not in despesas_unicas:
+                                # Criar cópia completa da despesa preservando TODOS os campos
+                                despesa_completa = dict(despesa)  # Copia todos os campos existentes
+                                
+                                # Garantir que campos obrigatórios existam
+                                if "data" not in despesa_completa or "descricao" not in despesa_completa:
+                                    continue  # Pula despesas sem dados essenciais
+                                
+                                # Preservar todos os campos da despesa
+                                dados_consolidados["despesas"].append(despesa_completa)
+                                despesas_unicas.add(chave)
+                                total_despesas_adicionadas += 1
+                        
+                        # Processar fechamentos mensais
+                        fechamentos_arquivo = dados_arquivo.get("fechamentos_mensais", dados_arquivo.get("fechamentos_mes", {}))
+                        for competencia, fechamento in fechamentos_arquivo.items():
+                            if competencia not in dados_consolidados["fechamentos_mensais"]:
+                                dados_consolidados["fechamentos_mensais"][competencia] = fechamento
+                        
+                        # Atualizar espetinhos (adicionar novos tipos, mas NÃO importar estoque)
+                        # O estoque deve permanecer o do arquivo principal (atual)
+                        espetinhos_arquivo = dados_arquivo.get("espetinhos", {})
+                        for nome_espetinho, dados_espetinho in espetinhos_arquivo.items():
+                            if nome_espetinho not in dados_consolidados["espetinhos"]:
+                                # Adicionar novo tipo de espetinho, mas sem estoque (ou com estoque 0)
+                                dados_consolidados["espetinhos"][nome_espetinho] = {
+                                    "valor": dados_espetinho.get("valor", 0),
+                                    "custo": dados_espetinho.get("custo", 0),
+                                    "estoque": 0  # Sempre começa com estoque 0 para novos tipos
+                                }
+                            # Se o espetinho já existe, mantém o estoque atual (não sobrescreve)
+                        
+                        arquivos_processados += 1
+                        
+                    except Exception as e:
+                        continue  # Pula arquivo com erro
+                
+                # Ordenar vendas e despesas por data E hora (preservando hora completa)
+                def parse_data_hora(item):
+                    try:
+                        data_str = item.get("data", "")
+                        if not data_str:
+                            return datetime.min
+                        
+                        # Tentar formatos com hora primeiro
+                        formatos_com_hora = [
+                            "%d/%m/%Y %H:%M",      # 19/09/2025 13:52
+                            "%d/%m/%Y %H:%M:%S",   # 19/09/2025 13:52:30
+                            "%Y-%m-%d %H:%M",      # 2025-09-19 13:52
+                            "%Y-%m-%d %H:%M:%S",   # 2025-09-19 13:52:30
+                        ]
+                        
+                        # Tentar formatos sem hora
+                        formatos_sem_hora = [
+                            "%d/%m/%Y",            # 19/09/2025
+                            "%Y-%m-%d",            # 2025-09-19
+                        ]
+                        
+                        # Tentar todos os formatos com hora primeiro
+                        for formato in formatos_com_hora:
+                            try:
+                                return datetime.strptime(data_str, formato)
+                            except:
+                                continue
+                        
+                        # Se não funcionou, tentar formatos sem hora
+                        for formato in formatos_sem_hora:
+                            try:
+                                return datetime.strptime(data_str, formato)
+                            except:
+                                continue
+                        
+                        return datetime.min
+                    except:
+                        return datetime.min
+                
+                # Ordenar preservando data e hora completa
+                dados_consolidados["vendas"].sort(key=parse_data_hora)
+                dados_consolidados["despesas"].sort(key=parse_data_hora)
+                
+                # Salvar dados consolidados
+                self.dados = dados_consolidados
+                with open(self.arquivo_dados, 'w', encoding='utf-8') as f:
+                    json.dump(self.dados, f, ensure_ascii=False, indent=2)
+                
+                return jsonify({
+                    'success': True,
+                    'arquivos_processados': arquivos_processados,
+                    'vendas_adicionadas': total_vendas_adicionadas,
+                    'despesas_adicionadas': total_despesas_adicionadas,
+                    'total_vendas': len(dados_consolidados['vendas']),
+                    'total_despesas': len(dados_consolidados['despesas']),
+                    'backup_nome': backup_nome
+                })
+                
+            except Exception as e:
+                return jsonify({'success': False, 'message': f'Erro ao consolidar bancos: {str(e)}'}), 500
+        
         @self.app.route('/api/info')
         def api_info_estabelecimento():
             """API para obter informações do estabelecimento"""
@@ -821,14 +1038,33 @@ class ButecoWebApp:
                     for item in pedido['itens']:
                         print(f"\n  Processando item: {item}")
                         
+                        # Dados básicos
+                        quantidade = item['quantidade']
+                        valor_unitario = item['preco']
+                        total = valor_unitario * quantidade
+
+                        # Para pedidos online, consideramos venda normal e consumo como entrega
+                        tipo_venda = 'normal'
+                        tipo_consumo = 'entrega'
+
+                        data_venda = self.obter_data_hora_brasil()
+                        try:
+                            competencia = datetime.strptime(data_venda, '%d/%m/%Y %H:%M').strftime('%Y-%m')
+                        except Exception:
+                            competencia = None
+
                         venda = {
                             'espetinho': item['nome'],
-                            'quantidade': item['quantidade'],
-                            'valor_unitario': item['preco'],
-                            'total': item['preco'] * item['quantidade'],
-                            'data': self.obter_data_hora_brasil(),
+                            'quantidade': quantidade,
+                            'valor_unitario': valor_unitario,
+                            'total': total,
+                            'data': data_venda,
                             'origem': 'online',  # Marcar como venda online
-                            'pedido_id': pedido_id  # Referência ao pedido
+                            'pedido_id': pedido_id,  # Referência ao pedido
+                            'tipo_venda': tipo_venda,
+                            'valor_cobrado': total,
+                            'tipo_consumo': tipo_consumo,
+                            'competencia': competencia
                         }
                         
                         print(f"  Venda criada: {venda}")
