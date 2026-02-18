@@ -2048,6 +2048,29 @@
                             <i class="fas fa-box"></i> 📦 BAIXAR ESTOQUE (desmarque para venda sem estoque)
                         </label>
                     </div>
+
+                    <!-- Tipo de venda e de consumo -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+                        <div class="form-group">
+                            <label for="tipo-venda">
+                                <i class="fas fa-tag"></i> Tipo de Venda
+                            </label>
+                            <select id="tipo-venda" class="form-control">
+                                <option value="normal">Venda normal (cobra do cliente)</option>
+                                <option value="bonificacao">Bonificação (não cobra, só baixa estoque)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="tipo-consumo">
+                                <i class="fas fa-user-friends"></i> Tipo de Consumo
+                            </label>
+                            <select id="tipo-consumo" class="form-control">
+                                <option value="local">Local (consumo no buteco)</option>
+                                <option value="entrega">Entrega / Delivery</option>
+                                <option value="interno">Interno (consumo da equipe/casa)</option>
+                            </select>
+                        </div>
+                    </div>
                     
                     <div style="text-align: center; margin-top: 30px;">
                         <button type="submit" class="btn btn-primary">
@@ -2165,9 +2188,19 @@
                     <h3 class="relatorio-title">
                         <i class="fas fa-chart-line"></i> Relatórios Gerenciais
                     </h3>
-                    <button class="btn-atualizar" onclick="atualizarRelatoriosGerenciais()">
-                        <i class="fas fa-sync-alt"></i> Atualizar
-                    </button>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <input type="date" id="gerenciais-data-inicial" class="form-control" style="width: 150px; height: 38px; padding: 6px;">
+                        <input type="date" id="gerenciais-data-final" class="form-control" style="width: 150px; height: 38px; padding: 6px;">
+                        <button class="btn-atualizar" onclick="aplicarFiltroGerenciais()" style="background: rgba(0,212,170,0.9);">
+                            <i class="fas fa-filter"></i> Aplicar
+                        </button>
+                        <button class="btn-atualizar" onclick="limparFiltroGerenciais()" style="background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3);">
+                            <i class="fas fa-broom"></i> Limpar
+                        </button>
+                        <button class="btn-atualizar" onclick="atualizarRelatoriosGerenciais()">
+                            <i class="fas fa-sync-alt"></i> Atualizar
+                        </button>
+                    </div>
                 </div>
                 
                 <!-- Botões de Relatórios -->
@@ -2188,9 +2221,17 @@
                         <i class="fas fa-file-alt"></i>
                         <span>Relatório Geral</span>
                     </button>
+                    <button class="relatorio-btn" onclick="mostrarRelatorioFechamentoMensal()">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Fechamento Mensal</span>
+                    </button>
                     <button class="relatorio-btn" onclick="mostrarRelatorioVendasPorHora()">
                         <i class="fas fa-clock"></i>
                         <span>Vendas por Hora</span>
+                    </button>
+                    <button class="relatorio-btn" onclick="mostrarRelatorioTicketMedioMensal()">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Ticket Médio Mensal</span>
                     </button>
                 </div>
                 
@@ -2247,7 +2288,7 @@
                                     <i class="fas fa-calendar"></i> Data/Hora
                                 </label>
                                 <input type="text" id="data-despesa" class="form-control" 
-                                       placeholder="dd/mm/aaaa hh:mm" readonly>
+                                       placeholder="dd/mm/aaaa hh:mm">
                             </div>
                         </div>
                         
@@ -2541,6 +2582,30 @@
                 </button>
             </div>
             
+            <!-- Consolidação de Bancos -->
+            <div class="relatorio-card fade-in" style="margin-top: 20px;">
+                <div class="relatorio-header">
+                    <h3 class="relatorio-title">
+                        <i class="fas fa-layer-group"></i> Consolidar Bancos de Dados
+                    </h3>
+                </div>
+                <div style="padding: 20px;">
+                    <p style="color: #b0b0b0; margin-bottom: 20px; line-height: 1.6;">
+                        <i class="fas fa-info-circle"></i> 
+                        Selecione múltiplos arquivos JSON para consolidar em um único banco. 
+                        O sistema irá juntar todas as vendas e despesas, evitando duplicatas.
+                    </p>
+                    <input type="file" id="arquivos-consolidacao" multiple accept=".json" style="display: none;" onchange="prepararConsolidacao()">
+                    <button class="btn btn-primary" onclick="document.getElementById('arquivos-consolidacao').click()" style="width: 100%; margin-bottom: 15px;">
+                        <i class="fas fa-folder-open"></i> Selecionar Arquivos JSON
+                    </button>
+                    <div id="lista-arquivos-selecionados" style="margin-bottom: 15px; min-height: 50px;"></div>
+                    <button class="btn btn-success" id="btn-consolidar" onclick="consolidarBancos()" disabled style="width: 100%;">
+                        <i class="fas fa-layer-group"></i> Consolidar Bancos
+                    </button>
+                </div>
+            </div>
+            
             <!-- Lista de Backups -->
             <div id="lista-backups">
                 <p style="text-align: center; color: #b0b0b0; padding: 20px;">
@@ -2614,6 +2679,156 @@
     <script>
         let espetinhos = {};
         let vendasHoje = [];
+        let filtroGerencialDataInicial = null;
+        let filtroGerencialDataFinal = null;
+        let editandoDespesaIndex = null;
+
+        // Helper para usar o mesmo conceito do desktop:
+        // faturamento real = valor_cobrado; fallback para total em vendas antigas
+        function getValorCobrado(venda) {
+            if (!venda) return 0;
+            if (typeof venda.valor_cobrado === 'number') {
+                return venda.valor_cobrado;
+            }
+            return typeof venda.total === 'number' ? venda.total : 0;
+        }
+
+        // Função para calcular a data de fechamento do mês (dia 13 ou segunda seguinte se cair em sexta/sábado/domingo)
+        function calcularDataFechamento(ano, mes) {
+            // mes é 0-11 (janeiro = 0)
+            const dia13 = new Date(ano, mes, 13);
+            const diaSemana = dia13.getDay(); // 0=domingo, 5=sexta, 6=sábado
+            
+            // Se cair em sexta (5), sábado (6) ou domingo (0), ajustar para segunda
+            if (diaSemana === 5) {
+                // Sexta: adicionar 3 dias = segunda
+                dia13.setDate(dia13.getDate() + 3);
+            } else if (diaSemana === 6) {
+                // Sábado: adicionar 2 dias = segunda
+                dia13.setDate(dia13.getDate() + 2);
+            } else if (diaSemana === 0) {
+                // Domingo: adicionar 1 dia = segunda
+                dia13.setDate(dia13.getDate() + 1);
+            }
+            
+            return dia13;
+        }
+
+        // Função para determinar a competência comercial de uma data
+        // Retorna string no formato "YYYY-MM" representando o mês comercial
+        // O período comercial vai do dia 13 de um mês até o dia 12 (ou segunda seguinte) do mês seguinte
+        function obterCompetenciaComercial(dataVenda) {
+            try {
+                let data;
+                
+                // Se dataVenda já é um Date object
+                if (dataVenda instanceof Date) {
+                    data = new Date(dataVenda);
+                } 
+                // Se é string no formato "dd/mm/yyyy hh:mm"
+                else if (typeof dataVenda === 'string') {
+                    const partes = dataVenda.split(' ');
+                    const [dia, mes, ano] = partes[0].split('/');
+                    data = new Date(parseInt(ano), parseInt(mes) - 1, parseInt(dia));
+                } else {
+                    return null;
+                }
+                
+                const ano = data.getFullYear();
+                const mes = data.getMonth(); // 0-11
+                const dia = data.getDate();
+                
+                // Calcular data de fechamento do mês atual (dia 13 ou segunda seguinte)
+                const dataFechamentoAtual = calcularDataFechamento(ano, mes);
+                
+                // Se a data da venda é ANTES ou IGUAL ao fechamento do mês atual,
+                // ela pertence ao período comercial que TERMINA nesse fechamento
+                // Ou seja, pertence ao período comercial do mês ANTERIOR
+                if (data <= dataFechamentoAtual) {
+                    // Pertence ao período comercial do mês anterior
+                    // Exemplo: se hoje é 10/fev e o fechamento de fev é 13/fev,
+                    // a venda está no período comercial de jan (que vai de 13/jan a 13/fev)
+                    const mesAnterior = mes === 0 ? 11 : mes - 1;
+                    const anoAnterior = mes === 0 ? ano - 1 : ano;
+                    return `${anoAnterior}-${String(mesAnterior + 1).padStart(2, '0')}`;
+                } else {
+                    // Se a data é DEPOIS do fechamento do mês atual,
+                    // ela pertence ao período comercial do mês atual
+                    // Exemplo: se hoje é 15/fev e o fechamento de fev foi 13/fev,
+                    // a venda está no período comercial de fev (que vai de 13/fev a 13/mar)
+                    return `${ano}-${String(mes + 1).padStart(2, '0')}`;
+                }
+            } catch (e) {
+                console.error('Erro ao calcular competência comercial:', e);
+                return null;
+            }
+        }
+
+        // Função para obter o período comercial (data inicial e final) de uma competência
+        function obterPeriodoComercial(competencia) {
+            try {
+                const [ano, mes] = competencia.split('-').map(Number);
+                const mesIndex = mes - 1; // converter para 0-11
+                
+                // Data de início: dia 13 do mês da competência
+                const dataInicio = calcularDataFechamento(ano, mesIndex);
+                // Ajustar para o dia 13 (antes do ajuste de segunda)
+                dataInicio.setDate(13);
+                // Recalcular se precisa ajustar para segunda
+                const diaSemana = dataInicio.getDay();
+                if (diaSemana === 5) dataInicio.setDate(16);
+                else if (diaSemana === 6) dataInicio.setDate(15);
+                else if (diaSemana === 0) dataInicio.setDate(14);
+                
+                // Data de fim: dia 13 do mês seguinte (ou segunda seguinte)
+                const mesSeguinte = mesIndex === 11 ? 0 : mesIndex + 1;
+                const anoSeguinte = mesIndex === 11 ? ano + 1 : ano;
+                const dataFim = calcularDataFechamento(anoSeguinte, mesSeguinte);
+                
+                return {
+                    inicio: dataInicio,
+                    fim: dataFim,
+                    competencia: competencia
+                };
+            } catch (e) {
+                console.error('Erro ao obter período comercial:', e);
+                return null;
+            }
+        }
+
+        // Helpers para aplicar filtro de período nos relatórios gerenciais
+        function filtrarVendasPorPeriodo(vendas) {
+            if (!filtroGerencialDataInicial || !filtroGerencialDataFinal) return vendas;
+            const di = new Date(filtroGerencialDataInicial + 'T00:00:00');
+            const df = new Date(filtroGerencialDataFinal + 'T23:59:59');
+
+            return vendas.filter(venda => {
+                try {
+                    const [d, m, a] = venda.data.split(' ')[0].split('/');
+                    const [hh, mm] = venda.data.split(' ')[1].split(':');
+                    const dv = new Date(parseInt(a), parseInt(m) - 1, parseInt(d), parseInt(hh), parseInt(mm));
+                    return dv >= di && dv <= df;
+                } catch {
+                    return false;
+                }
+            });
+        }
+
+        function filtrarDespesasPorPeriodo(despesas) {
+            if (!filtroGerencialDataInicial || !filtroGerencialDataFinal) return despesas;
+            const di = new Date(filtroGerencialDataInicial + 'T00:00:00');
+            const df = new Date(filtroGerencialDataFinal + 'T23:59:59');
+
+            return despesas.filter(despesa => {
+                try {
+                    const [d, m, a] = despesa.data.split(' ')[0].split('/');
+                    const dd = new Date(parseInt(a), parseInt(m) - 1, parseInt(d));
+                    return dd >= di && dd <= df;
+                } catch {
+                    return false;
+                }
+            });
+        }
 
         // Carregar dados iniciais
         document.addEventListener('DOMContentLoaded', function() {
@@ -2770,6 +2985,8 @@
             const espetinho = document.getElementById('espetinho').value;
             const quantidade = parseInt(document.getElementById('quantidade').value);
             const alterarEstoque = document.getElementById('alterar-estoque').checked;
+            const tipoVenda = document.getElementById('tipo-venda').value || 'normal';
+            const tipoConsumo = document.getElementById('tipo-consumo').value || 'local';
             
             if (!espetinho || !quantidade) {
                 mostrarModalErro('❌ Erro', 'Preencha todos os campos');
@@ -2796,7 +3013,9 @@
                     body: JSON.stringify({
                         espetinho: espetinho,
                         quantidade: quantidade,
-                        alterar_estoque: alterarEstoque
+                        alterar_estoque: alterarEstoque,
+                        tipo_venda: tipoVenda,
+                        tipo_consumo: tipoConsumo
                     })
                 });
                 
@@ -2833,6 +3052,12 @@
                 <span class="checkmark"></span>
                 <i class="fas fa-box"></i> 📦 BAIXAR ESTOQUE (desmarque para venda sem estoque)
             `;
+
+            // Resetar selects de tipo de venda/consumo
+            const tipoVendaSelect = document.getElementById('tipo-venda');
+            const tipoConsumoSelect = document.getElementById('tipo-consumo');
+            if (tipoVendaSelect) tipoVendaSelect.value = 'normal';
+            if (tipoConsumoSelect) tipoConsumoSelect.value = 'local';
         }
 
         // Mostrar alerta
@@ -3118,6 +3343,28 @@
             await carregarEspetinhos();
         }
 
+        function aplicarFiltroGerenciais() {
+            const di = document.getElementById('gerenciais-data-inicial').value;
+            const df = document.getElementById('gerenciais-data-final').value;
+            if (!di || !df) {
+                mostrarModalErro('❌ Erro', 'Selecione data inicial e final para o filtro.');
+                return;
+            }
+            filtroGerencialDataInicial = di;
+            filtroGerencialDataFinal = df;
+            mostrarNotificacao('Filtro aplicado aos relatórios gerenciais.', 'success');
+        }
+
+        function limparFiltroGerenciais() {
+            filtroGerencialDataInicial = null;
+            filtroGerencialDataFinal = null;
+            const di = document.getElementById('gerenciais-data-inicial');
+            const df = document.getElementById('gerenciais-data-final');
+            if (di) di.value = '';
+            if (df) df.value = '';
+            mostrarNotificacao('Filtro de período removido dos relatórios gerenciais.', 'info');
+        }
+
         // Carregar todas as vendas do histórico
         async function carregarTodasVendas() {
             try {
@@ -3143,7 +3390,9 @@
         function mostrarRelatorioTopEspetinhos() {
             const container = document.getElementById('conteudo-relatorios-gerenciais');
             
-            if (vendasHoje.length === 0) {
+            const vendasFiltradas = filtrarVendasPorPeriodo(vendasHoje);
+            
+            if (vendasFiltradas.length === 0) {
                 container.innerHTML = `
                     <div class="relatorio-detalhado">
                         <h4><i class="fas fa-trophy"></i> Top Espetinhos - Histórico Completo</h4>
@@ -3157,7 +3406,7 @@
 
             // Agrupar vendas por espetinho
             const vendasPorEspetinho = {};
-            vendasHoje.forEach(venda => {
+            vendasFiltradas.forEach(venda => {
                 if (venda.espetinho) {
                     const espetinho = venda.espetinho;
                     if (!vendasPorEspetinho[espetinho]) {
@@ -3167,7 +3416,7 @@
                         };
                     }
                     vendasPorEspetinho[espetinho].quantidade += venda.quantidade;
-                    vendasPorEspetinho[espetinho].valorTotal += venda.total;
+                    vendasPorEspetinho[espetinho].valorTotal += getValorCobrado(venda);
                 }
             });
 
@@ -3214,7 +3463,9 @@
         function mostrarRelatorioAnaliseEspetinho() {
             const container = document.getElementById('conteudo-relatorios-gerenciais');
             
-            if (vendasHoje.length === 0) {
+            const vendasFiltradas = filtrarVendasPorPeriodo(vendasHoje);
+            
+            if (vendasFiltradas.length === 0) {
                 container.innerHTML = `
                     <div class="relatorio-detalhado">
                         <h4><i class="fas fa-chart-bar"></i> Análise por Espetinho - Histórico Completo</h4>
@@ -3231,7 +3482,7 @@
             let totalVendas = 0;
             let totalQuantidade = 0;
 
-            vendasHoje.forEach(venda => {
+            vendasFiltradas.forEach(venda => {
                 if (venda.espetinho) {
                     const espetinho = venda.espetinho;
                     if (!vendasPorEspetinho[espetinho]) {
@@ -3243,19 +3494,19 @@
                         };
                     }
                     vendasPorEspetinho[espetinho].quantidade += venda.quantidade;
-                    vendasPorEspetinho[espetinho].valorTotal += venda.total;
+                    vendasPorEspetinho[espetinho].valorTotal += getValorCobrado(venda);
                     
                     // Calcular custo e lucro
                     if (espetinhos[espetinho]) {
                         const custoUnitario = espetinhos[espetinho].custo;
                         const custoTotal = venda.quantidade * custoUnitario;
-                        const lucro = venda.total - custoTotal;
+                        const lucro = getValorCobrado(venda) - custoTotal;
                         
                         vendasPorEspetinho[espetinho].custoTotal += custoTotal;
                         vendasPorEspetinho[espetinho].lucroTotal += lucro;
                     }
                     
-                    totalVendas += venda.total;
+                    totalVendas += getValorCobrado(venda);
                     totalQuantidade += venda.quantidade;
                 }
             });
@@ -3307,7 +3558,9 @@
         async function mostrarRelatorioLucro() {
             const container = document.getElementById('conteudo-relatorios-gerenciais');
             
-            if (vendasHoje.length === 0) {
+            const vendasFiltradas = filtrarVendasPorPeriodo(vendasHoje);
+            
+            if (vendasFiltradas.length === 0) {
                 container.innerHTML = `
                     <div class="relatorio-detalhado">
                         <h4><i class="fas fa-clock"></i> Análise de Lucro - Histórico Completo</h4>
@@ -3320,17 +3573,22 @@
             }
 
             // Carregar despesas
-            const despesas = await carregarDespesas();
+            const despesasTodas = await carregarDespesas();
+            const despesas = filtrarDespesasPorPeriodo(despesasTodas);
             
             let totalVendas = 0;
             let totalQuantidade = 0;
             let totalDespesas = 0;
+            let totalBonificacoes = 0;
 
             // Calcular vendas
-            vendasHoje.forEach(venda => {
+            vendasFiltradas.forEach(venda => {
                 if (venda.espetinho) {
-                    totalVendas += venda.total;
+                    totalVendas += getValorCobrado(venda);
                     totalQuantidade += venda.quantidade;
+                    if (venda.tipo_venda === 'bonificacao') {
+                        totalBonificacoes += (venda.total || 0);
+                    }
                 }
             });
 
@@ -3361,6 +3619,10 @@
                             <div class="relatorio-stat-label">Lucro Real</div>
                         </div>
                         <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">R$ ${totalBonificacoes.toFixed(2)}</div>
+                            <div class="relatorio-stat-label">Bonificações (valor tabela)</div>
+                        </div>
+                        <div class="relatorio-stat-item">
                             <div class="relatorio-stat-value">${margemLucro}%</div>
                             <div class="relatorio-stat-label">Margem de Lucro</div>
                         </div>
@@ -3386,7 +3648,9 @@
         async function mostrarRelatorioDiario() {
             const container = document.getElementById('conteudo-relatorios-gerenciais');
             
-            if (vendasHoje.length === 0) {
+            const vendasFiltradas = filtrarVendasPorPeriodo(vendasHoje);
+            
+            if (vendasFiltradas.length === 0) {
                 container.innerHTML = `
                     <div class="relatorio-detalhado">
                         <h4><i class="fas fa-file-alt"></i> Relatório Geral - Histórico Completo</h4>
@@ -3399,15 +3663,18 @@
             }
 
             // Carregar despesas
-            const despesas = await carregarDespesas();
+            const despesasTodas = await carregarDespesas();
+            const despesas = filtrarDespesasPorPeriodo(despesasTodas);
             
             let totalVendas = 0;
             let totalQuantidade = 0;
             let totalDespesas = 0;
+            let totalBonificacoes = 0;
             const vendasPorEspetinho = {};
+            const consumoPorTipo = { local: 0, entrega: 0, interno: 0 };
 
             // Calcular vendas
-            vendasHoje.forEach(venda => {
+            vendasFiltradas.forEach(venda => {
                 if (venda.espetinho) {
                     const espetinho = venda.espetinho;
                     if (!vendasPorEspetinho[espetinho]) {
@@ -3418,10 +3685,19 @@
                     }
                     
                     vendasPorEspetinho[espetinho].quantidade += venda.quantidade;
-                    vendasPorEspetinho[espetinho].valorTotal += venda.total;
+                    vendasPorEspetinho[espetinho].valorTotal += getValorCobrado(venda);
                     
-                    totalVendas += venda.total;
+                    totalVendas += getValorCobrado(venda);
                     totalQuantidade += venda.quantidade;
+
+                    if (venda.tipo_venda === 'bonificacao') {
+                        totalBonificacoes += (venda.total || 0);
+                    }
+
+                    const tipo = venda.tipo_consumo || 'local';
+                    if (consumoPorTipo[tipo] !== undefined) {
+                        consumoPorTipo[tipo] += venda.quantidade;
+                    }
                 }
             });
 
@@ -3459,6 +3735,10 @@
                             <div class="relatorio-stat-label">Lucro Real</div>
                         </div>
                         <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">R$ ${totalBonificacoes.toFixed(2)}</div>
+                            <div class="relatorio-stat-label">Bonificações (valor tabela)</div>
+                        </div>
+                        <div class="relatorio-stat-item">
                             <div class="relatorio-stat-value">${margemLucro}%</div>
                             <div class="relatorio-stat-label">Margem de Lucro</div>
                         </div>
@@ -3466,6 +3746,27 @@
                     <div style="margin-top: 15px; padding: 10px; background: rgba(255, 215, 0, 0.1); border-radius: 8px; border-left: 4px solid #ffd700;">
                         <strong>Fórmula:</strong> Faturamento - Despesas = Lucro Real<br>
                         <strong>R$ ${totalVendas.toFixed(2)} - R$ ${totalDespesas.toFixed(2)} = R$ ${lucroReal.toFixed(2)}</strong>
+                    </div>
+                </div>
+            `;
+
+            // Adicionar consumo por tipo
+            html += `
+                <div class="relatorio-detalhado">
+                    <h4><i class="fas fa-user-friends"></i> Consumo por Tipo</h4>
+                    <div class="relatorio-stats-grid">
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">${consumoPorTipo.local}</div>
+                            <div class="relatorio-stat-label">Local</div>
+                        </div>
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">${consumoPorTipo.entrega}</div>
+                            <div class="relatorio-stat-label">Entrega</div>
+                        </div>
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">${consumoPorTipo.interno}</div>
+                            <div class="relatorio-stat-label">Interno</div>
+                        </div>
                     </div>
                 </div>
             `;
@@ -3493,6 +3794,274 @@
             });
 
             container.innerHTML = html;
+        }
+
+        async function mostrarRelatorioFechamentoMensal() {
+            const container = document.getElementById('conteudo-relatorios-gerenciais');
+            
+            // Garantir que temos histórico carregado
+            await carregarTodasVendas();
+            await carregarEspetinhos();
+            const despesas = await carregarDespesas();
+
+            // Datas padrão: mês atual
+            const hoje = new Date();
+            const ano = hoje.getFullYear();
+            const mes = hoje.getMonth(); // 0-11
+            const primeiroDia = new Date(ano, mes, 1);
+            const ultimoDia = new Date(ano, mes + 1, 0);
+
+            const dataInicialStr = primeiroDia.toISOString().split('T')[0];
+            const dataFinalStr = ultimoDia.toISOString().split('T')[0];
+
+            container.innerHTML = `
+                <div class="relatorio-detalhado">
+                    <h4><i class="fas fa-calendar-alt"></i> Fechamento Mensal</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-calendar-day"></i> Data Inicial
+                            </label>
+                            <input type="date" id="fechamento-data-inicial" class="form-control" value="${dataInicialStr}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-calendar-day"></i> Data Final
+                            </label>
+                            <input type="date" id="fechamento-data-final" class="form-control" value="${dataFinalStr}">
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <button class="btn btn-primary" onclick="gerarFechamentoMensal()">
+                            <i class="fas fa-chart-line"></i> Gerar Fechamento
+                        </button>
+                        <button class="btn btn-secondary" onclick="gerarFechamentoMensal('mesAtual')" style="margin-left: 8px;">
+                            <i class="fas fa-calendar-check"></i> Mês Atual
+                        </button>
+                        <button class="btn btn-secondary" onclick="gerarFechamentoMensal('ultimoMes')" style="margin-left: 8px;">
+                            <i class="fas fa-history"></i> Último Mês
+                        </button>
+                    </div>
+                    <div id="fechamento-mensal-conteudo">
+                        <p style="text-align: center; color: #b0b0b0; padding: 20px;">
+                            <i class="fas fa-info-circle"></i> Escolha o período e clique em "Gerar Fechamento"
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function gerarFechamentoMensal(tipo = 'filtro') {
+            const conteudo = document.getElementById('fechamento-mensal-conteudo');
+            if (!conteudo) return;
+
+            // Garantir dados
+            await carregarTodasVendas();
+            const despesas = await carregarDespesas();
+
+            let dataInicial, dataFinal;
+            const hoje = new Date();
+
+            if (tipo === 'mesAtual') {
+                // Período comercial atual: do dia 13 do mês anterior até o fechamento do mês atual
+                const ano = hoje.getFullYear();
+                const mes = hoje.getMonth();
+                
+                // Data de início: dia 13 do mês anterior (ou segunda seguinte se necessário)
+                const mesAnterior = mes === 0 ? 11 : mes - 1;
+                const anoAnterior = mes === 0 ? ano - 1 : ano;
+                dataInicial = calcularDataFechamento(anoAnterior, mesAnterior);
+                // Ajustar para o dia 13 antes do ajuste de segunda
+                dataInicial.setDate(13);
+                const diaSemanaInicio = dataInicial.getDay();
+                if (diaSemanaInicio === 5) dataInicial.setDate(16);
+                else if (diaSemanaInicio === 6) dataInicial.setDate(15);
+                else if (diaSemanaInicio === 0) dataInicial.setDate(14);
+                dataInicial.setHours(0, 0, 0, 0);
+                
+                // Data de fim: fechamento do mês atual (dia 13 ou segunda seguinte)
+                dataFinal = calcularDataFechamento(ano, mes);
+                dataFinal.setHours(23, 59, 59, 999);
+            } else if (tipo === 'ultimoMes') {
+                // Período comercial anterior: do dia 13 do mês anterior ao anterior até o fechamento do mês anterior
+                const ano = hoje.getFullYear();
+                const mes = hoje.getMonth() - 1;
+                const ref = new Date(ano, mes, 1);
+                const a = ref.getFullYear();
+                const m = ref.getMonth();
+                
+                // Data de início: dia 13 do mês anterior ao anterior
+                const mesAnteriorAnterior = m === 0 ? 11 : m - 1;
+                const anoAnteriorAnterior = m === 0 ? a - 1 : a;
+                dataInicial = calcularDataFechamento(anoAnteriorAnterior, mesAnteriorAnterior);
+                dataInicial.setDate(13);
+                const diaSemanaInicio = dataInicial.getDay();
+                if (diaSemanaInicio === 5) dataInicial.setDate(16);
+                else if (diaSemanaInicio === 6) dataInicial.setDate(15);
+                else if (diaSemanaInicio === 0) dataInicial.setDate(14);
+                dataInicial.setHours(0, 0, 0, 0);
+                
+                // Data de fim: fechamento do mês anterior
+                dataFinal = calcularDataFechamento(a, m);
+                dataFinal.setHours(23, 59, 59, 999);
+            } else {
+                const di = document.getElementById('fechamento-data-inicial').value;
+                const df = document.getElementById('fechamento-data-final').value;
+                if (!di || !df) {
+                    mostrarModalErro('❌ Erro', 'Selecione as datas inicial e final do mês.');
+                    return;
+                }
+                dataInicial = new Date(di + 'T00:00:00');
+                dataFinal = new Date(df + 'T23:59:59');
+                if (dataInicial > dataFinal) {
+                    mostrarModalErro('❌ Erro', 'Data inicial deve ser antes da data final.');
+                    return;
+                }
+            }
+
+            // Filtrar vendas do período
+            const vendasPeriodo = vendasHoje.filter(venda => {
+                try {
+                    const [d, m, a] = venda.data.split(' ')[0].split('/');
+                    const [hh, mm] = venda.data.split(' ')[1].split(':');
+                    const dv = new Date(parseInt(a), parseInt(m) - 1, parseInt(d), parseInt(hh), parseInt(mm));
+                    return dv >= dataInicial && dv <= dataFinal;
+                } catch {
+                    return false;
+                }
+            });
+
+            // Filtrar despesas do período (respeitando exatamente o intervalo escolhido)
+            const despesasPeriodo = despesas.filter(d => {
+                try {
+                    const [dia, mes, ano] = d.data.split(' ')[0].split('/');
+                    const dd = new Date(parseInt(ano), parseInt(mes) - 1, parseInt(dia));
+                    return dd >= new Date(dataInicial.getFullYear(), dataInicial.getMonth(), dataInicial.getDate()) &&
+                           dd <= new Date(dataFinal.getFullYear(), dataFinal.getMonth(), dataFinal.getDate(), 23, 59, 59);
+                } catch {
+                    return false;
+                }
+            });
+
+            if (vendasPeriodo.length === 0 && despesasPeriodo.length === 0) {
+                conteudo.innerHTML = `
+                    <p style="text-align: center; color: #b0b0b0; padding: 20px;">
+                        <i class="fas fa-info-circle"></i> Nenhuma venda ou despesa encontrada no período.
+                    </p>
+                `;
+                return;
+            }
+
+            // Calcular números principais
+            let totalCobrado = 0;
+            let totalBonificacoes = 0;
+            let qtdBonificada = 0;
+            const consumoPorTipo = { local: 0, entrega: 0, interno: 0 };
+            let totalCustoVendas = 0;
+
+            vendasPeriodo.forEach(venda => {
+                const cobrado = getValorCobrado(venda);
+                totalCobrado += cobrado;
+
+                if (venda.tipo_venda === 'bonificacao') {
+                    totalBonificacoes += (venda.total || 0);
+                    qtdBonificada += venda.quantidade;
+                }
+
+                const tipo = venda.tipo_consumo || 'local';
+                if (consumoPorTipo[tipo] !== undefined) {
+                    consumoPorTipo[tipo] += venda.quantidade;
+                }
+
+                if (venda.espetinho && espetinhos[venda.espetinho]) {
+                    const custoUnit = espetinhos[venda.espetinho].custo;
+                    totalCustoVendas += custoUnit * venda.quantidade;
+                }
+            });
+
+            const totalDespesas = despesasPeriodo.reduce((s, d) => s + d.valor, 0);
+            const lucroBruto = totalCobrado - totalCustoVendas;
+            const margemBruta = totalCobrado > 0 ? (lucroBruto / totalCobrado * 100) : 0;
+            const saldoFinal = totalCobrado - totalDespesas;
+            const qtdVendasPagas = vendasPeriodo.filter(v => getValorCobrado(v) > 0).length;
+            const ticketMedio = qtdVendasPagas > 0 ? totalCobrado / qtdVendasPagas : 0;
+
+            // Determinar competência comercial do período
+            const competencia = obterCompetenciaComercial(dataFinal);
+            const periodo = obterPeriodoComercial(competencia);
+            
+            let nomeMes;
+            if (periodo) {
+                const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+                const diaInicio = periodo.inicio.getDate();
+                const mesInicio = periodo.inicio.getMonth();
+                const anoInicio = periodo.inicio.getFullYear();
+                const diaFim = periodo.fim.getDate();
+                const mesFim = periodo.fim.getMonth();
+                const anoFim = periodo.fim.getFullYear();
+                nomeMes = `${diaInicio}/${meses[mesInicio]}/${anoInicio} a ${diaFim}/${meses[mesFim]}/${anoFim}`;
+            } else {
+                const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+                const mRef = dataInicial.getMonth();
+                const aRef = dataInicial.getFullYear();
+                nomeMes = meses[mRef] + '/' + aRef;
+            }
+
+            conteudo.innerHTML = `
+                <div class="relatorio-stats-grid">
+                    <div class="relatorio-stat-item">
+                        <div class="relatorio-stat-value">${vendasPeriodo.length}</div>
+                        <div class="relatorio-stat-label">Lançamentos (vendas)</div>
+                    </div>
+                    <div class="relatorio-stat-item">
+                        <div class="relatorio-stat-value">R$ ${totalCobrado.toFixed(2)}</div>
+                        <div class="relatorio-stat-label">Faturamento Pago</div>
+                    </div>
+                    <div class="relatorio-stat-item">
+                        <div class="relatorio-stat-value">R$ ${totalBonificacoes.toFixed(2)}</div>
+                        <div class="relatorio-stat-label">Bonificações (valor tabela)</div>
+                    </div>
+                    <div class="relatorio-stat-item">
+                        <div class="relatorio-stat-value">R$ ${totalCustoVendas.toFixed(2)}</div>
+                        <div class="relatorio-stat-label">Custo dos Espetinhos</div>
+                    </div>
+                    <div class="relatorio-stat-item">
+                        <div class="relatorio-stat-value">R$ ${totalDespesas.toFixed(2)}</div>
+                        <div class="relatorio-stat-label">Outras Despesas</div>
+                    </div>
+                    <div class="relatorio-stat-item">
+                        <div class="relatorio-stat-value">R$ ${saldoFinal.toFixed(2)}</div>
+                        <div class="relatorio-stat-label">Saldo do Mês</div>
+                    </div>
+                </div>
+                <div class="relatorio-detalhado">
+                    <h4><i class="fas fa-info-circle"></i> Resumo ${nomeMes}</h4>
+                    <p>💰 <strong>Faturamento Pago:</strong> R$ ${totalCobrado.toFixed(2)}</p>
+                    <p>🎁 <strong>Bonificações (tabela):</strong> R$ ${totalBonificacoes.toFixed(2)} (${qtdBonificada} unid.)</p>
+                    <p>📦 <strong>Custo dos Espetinhos:</strong> R$ ${totalCustoVendas.toFixed(2)}</p>
+                    <p>💸 <strong>Despesas do Caixa:</strong> R$ ${totalDespesas.toFixed(2)}</p>
+                    <p>📈 <strong>Lucro Bruto (vendas - custo):</strong> R$ ${lucroBruto.toFixed(2)} (${margemBruta.toFixed(1)}%)</p>
+                    <p>🏁 <strong>Saldo Final (pago - despesas):</strong> R$ ${saldoFinal.toFixed(2)}</p>
+                    <p>🎫 <strong>Ticket Médio (pagas):</strong> R$ ${ticketMedio.toFixed(2)}</p>
+                </div>
+                <div class="relatorio-detalhado">
+                    <h4><i class="fas fa-user-friends"></i> Consumo por Tipo</h4>
+                    <div class="relatorio-stats-grid">
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">${consumoPorTipo.local}</div>
+                            <div class="relatorio-stat-label">Local</div>
+                        </div>
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">${consumoPorTipo.entrega}</div>
+                            <div class="relatorio-stat-label">Entrega</div>
+                        </div>
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">${consumoPorTipo.interno}</div>
+                            <div class="relatorio-stat-label">Interno</div>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
         function mostrarRelatorioVendasPorHora() {
@@ -3576,7 +4145,7 @@
             // Filtrar vendas pelo período selecionado
             let vendasFiltradas = vendasHoje;
             
-            if (dataInicial && dataFinal) {
+                if (dataInicial && dataFinal) {
                 vendasFiltradas = vendasHoje.filter(venda => {
                     try {
                         const dataVenda = new Date(venda.data.split(' ')[0].split('/').reverse().join('-') + 'T' + venda.data.split(' ')[1]);
@@ -3619,7 +4188,7 @@
                         }
                         
                         vendasPorHora[horaInt].quantidade += venda.quantidade;
-                        vendasPorHora[horaInt].valorTotal += venda.total;
+                        vendasPorHora[horaInt].valorTotal += getValorCobrado(venda);
                         vendasPorHora[horaInt].vendas += 1;
                     }
                 } catch (error) {
@@ -3743,6 +4312,179 @@
             container.innerHTML = html;
         }
 
+        // Relatório de Ticket Médio Mensal
+        async function mostrarRelatorioTicketMedioMensal() {
+            const container = document.getElementById('conteudo-relatorios-gerenciais');
+            
+            if (vendasHoje.length === 0) {
+                container.innerHTML = `
+                    <div class="relatorio-detalhado">
+                        <h4><i class="fas fa-chart-line"></i> Ticket Médio Mensal</h4>
+                        <p style="text-align: center; color: #b0b0b0; padding: 20px;">
+                            <i class="fas fa-info-circle"></i> Nenhuma venda registrada no histórico
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Agrupar vendas por mês comercial (usando competência comercial baseada no dia 13)
+            const vendasPorMes = {};
+            
+            vendasHoje.forEach(venda => {
+                // Usar competência comercial (baseada no dia 13)
+                const competencia = obterCompetenciaComercial(venda.data);
+                
+                if (!competencia) return;
+                
+                if (!vendasPorMes[competencia]) {
+                    vendasPorMes[competencia] = {
+                        faturamento: 0,
+                        quantidadeVendas: 0,
+                        quantidadeUnidades: 0,
+                        bonificacoes: 0,
+                        qtdBonificacoes: 0
+                    };
+                }
+                
+                const valorCobrado = getValorCobrado(venda);
+                const isBonificacao = venda.tipo_venda === 'bonificacao';
+                
+                vendasPorMes[competencia].faturamento += valorCobrado;
+                vendasPorMes[competencia].quantidadeUnidades += venda.quantidade;
+                
+                if (!isBonificacao) {
+                    vendasPorMes[competencia].quantidadeVendas += 1;
+                } else {
+                    vendasPorMes[competencia].bonificacoes += (venda.total || 0);
+                    vendasPorMes[competencia].qtdBonificacoes += venda.quantidade;
+                }
+            });
+            
+            // Ordenar por competencia (mais recente primeiro)
+            const mesesOrdenados = Object.entries(vendasPorMes)
+                .sort((a, b) => b[0].localeCompare(a[0]));
+            
+            if (mesesOrdenados.length === 0) {
+                container.innerHTML = `
+                    <div class="relatorio-detalhado">
+                        <h4><i class="fas fa-chart-line"></i> Ticket Médio Mensal</h4>
+                        <p style="text-align: center; color: #b0b0b0; padding: 20px;">
+                            <i class="fas fa-info-circle"></i> Nenhuma venda com competência registrada
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Encontrar mês com maior faturamento e maior ticket médio
+            let maiorFaturamento = 0;
+            let maiorTicketMedio = 0;
+            let mesMaiorFaturamento = '';
+            let mesMaiorTicket = '';
+            
+            mesesOrdenados.forEach(([competencia, dados]) => {
+                const ticketMedio = dados.quantidadeVendas > 0 
+                    ? dados.faturamento / dados.quantidadeVendas 
+                    : 0;
+                
+                if (dados.faturamento > maiorFaturamento) {
+                    maiorFaturamento = dados.faturamento;
+                    mesMaiorFaturamento = competencia;
+                }
+                
+                if (ticketMedio > maiorTicketMedio) {
+                    maiorTicketMedio = ticketMedio;
+                    mesMaiorTicket = competencia;
+                }
+            });
+            
+            // Formatar nome do mês comercial com período
+            function formatarMesAno(competencia) {
+                try {
+                    const periodo = obterPeriodoComercial(competencia);
+                    if (!periodo) {
+                        const [ano, mes] = competencia.split('-');
+                        const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                                       'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                        return `${meses[parseInt(mes) - 1]}/${ano}`;
+                    }
+                    
+                    const [ano, mes] = competencia.split('-');
+                    const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+                                   'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+                    const mesNome = meses[parseInt(mes) - 1];
+                    
+                    // Formatar datas de início e fim
+                    const diaInicio = periodo.inicio.getDate();
+                    const mesFim = periodo.fim.getMonth();
+                    const anoFim = periodo.fim.getFullYear();
+                    const diaFim = periodo.fim.getDate();
+                    const mesFimNome = meses[mesFim];
+                    
+                    return `${diaInicio}/${mesNome}/${ano} a ${diaFim}/${mesFimNome}/${anoFim}`;
+                } catch (e) {
+                    return competencia;
+                }
+            }
+            
+            let html = `
+                <div class="relatorio-detalhado">
+                    <h4><i class="fas fa-chart-line"></i> Ticket Médio Mensal - Comparativo</h4>
+                    <div class="relatorio-stats-grid">
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">${mesesOrdenados.length}</div>
+                            <div class="relatorio-stat-label">Meses Analisados</div>
+                        </div>
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">${formatarMesAno(mesMaiorFaturamento)}</div>
+                            <div class="relatorio-stat-label">Mês Maior Faturamento</div>
+                        </div>
+                        <div class="relatorio-stat-item">
+                            <div class="relatorio-stat-value">${formatarMesAno(mesMaiorTicket)}</div>
+                            <div class="relatorio-stat-label">Mês Maior Ticket Médio</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Adicionar cards de cada mês
+            mesesOrdenados.forEach(([competencia, dados]) => {
+                const ticketMedio = dados.quantidadeVendas > 0 
+                    ? dados.faturamento / dados.quantidadeVendas 
+                    : 0;
+                
+                const isMaiorFaturamento = competencia === mesMaiorFaturamento;
+                const isMaiorTicket = competencia === mesMaiorTicket;
+                const borderColor = isMaiorFaturamento || isMaiorTicket ? '#ffd700' : '#00d4aa';
+                
+                html += `
+                    <div class="espetinho-item fade-in" style="border-left: 4px solid ${borderColor};">
+                        <div class="espetinho-info">
+                            <div class="espetinho-nome">
+                                ${formatarMesAno(competencia)}
+                                ${isMaiorFaturamento ? ' 🏆 (Maior Faturamento)' : ''}
+                                ${isMaiorTicket ? ' ⭐ (Maior Ticket)' : ''}
+                            </div>
+                            <div class="espetinho-detalhes">
+                                ${dados.quantidadeVendas} vendas pagas | ${dados.quantidadeUnidades} unidades vendidas
+                                ${dados.qtdBonificacoes > 0 ? ` | ${dados.qtdBonificacoes} bonificadas` : ''}
+                            </div>
+                        </div>
+                        <div class="espetinho-valores">
+                            <div class="espetinho-valor">R$ ${dados.faturamento.toFixed(2)}</div>
+                            <div class="espetinho-lucro">
+                                Ticket Médio: R$ ${ticketMedio.toFixed(2)}
+                                ${dados.bonificacoes > 0 ? ` | Bonif: R$ ${dados.bonificacoes.toFixed(2)}` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
         // Atualizar relatórios
         async function atualizarRelatorios(usandoFiltro = false) {
             try {
@@ -3777,10 +4519,11 @@
                 }
 
                 // Calcular totais
-                let totalVendas = 0;
-                let totalQuantidade = 0;
-                let totalCusto = 0;
-                let totalLucro = 0;
+                let totalVendas = 0;           // faturamento pago (valor_cobrado)
+                let totalQuantidade = 0;       // unidades totais
+                let totalCusto = 0;            // custo só das vendas pagas
+                let totalLucro = 0;            // lucro só das vendas pagas
+                let totalBonificacoes = 0;     // valor de tabela das bonificações
                 
                 // Agrupar vendas por espetinho
                 const vendasPorEspetinho = {};
@@ -3790,22 +4533,30 @@
                         const espetinho = venda.espetinho;
                         const quantidade = venda.quantidade;
                         const valorUnitario = venda.valor_unitario;
-                        const total = venda.total;
+                        const total = getValorCobrado(venda);
                         
-                        // Totais gerais
+                        const isBonificacao = venda.tipo_venda === 'bonificacao';
+
+                        // Totais de unidades e faturamento (pago)
                         totalVendas += total;
                         totalQuantidade += quantidade;
                         
-                        // Calcular custo e lucro
+                        // Calcular custo e lucro SOMENTE das vendas pagas
                         if (espetinhos[espetinho]) {
                             const custoUnitario = espetinhos[espetinho].custo;
                             const custoTotal = quantidade * custoUnitario;
                             const lucro = total - custoTotal;
+
+                            if (!isBonificacao) {
+                                totalCusto += custoTotal;
+                                totalLucro += lucro;
+                            } else {
+                                // Bonificações: somar apenas valor de tabela separado
+                                totalBonificacoes += (venda.total || 0);
+                            }
                             
-                            totalCusto += custoTotal;
-                            totalLucro += lucro;
-                            
-                            // Agrupar por espetinho
+                            // Agrupar por espetinho (pagas e bonificadas, mas
+                            // custo/lucro só consideram pagas)
                             if (!vendasPorEspetinho[espetinho]) {
                                 vendasPorEspetinho[espetinho] = {
                                     quantidade: 0,
@@ -3817,8 +4568,10 @@
                             
                             vendasPorEspetinho[espetinho].quantidade += quantidade;
                             vendasPorEspetinho[espetinho].valorTotal += total;
-                            vendasPorEspetinho[espetinho].custoTotal += custoTotal;
-                            vendasPorEspetinho[espetinho].lucroTotal += lucro;
+                            if (!isBonificacao) {
+                                vendasPorEspetinho[espetinho].custoTotal += custoTotal;
+                                vendasPorEspetinho[espetinho].lucroTotal += lucro;
+                            }
                         }
                     }
                 });
@@ -4065,6 +4818,12 @@
                 mostrarAlertaDespesas('Preencha descrição e valor', 'error');
                 return;
             }
+
+            // Se estamos editando uma despesa, usar PUT em vez de criar nova
+            if (editandoDespesaIndex !== null) {
+                await salvarEdicaoDespesa(editandoDespesaIndex);
+                return;
+            }
             
             try {
                 const response = await fetch('/api/despesas', {
@@ -4098,6 +4857,13 @@
         function limparFormularioDespesa() {
             document.getElementById('despesa-form').reset();
             definirDataAtualDespesa();
+            // Sair do modo edição, voltar botão para "Adicionar"
+            editandoDespesaIndex = null;
+            const form = document.getElementById('despesa-form');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-plus"></i> Adicionar Despesa';
+            }
         }
 
         // Definir data atual para despesa
@@ -4164,11 +4930,11 @@
             document.getElementById('valor-despesa').value = valor;
             document.getElementById('data-despesa').value = data;
             
-            // Mudar botão para editar
+            // Entrar em modo edição
+            editandoDespesaIndex = index;
             const form = document.getElementById('despesa-form');
             const submitBtn = form.querySelector('button[type="submit"]');
             submitBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Alterações';
-            submitBtn.onclick = () => salvarEdicaoDespesa(index);
         }
 
         // Salvar edição de despesa
@@ -4396,22 +5162,40 @@
                     return;
                 }
                 
-                container.innerHTML = vendas.map((venda, index) => `
-                    <div class="venda-item fade-in">
-                        <div class="venda-info">
-                            <div class="venda-espetinho">${venda.espetinho}</div>
-                            <div class="venda-detalhes">
-                                ${venda.quantidade}x - R$ ${venda.valor_unitario.toFixed(2)} cada | ${venda.data}
+                container.innerHTML = vendas.map((venda, index) => {
+                    const tipoVenda = venda.tipo_venda === 'bonificacao' ? 'Bonificação' : 'Normal';
+                    const tipoConsumo = venda.tipo_consumo === 'entrega'
+                        ? 'Entrega'
+                        : venda.tipo_consumo === 'interno'
+                            ? 'Interno'
+                            : 'Local';
+                    const valorMostrado = getValorCobrado(venda).toFixed(2);
+
+                    return `
+                        <div class="venda-item fade-in">
+                            <div class="venda-info">
+                                <div class="venda-espetinho">${venda.espetinho}</div>
+                                <div class="venda-detalhes">
+                                    ${venda.quantidade}x - R$ ${venda.valor_unitario.toFixed(2)} cada | ${venda.data}
+                                </div>
+                                <div class="venda-detalhes" style="margin-top:4px;">
+                                    <span style="background:${venda.tipo_venda === 'bonificacao' ? 'rgba(255,107,107,0.2)' : 'rgba(0,212,170,0.2)'}; border-radius:10px; padding:2px 8px; font-size:0.8rem; margin-right:6px;">
+                                        💳 ${tipoVenda}
+                                    </span>
+                                    <span style="background:rgba(255,215,0,0.1); border-radius:10px; padding:2px 8px; font-size:0.8rem;">
+                                        📍 ${tipoConsumo}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="venda-actions">
+                                <div class="venda-total">R$ ${valorMostrado}</div>
+                                <button class="btn-excluir" onclick="excluirVenda(${index})" title="Excluir venda">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
                         </div>
-                        <div class="venda-actions">
-                            <div class="venda-total">R$ ${venda.total.toFixed(2)}</div>
-                            <button class="btn-excluir" onclick="excluirVenda(${index})" title="Excluir venda">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
                 
             } catch (error) {
                 console.error('Erro ao carregar vendas de hoje:', error);
@@ -4674,6 +5458,346 @@
                 mostrarModalErro('❌ Erro', 'Erro ao baixar backup');
             }
         }
+
+        // Funções para consolidação de bancos
+        let arquivosSelecionados = [];
+
+        function prepararConsolidacao() {
+            const input = document.getElementById('arquivos-consolidacao');
+            const files = Array.from(input.files);
+            arquivosSelecionados = files;
+            
+            const container = document.getElementById('lista-arquivos-selecionados');
+            const btnConsolidar = document.getElementById('btn-consolidar');
+            
+            if (files.length === 0) {
+                container.innerHTML = '';
+                btnConsolidar.disabled = true;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div style="background: rgba(255, 215, 0, 0.1); padding: 15px; border-radius: 10px; border: 1px solid #ffd700;">
+                    <p style="color: #ffd700; margin-bottom: 10px; font-weight: bold;">
+                        <i class="fas fa-file"></i> ${files.length} arquivo(s) selecionado(s):
+                    </p>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        ${files.map((file, index) => `
+                            <li style="color: #b0b0b0; padding: 5px 0; border-bottom: 1px solid rgba(255, 215, 0, 0.2);">
+                                ${index + 1}. ${file.name} (${(file.size / 1024).toFixed(1)} KB)
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+            `;
+            
+            btnConsolidar.disabled = false;
+        }
+
+        async function consolidarBancos() {
+            if (arquivosSelecionados.length === 0) {
+                mostrarModalErro('❌ Erro', 'Selecione pelo menos um arquivo para consolidar');
+                return;
+            }
+            
+            const confirmar = confirm(
+                `Você selecionou ${arquivosSelecionados.length} arquivo(s).\n\n` +
+                'Isso irá:\n' +
+                '- Juntar todas as vendas (evitando duplicatas)\n' +
+                '- Juntar todas as despesas (evitando duplicatas)\n' +
+                '- Fazer backup antes de consolidar\n\n' +
+                'Deseja continuar?'
+            );
+            
+            if (!confirmar) return;
+            
+            try {
+                // Criar FormData para enviar os arquivos
+                const formData = new FormData();
+                arquivosSelecionados.forEach((file, index) => {
+                    formData.append(`arquivo_${index}`, file);
+                });
+                
+                // Mostrar loading
+                const btnConsolidar = document.getElementById('btn-consolidar');
+                const textoOriginal = btnConsolidar.innerHTML;
+                btnConsolidar.disabled = true;
+                btnConsolidar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Consolidando...';
+                
+                const response = await fetch('/api/consolidar-bancos', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    mostrarModalSucesso(
+                        '✅ Consolidação Concluída!',
+                        `Consolidação realizada com sucesso!\n\n` +
+                        `📊 Arquivos processados: ${result.arquivos_processados}/${arquivosSelecionados.length}\n` +
+                        `💰 Vendas adicionadas: ${result.vendas_adicionadas}\n` +
+                        `💸 Despesas adicionadas: ${result.despesas_adicionadas}\n` +
+                        `📦 Total de vendas: ${result.total_vendas}\n` +
+                        `📋 Total de despesas: ${result.total_despesas}\n\n` +
+                        `Backup salvo como: ${result.backup_nome}`
+                    );
+                    
+                    // Limpar seleção
+                    document.getElementById('arquivos-consolidacao').value = '';
+                    arquivosSelecionados = [];
+                    prepararConsolidacao();
+                    
+                    // Atualizar dados
+                    await carregarEspetinhos();
+                    await carregarVendasHoje();
+                    atualizarVendasHoje();
+                    atualizarRelatorios();
+                } else {
+                    mostrarModalErro('❌ Erro', result.message || 'Erro ao consolidar bancos');
+                }
+                
+                btnConsolidar.innerHTML = textoOriginal;
+                btnConsolidar.disabled = false;
+                
+            } catch (error) {
+                console.error('Erro ao consolidar bancos:', error);
+                mostrarModalErro('❌ Erro', 'Erro ao consolidar bancos: ' + error.message);
+                
+                const btnConsolidar = document.getElementById('btn-consolidar');
+                btnConsolidar.disabled = false;
+                btnConsolidar.innerHTML = '<i class="fas fa-layer-group"></i> Consolidar Bancos';
+            }
+        }
+
+        // Função para gerar QR Code do cardápio
+        function gerarQRCode() {
+            const url = window.location.origin + '/cardapio';
+            
+            // Criar modal para mostrar QR Code
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+            `;
+            
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                background: #2d2d2d;
+                padding: 30px;
+                border-radius: 20px;
+                text-align: center;
+                max-width: 400px;
+                width: 90%;
+                border: 2px solid #ffd700;
+            `;
+            
+            modalContent.innerHTML = `
+                <h3 style="color: #ffd700; margin-bottom: 20px;">📱 QR Code do Cardápio</h3>
+                <div id="qrcode" style="margin: 20px 0;"></div>
+                <p style="color: #ffffff; margin-bottom: 20px;">
+                    Clientes podem escanear este QR Code para acessar o cardápio online
+                </p>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button onclick="imprimirQRCode()" class="btn btn-primary" style="padding: 10px 20px;">
+                        <i class="fas fa-print"></i> Imprimir
+                    </button>
+                    <button onclick="fecharModal()" class="btn btn-secondary" style="padding: 10px 20px;">
+                        <i class="fas fa-times"></i> Fechar
+                    </button>
+                </div>
+            `;
+            
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+            
+            // Gerar QR Code usando API online
+            const qrImg = document.createElement('img');
+            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
+            qrImg.style.cssText = 'max-width: 200px; width: 100%;';
+            document.getElementById('qrcode').appendChild(qrImg);
+            
+            // Fechar modal ao clicar fora
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    fecharModal();
+                }
+            });
+            
+            function fecharModal() {
+                document.body.removeChild(modal);
+            }
+            
+            function imprimirQRCode() {
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <html>
+                        <head>
+                            <title>QR Code - Cardápio Buteco do Nal</title>
+                            <style>
+                                body { 
+                                    font-family: Arial, sans-serif; 
+                                    text-align: center; 
+                                    padding: 20px;
+                                    background: white;
+                                }
+                                h1 { color: #ffd700; margin-bottom: 20px; }
+                                .qr-container { margin: 20px 0; }
+                                .info { margin-top: 20px; color: #666; }
+                            </style>
+                        </head>
+                        <body>
+                            <h1>🍖 BUTECO DO NAL</h1>
+                            <h2>Cardápio Online</h2>
+                            <div class="qr-container">
+                                <img src="${qrImg.src}" alt="QR Code">
+                            </div>
+                            <div class="info">
+                                <p>Escaneie o QR Code para acessar nosso cardápio online</p>
+                                <p>URL: ${url}</p>
+                            </div>
+                        </body>
+                    </html>
+                `);
+                printWindow.document.close();
+                printWindow.print();
+            }
+            
+            // Disponibilizar funções globalmente
+            window.fecharModal = fecharModal;
+            window.imprimirQRCode = imprimirQRCode;
+
+            // === SISTEMA DE PEDIDOS ===
+            // Movido para escopo global
+        }
+
+
+        // Função para carregar estoque
+        async function carregarEstoque() {
+            try {
+                const response = await fetch('/api/espetinhos');
+                espetinhos = await response.json();
+                
+                const container = document.getElementById('estoque-lista');
+                if (!container) return;
+                
+                // Calcular estatísticas
+                const totalProdutos = Object.keys(espetinhos).length;
+                const totalEstoque = Object.values(espetinhos).reduce((sum, dados) => sum + (dados.estoque || 0), 0);
+                const produtosSemEstoque = Object.values(espetinhos).filter(dados => (dados.estoque || 0) === 0).length;
+                
+                // Atualizar estatísticas
+                document.getElementById('total-produtos').textContent = totalProdutos;
+                document.getElementById('total-estoque').textContent = totalEstoque;
+                document.getElementById('produtos-sem-estoque').textContent = produtosSemEstoque;
+                
+                // Listar espetinhos
+                container.innerHTML = Object.entries(espetinhos).map(([nome, dados]) => `
+                    <div class="espetinho-item fade-in">
+                        <div class="espetinho-info">
+                            <div class="espetinho-nome">${nome}</div>
+                            <div class="espetinho-detalhes">
+                                Valor: R$ ${dados.valor.toFixed(2)} | Custo: R$ ${dados.custo.toFixed(2)}
+                            </div>
+                        </div>
+                        <div class="espetinho-valores">
+                            <div class="espetinho-valor" style="color: ${dados.estoque > 0 ? '#00d4aa' : '#ff6b6b'}">
+                                Estoque: ${dados.estoque}
+                            </div>
+                            <div class="espetinho-lucro">
+                                Lucro: R$ ${(dados.valor - dados.custo).toFixed(2)}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Erro ao carregar estoque:', error);
+                const container = document.getElementById('estoque-lista');
+                container.innerHTML = '<p style="text-align: center; color: #ff6b6b; padding: 20px;"><i class="fas fa-exclamation-triangle"></i> Erro ao carregar estoque</p>';
+            }
+        }
+
+        // BACKUPS
+        async function atualizarListaBackups() {
+            try {
+                const response = await fetch('/api/backups');
+                const backups = await response.json();
+                
+                const container = document.getElementById('lista-backups');
+                
+                if (backups.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #b0b0b0; padding: 20px;"><i class="fas fa-info-circle"></i> Nenhum backup encontrado</p>';
+                    return;
+                }
+                
+                container.innerHTML = backups.map(backup => `
+                    <div class="backup-item fade-in">
+                        <div class="backup-info">
+                            <div class="backup-nome">${backup.arquivo}</div>
+                            <div class="backup-detalhes">
+                                Operação: ${backup.operacao} | Tamanho: ${(backup.tamanho / 1024).toFixed(1)} KB
+                            </div>
+                            <div class="backup-data">${backup.data_criacao}</div>
+                        </div>
+                        <div class="backup-acoes">
+                            <button class="btn btn-secondary" onclick="baixarBackup('${backup.arquivo}')">
+                                <i class="fas fa-download"></i> Baixar
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Erro ao carregar backups:', error);
+                const container = document.getElementById('lista-backups');
+                container.innerHTML = '<p style="text-align: center; color: #ff6b6b; padding: 20px;"><i class="fas fa-exclamation-triangle"></i> Erro ao carregar backups</p>';
+            }
+        }
+
+        async function fazerBackupManual() {
+            try {
+                const response = await fetch('/api/backup');
+                const result = await response.json();
+                
+                if (result.success) {
+                    mostrarModalSucesso('✅ Sucesso', 'Backup criado com sucesso!');
+                    atualizarListaBackups();
+                } else {
+                    mostrarModalErro('❌ Erro', result.message);
+                }
+            } catch (error) {
+                console.error('Erro ao fazer backup:', error);
+                mostrarModalErro('❌ Erro', 'Erro ao fazer backup');
+            }
+        }
+
+        async function baixarDadosAtuais() {
+            try {
+                window.open('/api/download', '_blank');
+            } catch (error) {
+                console.error('Erro ao baixar dados:', error);
+                mostrarModalErro('❌ Erro', 'Erro ao baixar dados');
+            }
+        }
+
+        async function baixarBackup(nomeArquivo) {
+            try {
+                window.open(`/api/backups/${nomeArquivo}`, '_blank');
+            } catch (error) {
+                console.error('Erro ao baixar backup:', error);
+                mostrarModalErro('❌ Erro', 'Erro ao baixar backup');
+            }
+        }
+
 
         // Função para gerar QR Code do cardápio
         function gerarQRCode() {
