@@ -33292,6 +33292,526 @@
       "valor_cobrado": 14.0,
       "tipo_consumo": "local",
       "competencia": "2026-10"
+    },
+    {
+      "data": "17/10/2026 16:50",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 2,
+      "valor_unitario": 7.0,
+      "total": 14.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 14.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "17/10/2026 16:50",
+      "espetinho": "QUEIJO",
+      "quantidade": 4,
+      "valor_unitario": 10.0,
+      "total": 40.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 40.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "17/10/2026 18:22",
+      "espetinho": "MEDALHÃO DE CARNE",
+      "quantidade": 2,
+      "valor_unitario": 10.0,
+      "total": 20.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 20.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "17/10/2026 18:22",
+      "espetinho": "GADO (FRALDINHA)",
+      "quantidade": 2,
+      "valor_unitario": 7.0,
+      "total": 14.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 14.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "17/10/2026 18:22",
+      "espetinho": "GADO (FRALDINHA)",
+      "quantidade": 1,
+      "valor_unitario": 7.0,
+      "total": 7.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 7.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "17/10/2026 18:23",
+      "espetinho": "MEDALHÃO DE CARNE",
+      "quantidade": 1,
+      "valor_unitario": 10.0,
+      "total": 10.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 10.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "17/10/2026 18:23",
+      "espetinho": "GADO (FRALDINHA)",
+      "quantidade": 1,
+      "valor_unitario": 7.0,
+      "total": 7.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 7.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "17/10/2026 18:26",
+      "espetinho": "GADO (FRALDINHA)",
+      "quantidade": 1,
+      "valor_unitario": 7.0,
+      "total": 7.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 7.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "17/10/2026 18:35",
+      "espetinho": "GADO (FRALDINHA)",
+      "quantidade": 2,
+      "valor_unitario": 7.0,
+      "total": 14.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 14.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "17/10/2026 18:47",
+      "espetinho": "MEDALHÃO DE CARNE",
+      "quantidade": 2,
+      "valor_unitario": 10.0,
+      "total": 20.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 20.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "17/10/2026 18:47",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 4,
+      "valor_unitario": 7.0,
+      "total": 28.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 28.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "17/10/2026 18:47",
+      "espetinho": "GADO (FRALDINHA)",
+      "quantidade": 1,
+      "valor_unitario": 7.0,
+      "total": 7.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 7.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "17/10/2026 19:02",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 2,
+      "valor_unitario": 7.0,
+      "total": 14.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 14.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "17/10/2026 19:48",
+      "espetinho": "GADO (FRALDINHA)",
+      "quantidade": 2,
+      "valor_unitario": 7.0,
+      "total": 14.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 14.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "17/10/2026 20:50",
+      "espetinho": "GADO (FRALDINHA)",
+      "quantidade": 2,
+      "valor_unitario": 7.0,
+      "total": 14.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 14.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "17/10/2026 21:34",
+      "espetinho": "GADO (FRALDINHA)",
+      "quantidade": 1,
+      "valor_unitario": 7.0,
+      "total": 7.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 7.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "17/10/2026 22:41",
+      "espetinho": "GADO (FRALDINHA)",
+      "quantidade": 1,
+      "valor_unitario": 7.0,
+      "total": 7.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 7.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "17/10/2026 22:42",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 1,
+      "valor_unitario": 7.0,
+      "total": 7.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 7.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "17/10/2026 22:42",
+      "espetinho": "GADO (FRALDINHA)",
+      "quantidade": 1,
+      "valor_unitario": 7.0,
+      "total": 7.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 7.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "17/10/2026 22:42",
+      "espetinho": "QUEIJO",
+      "quantidade": 1,
+      "valor_unitario": 10.0,
+      "total": 10.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 10.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "17/10/2026 22:42",
+      "espetinho": "CAMARÃO",
+      "quantidade": 1,
+      "valor_unitario": 11.0,
+      "total": 11.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 11.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "17/10/2026 22:42",
+      "espetinho": "MEDALHÃO DE CARNE",
+      "quantidade": 1,
+      "valor_unitario": 10.0,
+      "total": 10.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 10.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "18/10/2026 17:37",
+      "espetinho": "MEDALHÃO DE FRANGO",
+      "quantidade": 1,
+      "valor_unitario": 10.0,
+      "total": 10.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 10.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "18/10/2026 17:38",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 2,
+      "valor_unitario": 7.0,
+      "total": 14.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 14.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "18/10/2026 17:38",
+      "espetinho": "MEDALHÃO DE FRANGO",
+      "quantidade": 1,
+      "valor_unitario": 10.0,
+      "total": 10.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 10.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "18/10/2026 17:38",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 1,
+      "valor_unitario": 7.0,
+      "total": 7.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 7.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "18/10/2026 17:38",
+      "espetinho": "GADO (FRALDINHA)",
+      "quantidade": 1,
+      "valor_unitario": 7.0,
+      "total": 7.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 7.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "18/10/2026 17:38",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 1,
+      "valor_unitario": 7.0,
+      "total": 7.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 7.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "18/10/2026 17:38",
+      "espetinho": "GADO (FRALDINHA)",
+      "quantidade": 1,
+      "valor_unitario": 7.0,
+      "total": 7.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 7.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "18/10/2026 17:45",
+      "espetinho": "GADO (FRALDINHA)",
+      "quantidade": 2,
+      "valor_unitario": 7.0,
+      "total": 14.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 14.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "18/10/2026 18:08",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 1,
+      "valor_unitario": 7.0,
+      "total": 7.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 7.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "18/10/2026 18:08",
+      "espetinho": "MEDALHÃO DE CARNE",
+      "quantidade": 1,
+      "valor_unitario": 10.0,
+      "total": 10.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 10.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "18/10/2026 18:08",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 1,
+      "valor_unitario": 7.0,
+      "total": 7.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 7.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "18/10/2026 19:18",
+      "espetinho": "FRANGO",
+      "quantidade": 4,
+      "valor_unitario": 7.0,
+      "total": 28.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 28.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "18/10/2026 19:55",
+      "espetinho": "MEDALHÃO DE FRANGO",
+      "quantidade": 2,
+      "valor_unitario": 10.0,
+      "total": 20.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 20.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "18/10/2026 19:55",
+      "espetinho": "QUEIJO",
+      "quantidade": 1,
+      "valor_unitario": 10.0,
+      "total": 10.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 10.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "18/10/2026 19:55",
+      "espetinho": "GADO (FRALDINHA)",
+      "quantidade": 1,
+      "valor_unitario": 7.0,
+      "total": 7.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 7.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "18/10/2026 19:55",
+      "espetinho": "FRANGO",
+      "quantidade": 1,
+      "valor_unitario": 7.0,
+      "total": 7.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 7.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "18/10/2026 19:55",
+      "espetinho": "GADO (FRALDINHA)",
+      "quantidade": 2,
+      "valor_unitario": 7.0,
+      "total": 14.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 14.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
+    },
+    {
+      "data": "18/10/2026 20:06",
+      "espetinho": "CORAÇÃO",
+      "quantidade": 2,
+      "valor_unitario": 7.0,
+      "total": 14.0,
+      "alterou_estoque": true,
+      "origem": "web",
+      "tipo_venda": "normal",
+      "valor_cobrado": 14.0,
+      "tipo_consumo": "local",
+      "competencia": "2026-10"
     }
   ],
   "despesas": [
@@ -33909,6 +34429,11 @@
       "data": "11/10/2026 01:57",
       "descricao": "Carne índio ",
       "valor": 198.0
+    },
+    {
+      "data": "14/10/2026 18:16",
+      "descricao": "Compra contra filé ",
+      "valor": 138.0
     }
   ],
   "espetinhos": {
@@ -33925,7 +34450,7 @@
     "FRANGO": {
       "valor": 7.0,
       "custo": 3.0,
-      "estoque": 78
+      "estoque": 73
     },
     "TULIPA": {
       "valor": 8.0,
@@ -33935,22 +34460,22 @@
     "CORAÇÃO": {
       "valor": 7.0,
       "custo": 3.0,
-      "estoque": 9
+      "estoque": 12
     },
     "MEDALHÃO DE CARNE": {
       "valor": 10.0,
       "custo": 5.0,
-      "estoque": 12
+      "estoque": 5
     },
     "MEDALHÃO DE FRANGO": {
       "valor": 10.0,
       "custo": 5.0,
-      "estoque": 1
+      "estoque": 7
     },
     "QUEIJO": {
       "valor": 10.0,
       "custo": 4.5,
-      "estoque": 6
+      "estoque": 8
     },
     "LINGUIÇA DEFUMADA": {
       "valor": 6.0,
@@ -33960,7 +34485,7 @@
     "CAMARÃO": {
       "valor": 11.0,
       "custo": 5.0,
-      "estoque": 13
+      "estoque": 12
     },
     "Ubre": {
       "valor": 6.0,
@@ -33990,12 +34515,12 @@
     "GADO (CONTRA-FILE)": {
       "valor": 10.0,
       "custo": 4.22,
-      "estoque": 28
+      "estoque": 66
     },
     "GADO (FRALDINHA)": {
       "valor": 7.0,
       "custo": 2.44,
-      "estoque": 27
+      "estoque": 65
     },
     "KAFTA DO  NAL": {
       "valor": 8.0,
