@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1919,18 +1919,19 @@
             }
         }
     </style>
+<link rel="stylesheet" href="{{ url_for('static', filename='responsividade-inteligente.css') }}?v=20261014melhorias7">
 </head>
 <body>
     <div class="container">
         <!-- Header -->
         <div class="header fade-in">
             <h1>🍖 BUTECO DO NAL</h1>
-            <p>Sistema de Vendas Mobile</p>
             <div style="margin-top: 20px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
                 <a href="/cardapio" target="_blank" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 10px; text-decoration: none; padding: 12px 20px; font-size: 1rem;">
                     <i class="fas fa-utensils"></i>
                     Ver Cardápio
                 </a>
+                <button type="button" onclick="alterarSenhaAcesso()" class="btn btn-secondary" style="padding: 12px 20px;"><i class="fas fa-lock"></i> Alterar senha</button>
                 <button onclick="gerarQRCode()" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 10px; padding: 12px 20px; font-size: 1rem;">
                     <i class="fas fa-qr-code"></i>
                     Gerar QR Code
@@ -2029,8 +2030,7 @@
                         <label>
                             <i class="fas fa-calculator"></i> Valor Unitário
                         </label>
-                        <input type="text" id="valor-unitario" class="form-control" 
-                               readonly style="background: rgba(255, 255, 255, 0.05);">
+                        <input type="number" id="valor-unitario" class="form-control" min="0" step="0.01" inputmode="decimal" placeholder="Preço negociado" aria-label="Valor unitário negociado">
                     </div>
                     
                     <div class="form-group">
@@ -2041,7 +2041,7 @@
                                readonly style="background: rgba(255, 255, 255, 0.05); font-weight: bold; color: #ffd700;">
                     </div>
                     
-                    <div class="form-group checkbox-group">
+                    <div class="form-group checkbox-group venda-estoque-box">
                         <label class="checkbox-label">
                             <input type="checkbox" id="alterar-estoque" checked>
                             <span class="checkmark"></span>
@@ -2050,11 +2050,12 @@
                     </div>
 
                     <!-- Tipo de venda e de consumo -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+                    <div class="venda-tipos-grid">
                         <div class="form-group">
                             <label for="tipo-venda">
                                 <i class="fas fa-tag"></i> Tipo de Venda
                             </label>
+                            <button type="button" class="venda-select-card" data-target="tipo-venda" onclick="abrirSeletorVenda('tipo-venda')">Venda normal <i class="fas fa-chevron-down"></i></button>
                             <select id="tipo-venda" class="form-control">
                                 <option value="normal">Venda normal (cobra do cliente)</option>
                                 <option value="bonificacao">Bonificação (não cobra, só baixa estoque)</option>
@@ -2064,6 +2065,7 @@
                             <label for="tipo-consumo">
                                 <i class="fas fa-user-friends"></i> Tipo de Consumo
                             </label>
+                            <button type="button" class="venda-select-card" data-target="tipo-consumo" onclick="abrirSeletorVenda('tipo-consumo')">Local <i class="fas fa-chevron-down"></i></button>
                             <select id="tipo-consumo" class="form-control">
                                 <option value="local">Local (consumo no buteco)</option>
                                 <option value="entrega">Entrega / Delivery</option>
@@ -2072,15 +2074,27 @@
                         </div>
                     </div>
                     
-                    <div style="text-align: center; margin-top: 30px;">
+                    <div class="venda-acoes">
+                        <button type="button" class="btn btn-secondary" onclick="adicionarAoCarrinhoEspetinho()">
+                            <i class="fas fa-cart-plus"></i> Adicionar ao Carrinho
+                        </button>
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-check"></i> Lançar Venda
                         </button>
-                        <button type="button" class="btn btn-secondary" onclick="limparFormulario()" style="margin-left: 15px;">
+                        <button type="button" class="btn btn-secondary" onclick="limparFormulario()">
                             <i class="fas fa-eraser"></i> Limpar
                         </button>
                     </div>
                 </form>
+                <section class="carrinho-espetinho" id="carrinho-espetinho">
+                    <h3><i class="fas fa-shopping-basket"></i> Carrinho da venda <span id="carrinho-quantidade">0 itens</span></h3>
+                    <div id="carrinho-lista">Adicione espetinhos para finalizar todos juntos.</div>
+                    <div class="carrinho-rodape">
+                        <strong id="carrinho-total">Total: R$ 0,00</strong>
+                        <button type="button" class="btn btn-primary" id="carrinho-finalizar" onclick="finalizarCarrinhoEspetinho()" disabled>Finalizar carrinho</button>
+                        <button type="button" class="btn btn-secondary" onclick="limparCarrinhoEspetinho()">Esvaziar</button>
+                    </div>
+                </section>
                 
                 <div class="loading" id="loading">
                     <div class="spinner"></div>
@@ -2132,17 +2146,17 @@
                     <h3 class="relatorio-title">
                         <i class="fas fa-chart-line"></i> Resumo de Vendas
                     </h3>
-                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                        <input type="date" id="relatorio-data-inicial" class="form-control" style="width: 160px; height: 38px; padding: 8px;">
-                        <input type="date" id="relatorio-data-final" class="form-control" style="width: 160px; height: 38px; padding: 8px;">
+                    <div class="filtros-resumo-vendas">
+                        <input type="date" id="relatorio-data-inicial" class="form-control" aria-label="Data inicial do resumo de vendas">
+                        <input type="date" id="relatorio-data-final" class="form-control" aria-label="Data final do resumo de vendas">
                         <button class="btn-atualizar" onclick="atualizarRelatorios(true)">
                             <i class="fas fa-filter"></i> Aplicar
                         </button>
                     </div>
-                    <button class="btn-atualizar" onclick="limparFiltroRelatorios()" style="margin-left: 8px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3);">
+                    <button class="btn-atualizar" onclick="limparFiltroRelatorios()" class="filtro-acao-limpar">
                         <i class="fas fa-broom"></i> Limpar
                     </button>
-                    <button class="btn-atualizar" onclick="atualizarRelatorios()" style="margin-left: 8px;">
+                    <button class="btn-atualizar" onclick="atualizarRelatorios()">
                         <i class="fas fa-sync-alt"></i> Atualizar
                     </button>
                 </div>
@@ -2183,6 +2197,17 @@
 
         <!-- Aba Relatórios Gerenciais -->
         <div id="aba-gerenciais" class="tab-content">
+            <section class="resumo-gerencial-painel relatorio-card">
+                <div class="relatorio-header"><h3 class="relatorio-title">Visão rápida do dia</h3><button type="button" class="btn-atualizar" onclick="atualizarResumoGerencialEspetinho()">Atualizar</button></div>
+                <div class="resumo-gerencial-grid">
+                    <div><small>Faturamento</small><strong id="dash-faturamento">—</strong></div>
+                    <div><small>Unidades vendidas</small><strong id="dash-quantidade">—</strong></div>
+                    <div><small>Ticket por registro</small><strong id="dash-ticket">—</strong></div>
+                    <div><small>Despesas do dia</small><strong id="dash-despesas">—</strong></div>
+                    <div><small>Estoque baixo</small><strong id="dash-estoque">—</strong></div>
+                </div>
+                <p style="font-size:12px;color:#bcbcbc;margin-top:10px;">Indicadores do dia, calculados a partir dos registros de vendas e despesas.</p>
+            </section>
             <div class="relatorio-card fade-in">
                 <div class="relatorio-header">
                     <h3 class="relatorio-title">
@@ -2274,6 +2299,13 @@
                                    placeholder="Ex: Compra de ingredientes">
                         </div>
                         
+                        <div class="form-group"><label for="categoria-despesa"><i class="fas fa-tags"></i> Categoria</label>
+                            <select id="categoria-despesa" class="form-control">
+                                <option value="Ingredientes">Ingredientes</option><option value="Bebidas">Bebidas</option>
+                                <option value="Embalagens">Embalagens</option><option value="Funcionários">Funcionários</option>
+                                <option value="Manutenção">Manutenção</option><option value="Outras">Outras</option>
+                            </select>
+                        </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                             <div class="form-group">
                                 <label for="valor-despesa">
@@ -2334,7 +2366,7 @@
                 
                 <!-- Filtros -->
                 <div class="venda-form fade-in" style="margin-bottom: 20px;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="filtros-vendas-registradas">
                         <div class="form-group">
                             <label for="filtro-data-inicial">
                                 <i class="fas fa-calendar"></i> Data Inicial
@@ -2371,6 +2403,7 @@
                             <i class="fas fa-info-circle"></i> Carregando vendas...
                         </p>
                     </div>
+                    <div id="paginacao-vendas-registradas" class="paginacao-vendas" aria-label="Navegação entre páginas de vendas"></div>
                 </div>
             </div>
         </div>
@@ -2403,6 +2436,12 @@
                     </div>
                 </div>
                 
+                <div id="alerta-estoque-minimo" class="alerta-estoque-minimo" aria-live="polite">Configure um estoque mínimo nos produtos para receber alertas.</div>
+                <section class="historico-estoque-painel">
+                    <div class="relatorio-header"><h3 class="relatorio-title"><i class="fas fa-history"></i> Histórico de Movimentações</h3>
+                    <button class="btn-atualizar" type="button" onclick="atualizarHistoricoEstoque()">Atualizar</button></div>
+                    <div id="historico-estoque-lista">Clique em Atualizar para visualizar as movimentações recentes.</div>
+                </section>
                 <!-- Lista de Estoque -->
                 <div class="vendas-hoje fade-in">
                     <div id="estoque-lista">
@@ -2468,7 +2507,7 @@
                             <input type="number" id="estoque-espetinho" class="form-control" 
                                    min="0" placeholder="0">
                         </div>
-                        
+                        <div class="form-group"><label for="estoque-minimo-espetinho"><i class="fas fa-bell"></i> Alerta de estoque mínimo</label><input id="estoque-minimo-espetinho" class="form-control" type="number" min="0" step="1" value="0"></div>
                         <div style="text-align: center; margin-top: 30px;">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-plus"></i> Cadastrar Espetinho
@@ -2677,11 +2716,30 @@
     </div>
 
     <script>
+        async function alterarSenhaAcesso() {
+            const atual = prompt('Digite a senha atual:');
+            if (atual === null) return;
+            const nova = prompt('Digite a nova senha (mínimo 10 caracteres):');
+            if (nova === null) return;
+            const repetir = prompt('Confirme a nova senha:');
+            if (repetir !== nova) { alert('As senhas novas não coincidem.'); return; }
+            try {
+                const resposta = await fetch('/api/alterar-senha', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({senha_atual: atual, nova_senha: nova})
+                });
+                const resultado = await resposta.json();
+                alert(resultado.message || (resposta.ok ? 'Senha alterada.' : 'Não foi possível alterar.'));
+            } catch (erro) { alert('Não foi possível conectar ao servidor.'); }
+        }
         let espetinhos = {};
         let vendasHoje = [];
         let filtroGerencialDataInicial = null;
         let filtroGerencialDataFinal = null;
         let editandoDespesaIndex = null;
+        let editandoEspetinhoNome = null;
+        let salvandoEspetinho = false;
 
         // Helper para usar o mesmo conceito do desktop:
         // faturamento real = valor_cobrado; fallback para total em vendas antigas
@@ -2923,6 +2981,8 @@
         // Calcular total quando espetinho ou quantidade mudar
         document.getElementById('espetinho').addEventListener('change', calcularTotal);
         document.getElementById('quantidade').addEventListener('input', calcularTotal);
+        document.getElementById('valor-unitario').addEventListener('input', calcularTotal);
+        document.getElementById('espetinho').addEventListener('change', () => { const nome = document.getElementById('espetinho').value; document.getElementById('valor-unitario').value = nome && espetinhos[nome] ? Number(espetinhos[nome].valor).toFixed(2) : ''; calcularTotal(); });
         
         // Mostrar estoque quando espetinho mudar
         document.getElementById('espetinho').addEventListener('change', mostrarEstoque);
@@ -2932,10 +2992,8 @@
             const quantidade = parseInt(document.getElementById('quantidade').value) || 0;
             
             if (espetinho && espetinhos[espetinho]) {
-                const valorUnitario = espetinhos[espetinho].valor;
-                const total = valorUnitario * quantidade;
-                
-                document.getElementById('valor-unitario').value = `R$ ${valorUnitario.toFixed(2)}`;
+                const valorUnitario = Number(document.getElementById('valor-unitario').value);
+                const total = (Number.isFinite(valorUnitario) && valorUnitario >= 0 ? valorUnitario : 0) * quantidade;
                 document.getElementById('total').value = `R$ ${total.toFixed(2)}`;
             } else {
                 document.getElementById('valor-unitario').value = '';
@@ -2944,37 +3002,158 @@
         }
 
         function mostrarEstoque() {
-            const espetinho = document.getElementById('espetinho').value;
-            const alterarEstoque = document.getElementById('alterar-estoque');
-            
-            if (espetinho && espetinhos[espetinho]) {
-                const estoque = espetinhos[espetinho].estoque;
-                const quantidade = parseInt(document.getElementById('quantidade').value) || 0;
-                
-                // Atualizar texto do checkbox com estoque atual
-                const checkboxLabel = document.querySelector('.checkbox-label');
-                if (estoque > 0) {
-                    checkboxLabel.innerHTML = `
-                        <input type="checkbox" id="alterar-estoque" checked>
-                        <span class="checkmark"></span>
-                        <i class="fas fa-box"></i> 📦 BAIXAR ESTOQUE (${estoque} disponíveis)
-                    `;
-                    
-                    // Re-vincular evento
-                    document.getElementById('alterar-estoque').addEventListener('change', function() {
-                        if (this.checked && estoque < quantidade) {
-                            mostrarModalErro('⚠️ Estoque Insuficiente', `Disponível: ${estoque} unidades`);
-                            this.checked = false;
-                        }
-                    });
-                } else {
-                    checkboxLabel.innerHTML = `
-                        <input type="checkbox" id="alterar-estoque" checked>
-                        <span class="checkmark"></span>
-                        <i class="fas fa-box"></i> 📦 BAIXAR ESTOQUE (SEM ESTOQUE - venda sem baixar)
-                    `;
-                    alterarEstoque.checked = false;
-                }
+            const nome = document.getElementById('espetinho').value;
+            const checkbox = document.getElementById('alterar-estoque');
+            const label = document.querySelector('.venda-estoque-box .checkbox-label');
+            const produto = espetinhos[nome];
+            const estoque = produto ? Number(produto.estoque) || 0 : null;
+            let descricao = label.querySelector('.estoque-descricao');
+            if (!descricao) {
+                descricao = document.createElement('span');
+                descricao.className = 'estoque-descricao';
+                label.appendChild(descricao);
+            }
+            descricao.textContent = estoque === null
+              ? 'Baixar estoque na venda'
+              : estoque > 0 ? 'Baixar estoque (' + estoque + ' disponíveis)' : 'Sem estoque disponível — venda sem baixa';
+            if (estoque === 0) checkbox.checked = false;
+        }
+
+        // Selecao visual em cards no celular; os selects originais continuam sendo a fonte dos valores.
+        function atualizarCardsVenda() {
+            document.querySelectorAll('.venda-select-card').forEach(botao => {
+                const select = document.getElementById(botao.dataset.target);
+                if (!select) return;
+                const nomes = {
+                    normal:'Venda normal', bonificacao:'Bonificação',
+                    local:'Local', entrega:'Entrega', interno:'Interno'
+                };
+                botao.replaceChildren(document.createTextNode(nomes[select.value] || select.selectedOptions[0].textContent + ' '));
+                const seta = document.createElement('i');
+                seta.className = 'fas fa-chevron-down';
+                botao.appendChild(seta);
+            });
+        }
+        function fecharSeletorVenda() {
+            document.getElementById('seletor-venda-overlay')?.remove();
+        }
+        function abrirSeletorVenda(id) {
+            const select = document.getElementById(id);
+            if (!select) return;
+            fecharSeletorVenda();
+            const overlay = document.createElement('div');
+            overlay.id = 'seletor-venda-overlay';
+            overlay.className = 'seletor-venda-overlay';
+            const painel = document.createElement('section');
+            painel.className = 'seletor-venda-painel';
+            painel.setAttribute('role','dialog');
+            painel.setAttribute('aria-modal','true');
+            painel.setAttribute('aria-label',id === 'tipo-venda' ? 'Tipo de Venda' : 'Tipo de Consumo');
+            const titulo = document.createElement('h3');
+            titulo.textContent = id === 'tipo-venda' ? 'Tipo de Venda' : 'Tipo de Consumo';
+            painel.appendChild(titulo);
+            Array.from(select.options).forEach(opcao => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'opcao-venda-card' + (opcao.value === select.value ? ' selecionada' : '');
+                const texto = document.createElement('span');
+                texto.textContent = opcao.textContent;
+                const check = document.createElement('i');
+                check.className = opcao.value === select.value ? 'fas fa-check-circle' : 'far fa-circle';
+                btn.append(texto,check);
+                btn.onclick = () => {
+                    select.value = opcao.value;
+                    select.dispatchEvent(new Event('change',{bubbles:true}));
+                    atualizarCardsVenda();
+                    fecharSeletorVenda();
+                };
+                painel.appendChild(btn);
+            });
+            const cancelar = document.createElement('button');
+            cancelar.type = 'button';
+            cancelar.className = 'cancelar-seletor-venda';
+            cancelar.textContent = 'Cancelar';
+            cancelar.onclick = fecharSeletorVenda;
+            painel.appendChild(cancelar);
+            overlay.appendChild(painel);
+            overlay.addEventListener('click',event => { if (event.target === overlay) fecharSeletorVenda(); });
+            document.body.appendChild(overlay);
+            cancelar.focus({preventScroll:true});
+        }
+        document.getElementById('tipo-venda').addEventListener('change',atualizarCardsVenda);
+        document.getElementById('tipo-consumo').addEventListener('change',atualizarCardsVenda);
+        atualizarCardsVenda();
+
+                const carrinhoEspetinho = [];
+        let carrinhoSalvando = false;
+        function renderizarCarrinhoEspetinho() {
+            const lista = document.getElementById('carrinho-lista');
+            lista.replaceChildren();
+            let total = 0;
+            carrinhoEspetinho.forEach((item, indice) => {
+                total += item.valor_unitario * item.quantidade;
+                const linha = document.createElement('div');
+                linha.className = 'carrinho-espetinho-item';
+                const descricao = document.createElement('span');
+                descricao.textContent = item.quantidade + 'x ' + item.espetinho + ' — R$ ' + (item.quantidade * item.valor_unitario).toFixed(2) + (item.alterar_estoque ? '' : ' (sem baixa)');
+                const remover = document.createElement('button');
+                remover.type = 'button';
+                remover.className = 'btn btn-secondary';
+                remover.textContent = 'Remover';
+                remover.onclick = () => { carrinhoEspetinho.splice(indice, 1); renderizarCarrinhoEspetinho(); };
+                linha.append(descricao, remover);
+                lista.append(linha);
+            });
+            if (!carrinhoEspetinho.length) lista.textContent = 'Adicione espetinhos para finalizar todos juntos.';
+            document.getElementById('carrinho-quantidade').textContent = carrinhoEspetinho.length + ' itens';
+            document.getElementById('carrinho-total').textContent = 'Total: R$ ' + total.toFixed(2);
+            document.getElementById('carrinho-finalizar').disabled = !carrinhoEspetinho.length || carrinhoSalvando;
+        }
+        function adicionarAoCarrinhoEspetinho() {
+            const nome = document.getElementById('espetinho').value;
+            const quantidade = Number(document.getElementById('quantidade').value);
+            const campoPreco = document.getElementById('valor-unitario');
+            const preco = Number(campoPreco.value);
+            if (!nome || !Number.isInteger(quantidade) || quantidade <= 0 || campoPreco.value.trim() === '' || !Number.isFinite(preco) || preco < 0 || Math.abs(preco * 100 - Math.round(preco * 100)) > 0.000001) {
+                mostrarModalErro('Dados inválidos', 'Informe produto, quantidade e preço válido.');
+                return;
+            }
+            const baixar = document.getElementById('alterar-estoque').checked;
+            const reservados = carrinhoEspetinho.filter(item => item.espetinho === nome && item.alterar_estoque).reduce((s,item) => s+item.quantidade,0);
+            if (baixar && (espetinhos[nome]?.estoque || 0) < reservados + quantidade) {
+                mostrarModalErro('Estoque insuficiente','A quantidade no carrinho ultrapassa o estoque disponível.');
+                return;
+            }
+            carrinhoEspetinho.push({espetinho:nome,quantidade,valor_unitario:preco,alterar_estoque:baixar});
+            renderizarCarrinhoEspetinho();
+            document.getElementById('quantidade').value = 1;
+            calcularTotal();
+        }
+        function limparCarrinhoEspetinho() { if (carrinhoSalvando) return; carrinhoEspetinho.length=0; renderizarCarrinhoEspetinho(); }
+        async function finalizarCarrinhoEspetinho() {
+            if (!carrinhoEspetinho.length || carrinhoSalvando) return;
+            carrinhoSalvando = true;
+            renderizarCarrinhoEspetinho();
+            try {
+                const response = await fetch('/api/vendas/lote', {
+                    method:'POST',headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({
+                        itens:carrinhoEspetinho,
+                        tipo_venda:document.getElementById('tipo-venda').value,
+                        tipo_consumo:document.getElementById('tipo-consumo').value
+                    })
+                });
+                const resultado = await response.json();
+                if (!response.ok || !resultado.success) throw new Error(resultado.message || 'Erro ao finalizar');
+                carrinhoEspetinho.length=0;
+                limparFormulario();
+                await carregarEspetinhos();
+                carregarVendasHoje(); atualizarVendasHoje(); atualizarStatus(); atualizarRelatorios();
+                mostrarModalSucesso('Venda registrada', resultado.message);
+            } catch(erro) {
+                mostrarModalErro('Venda não concluída', erro.message);
+            } finally {
+                carrinhoSalvando=false; renderizarCarrinhoEspetinho();
             }
         }
 
@@ -2987,12 +3166,17 @@
             const alterarEstoque = document.getElementById('alterar-estoque').checked;
             const tipoVenda = document.getElementById('tipo-venda').value || 'normal';
             const tipoConsumo = document.getElementById('tipo-consumo').value || 'local';
+            const valorUnitario = Number(document.getElementById('valor-unitario').value);
             
             if (!espetinho || !quantidade) {
                 mostrarModalErro('❌ Erro', 'Preencha todos os campos');
                 return;
             }
             
+            if (document.getElementById('valor-unitario').value.trim() === '' || !Number.isFinite(valorUnitario) || valorUnitario < 0) {
+                mostrarModalErro('❌ Preço inválido', 'Informe um valor unitário válido.');
+                return;
+            }
             // Verificar estoque se a opção estiver marcada
             if (alterarEstoque && espetinhos[espetinho]) {
                 const estoqueAtual = espetinhos[espetinho].estoque;
@@ -3015,7 +3199,8 @@
                         quantidade: quantidade,
                         alterar_estoque: alterarEstoque,
                         tipo_venda: tipoVenda,
-                        tipo_consumo: tipoConsumo
+                        tipo_consumo: tipoConsumo,
+                        valor_unitario: valorUnitario
                     })
                 });
                 
@@ -3045,19 +3230,16 @@
             document.getElementById('valor-unitario').value = '';
             document.getElementById('total').value = '';
             
-            // Resetar checkbox de estoque
-            const checkboxLabel = document.querySelector('.checkbox-label');
-            checkboxLabel.innerHTML = `
-                <input type="checkbox" id="alterar-estoque" checked>
-                <span class="checkmark"></span>
-                <i class="fas fa-box"></i> 📦 BAIXAR ESTOQUE (desmarque para venda sem estoque)
-            `;
+            // Manter o checkbox real e seus eventos (sem recriar via innerHTML).
+            document.getElementById('alterar-estoque').checked = true;
+            mostrarEstoque();
 
             // Resetar selects de tipo de venda/consumo
             const tipoVendaSelect = document.getElementById('tipo-venda');
             const tipoConsumoSelect = document.getElementById('tipo-consumo');
             if (tipoVendaSelect) tipoVendaSelect.value = 'normal';
             if (tipoConsumoSelect) tipoConsumoSelect.value = 'local';
+            atualizarCardsVenda();
         }
 
         // Mostrar alerta
@@ -3224,7 +3406,7 @@
             const selecionado = document.querySelector('input[name="espetinho-modal"]:checked');
             if (selecionado) {
                 document.getElementById('espetinho').value = selecionado.value;
-                calcularTotal();
+                document.getElementById('espetinho').dispatchEvent(new Event('change'));
                 mostrarEstoque();
                 fecharModal();
             } else {
@@ -3276,6 +3458,20 @@
         }
 
         // Mostrar aba
+        async function atualizarResumoGerencialEspetinho() {
+            try {
+                const resposta = await fetch('/api/dashboard/resumo');
+                if (!resposta.ok) throw new Error('Falha');
+                const d = await resposta.json();
+                const moeda = n => Number(n || 0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+                document.getElementById('dash-faturamento').textContent = moeda(d.faturamento_hoje);
+                document.getElementById('dash-quantidade').textContent = d.quantidade_vendida;
+                document.getElementById('dash-ticket').textContent = moeda(d.ticket_medio_registro);
+                document.getElementById('dash-despesas').textContent = moeda(d.despesas_hoje);
+                document.getElementById('dash-estoque').textContent = d.estoque_baixo;
+            } catch(e) { console.warn('Resumo indisponível',e); }
+        }
+
         function mostrarAba(aba) {
             // Esconder todas as abas
             document.querySelectorAll('.tab-content').forEach(content => {
@@ -3311,6 +3507,7 @@
             // Se for aba de gerenciais, atualizar dados
             if (aba === 'gerenciais') {
                 atualizarRelatoriosGerenciais();
+                atualizarResumoGerencialEspetinho();
             }
             
             // Se for aba de despesas, atualizar dados
@@ -3327,6 +3524,7 @@
             // Se for aba de estoque, atualizar dados
             if (aba === 'estoque') {
                 atualizarEstoque();
+                atualizarAvisosEstoque();
             }
             
             // Se for aba de gerenciamento, atualizar dados
@@ -4629,11 +4827,14 @@
         // Submeter formulário de espetinho
         document.getElementById('espetinho-form').addEventListener('submit', async function(e) {
             e.preventDefault();
+            if (salvandoEspetinho) return;
             
             const nome = document.getElementById('nome-espetinho').value;
             const valor = parseFloat(document.getElementById('valor-espetinho').value);
             const custo = parseFloat(document.getElementById('custo-espetinho').value) || 0;
             const estoque = parseInt(document.getElementById('estoque-espetinho').value) || 0;
+            const estoqueMinimo = parseInt(document.getElementById('estoque-minimo-espetinho').value) || 0;
+            if (estoqueMinimo < 0) { mostrarAlertaGerenciamento('Estoque mínimo inválido', 'error'); return; }
             
             if (!nome || !valor) {
                 mostrarAlertaGerenciamento('Preencha nome e valor', 'error');
@@ -4641,17 +4842,12 @@
             }
             
             try {
-                const response = await fetch('/api/espetinhos', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        nome: nome,
-                        valor: valor,
-                        custo: custo,
-                        estoque: estoque
-                    })
+                salvandoEspetinho = true;
+                const nomeOriginal = editandoEspetinhoNome;
+                const response = await fetch(nomeOriginal ? `/api/espetinhos/${encodeURIComponent(nomeOriginal)}` : '/api/espetinhos', {
+                    method: nomeOriginal ? 'PUT' : 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({nome, valor, custo, estoque, estoque_minimo: estoqueMinimo})
                 });
                 
                 const result = await response.json();
@@ -4666,13 +4862,19 @@
                 }
             } catch (error) {
                 console.error('Erro ao cadastrar espetinho:', error);
-                mostrarAlertaGerenciamento('Erro ao cadastrar espetinho', 'error');
+                mostrarAlertaGerenciamento('Erro ao salvar espetinho', 'error');
+            } finally {
+                salvandoEspetinho = false;
             }
         });
 
         // Limpar formulário de espetinho
         function limparFormularioEspetinho() {
-            document.getElementById('espetinho-form').reset();
+            editandoEspetinhoNome = null;
+            const form = document.getElementById('espetinho-form');
+            form.reset();
+            document.getElementById('nome-espetinho').readOnly = false;
+            form.querySelector('button[type="submit"]').innerHTML = '<i class="fas fa-plus"></i> Cadastrar Espetinho';
         }
 
         // Mostrar alerta de gerenciamento
@@ -4690,7 +4892,7 @@
         // Atualizar lista de espetinhos
         async function atualizarListaEspetinhos() {
             try {
-                const response = await fetch('/api/espetinhos');
+                const response = await fetch('/api/espetinhos?incluir_inativos=1');
                 const espetinhos = await response.json();
                 
                 const container = document.getElementById('espetinhos-lista');
@@ -4703,18 +4905,16 @@
                 container.innerHTML = Object.entries(espetinhos).map(([nome, dados]) => `
                     <div class="venda-item fade-in">
                         <div class="venda-info">
-                            <div class="venda-espetinho">${nome}</div>
+                            <div class="venda-espetinho">${nome} <small style="color:${dados.ativo === false ? '#ffab40' : '#00d4aa'}">${dados.ativo === false ? 'Inativo' : 'Ativo'}</small></div>
                             <div class="venda-detalhes">
-                                Valor: R$ ${dados.valor.toFixed(2)} | Custo: R$ ${dados.custo.toFixed(2)} | Estoque: ${dados.estoque}
+                                Valor: R$ ${dados.valor.toFixed(2)} | Custo: R$ ${dados.custo.toFixed(2)} | Estoque: ${dados.estoque} | Mínimo: ${dados.estoque_minimo || 0}
                             </div>
                         </div>
                         <div class="venda-actions">
-                            <button class="btn-excluir" onclick="editarEspetinho('${nome}', ${dados.valor}, ${dados.custo}, ${dados.estoque})" title="Editar espetinho">
+                            <button class="btn-excluir" onclick="editarEspetinho('${nome}', ${dados.valor}, ${dados.custo}, ${dados.estoque}, ${dados.estoque_minimo || 0})" title="Editar espetinho">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn-excluir" onclick="excluirEspetinho('${nome}')" title="Excluir espetinho">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                            ${dados.ativo === false ? `<button class="btn-excluir" onclick="reativarEspetinho('${nome}')" title="Reativar espetinho"><i class="fas fa-check-circle"></i> Reativar</button>` : `<button class="btn-excluir" onclick="excluirEspetinho('${nome}')" title="Inativar ou excluir espetinho"><i class="fas fa-ban"></i> Inativar</button>`}
                         </div>
                     </div>
                 `).join('');
@@ -4726,17 +4926,20 @@
         }
 
         // Editar espetinho
-        function editarEspetinho(nome, valor, custo, estoque) {
+        function editarEspetinho(nome, valor, custo, estoque, estoqueMinimo = 0) {
             document.getElementById('nome-espetinho').value = nome;
             document.getElementById('valor-espetinho').value = valor;
             document.getElementById('custo-espetinho').value = custo;
             document.getElementById('estoque-espetinho').value = estoque;
+            document.getElementById('estoque-minimo-espetinho').value = estoqueMinimo;
             
-            // Mudar botão para editar
+            // Um unico submit: atualizar sem cadastrar outro produto.
+            editandoEspetinhoNome = nome;
+            document.getElementById('nome-espetinho').readOnly = true;
             const form = document.getElementById('espetinho-form');
             const submitBtn = form.querySelector('button[type="submit"]');
             submitBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Alterações';
-            submitBtn.onclick = () => salvarEdicaoEspetinho(nome);
+            submitBtn.onclick = null;
         }
 
         // Salvar edição de espetinho
@@ -4779,9 +4982,22 @@
         async function excluirEspetinho(nome) {
             mostrarModalConfirmacao(
                 '⚠️ Confirmar Exclusão',
-                `Tem certeza que deseja excluir o espetinho "${nome}"?`,
+                `Deseja remover "${nome}" das novas vendas? Se existir histórico, o cadastro será inativado sem perder as vendas.`,
                 () => confirmarExclusaoEspetinho(nome)
             );
+        }
+
+        async function reativarEspetinho(nome) {
+            try {
+                const response = await fetch('/api/espetinhos/' + encodeURIComponent(nome) + '/reativar', {method: 'POST'});
+                const result = await response.json();
+                if (!response.ok || !result.success) throw new Error(result.message || 'Falha ao reativar');
+                mostrarAlertaGerenciamento(result.message, 'success');
+                await atualizarListaEspetinhos();
+                await carregarEspetinhos();
+            } catch (error) {
+                mostrarAlertaGerenciamento(error.message || 'Erro ao reativar espetinho', 'error');
+            }
         }
 
         async function confirmarExclusaoEspetinho(nome) {
@@ -4813,6 +5029,7 @@
             const descricao = document.getElementById('descricao-despesa').value;
             const valor = parseFloat(document.getElementById('valor-despesa').value);
             const data = document.getElementById('data-despesa').value;
+            const categoria = document.getElementById('categoria-despesa').value;
             
             if (!descricao || !valor) {
                 mostrarAlertaDespesas('Preencha descrição e valor', 'error');
@@ -4834,7 +5051,8 @@
                     body: JSON.stringify({
                         descricao: descricao,
                         valor: valor,
-                        data: data
+                        data: data,
+                        categoria: categoria
                     })
                 });
                 
@@ -4904,11 +5122,11 @@
                         <div class="venda-info">
                             <div class="venda-espetinho">${despesa.descricao}</div>
                             <div class="venda-detalhes">
-                                Data: ${despesa.data} | Valor: R$ ${despesa.valor.toFixed(2)}
+                                Categoria: ${despesa.categoria || 'Outras'} | Data: ${despesa.data} | Valor: R$ ${despesa.valor.toFixed(2)}
                             </div>
                         </div>
                         <div class="venda-actions">
-                            <button class="btn-excluir" onclick="editarDespesa(${index}, '${despesa.descricao}', ${despesa.valor}, '${despesa.data}')" title="Editar despesa">
+                            <button class="btn-excluir" onclick="editarDespesa(${index}, '${despesa.descricao}', ${despesa.valor}, '${despesa.data}', '${despesa.categoria || 'Outras'}')" title="Editar despesa">
                                 <i class="fas fa-edit"></i>
                             </button>
                             <button class="btn-excluir" onclick="excluirDespesa(${index})" title="Excluir despesa">
@@ -4925,10 +5143,11 @@
         }
 
         // Editar despesa
-        function editarDespesa(index, descricao, valor, data) {
+        function editarDespesa(index, descricao, valor, data, categoria = 'Outras') {
             document.getElementById('descricao-despesa').value = descricao;
             document.getElementById('valor-despesa').value = valor;
             document.getElementById('data-despesa').value = data;
+            document.getElementById('categoria-despesa').value = categoria;
             
             // Entrar em modo edição
             editandoDespesaIndex = index;
@@ -4942,6 +5161,7 @@
             const descricao = document.getElementById('descricao-despesa').value;
             const valor = parseFloat(document.getElementById('valor-despesa').value);
             const data = document.getElementById('data-despesa').value;
+            const categoria = document.getElementById('categoria-despesa').value;
             
             try {
                 const response = await fetch(`/api/despesas/${index}`, {
@@ -4952,7 +5172,8 @@
                     body: JSON.stringify({
                         descricao: descricao,
                         valor: valor,
-                        data: data
+                        data: data,
+                        categoria: categoria
                     })
                 });
                 
@@ -5205,105 +5426,79 @@
         }
 
         // VENDAS REGISTRADAS
-        async function atualizarVendasRegistradas() {
+        let paginaVendasRegistradas = 1;
+        let filtroVendasAtivo = false;
+
+        async function atualizarVendasRegistradas(pagina = 1) {
+            const inicio = filtroVendasAtivo ? document.getElementById('filtro-data-inicial').value : '';
+            const fim = filtroVendasAtivo ? document.getElementById('filtro-data-final').value : '';
+            const container = document.getElementById('vendas-registradas-lista');
+            const navegacao = document.getElementById('paginacao-vendas-registradas');
             try {
-                const response = await fetch('/api/vendas/todas');
-                const vendas = await response.json();
-                
-                const container = document.getElementById('vendas-registradas-lista');
-                
-                if (vendas.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; color: #b0b0b0; padding: 20px;"><i class="fas fa-info-circle"></i> Nenhuma venda registrada</p>';
-                    return;
-                }
-                
-                // Ordenar por data (mais recente primeiro)
-                vendas.sort((a, b) => new Date(b.data.split(' ')[0].split('/').reverse().join('-')) - new Date(a.data.split(' ')[0].split('/').reverse().join('-')));
-                
-                container.innerHTML = vendas.map((venda, index) => `
-                    <div class="venda-item fade-in">
-                        <div class="venda-info">
-                            <div class="venda-espetinho">${venda.espetinho}</div>
-                            <div class="venda-detalhes">
-                                ${venda.quantidade}x - R$ ${venda.valor_unitario.toFixed(2)} cada | ${venda.data}
-                                ${venda.alterou_estoque ? ' | <span style="color: #00d4aa;">✓ Estoque</span>' : ' | <span style="color: #ffa726;">Sem estoque</span>'}
+                const parametros = new URLSearchParams({pagina: String(pagina)});
+                if (inicio) parametros.set('inicio', inicio);
+                if (fim) parametros.set('fim', fim);
+                const response = await fetch('/api/vendas/paginadas?' + parametros.toString());
+                const resultado = await response.json();
+                if (!response.ok || !resultado.success) throw new Error(resultado.message || 'Erro ao consultar vendas');
+                paginaVendasRegistradas = resultado.pagina;
+                if (!resultado.vendas.length) {
+                    container.innerHTML = '<p style="text-align:center;padding:20px;color:#b0b0b0">Nenhuma venda encontrada.</p>';
+                } else {
+                    container.innerHTML = resultado.vendas.map(venda => `
+                        <div class="venda-item fade-in">
+                            <div class="venda-info">
+                                <div class="venda-espetinho">${venda.espetinho}</div>
+                                <div class="venda-detalhes">
+                                    ${venda.quantidade}x - R$ ${Number(venda.valor_unitario || 0).toFixed(2)} cada | ${venda.data}
+                                    ${venda.alterou_estoque ? ' | ✓ Estoque' : ' | Sem estoque'}
+                                </div>
                             </div>
-                        </div>
-                        <div class="venda-actions">
-                            <div class="venda-total">R$ ${venda.total.toFixed(2)}</div>
-                            <button class="btn-excluir" onclick="excluirVendaRegistrada(${index})" title="Excluir venda">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
-                
+                            <div class="venda-actions">
+                                <div class="venda-total">R$ ${Number(venda.total || 0).toFixed(2)}</div>
+                                <button class="btn-excluir" onclick="excluirVendaRegistrada(${venda.indice_original})" title="Excluir venda"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>`).join('');
+                }
+                navegacao.innerHTML = '';
+                const texto = document.createElement('span');
+                const primeira = resultado.total ? (resultado.pagina - 1) * resultado.por_pagina + 1 : 0;
+                const ultima = Math.min(resultado.total, resultado.pagina * resultado.por_pagina);
+                texto.textContent = `Mostrando ${primeira}–${ultima} de ${resultado.total} vendas | Página ${resultado.pagina} de ${resultado.total_paginas}`;
+                const anterior = document.createElement('button');
+                anterior.type = 'button'; anterior.className = 'btn btn-secondary';
+                anterior.textContent = '← Anterior';
+                anterior.disabled = resultado.pagina <= 1;
+                anterior.onclick = () => atualizarVendasRegistradas(resultado.pagina - 1);
+                const proxima = document.createElement('button');
+                proxima.type = 'button'; proxima.className = 'btn btn-secondary';
+                proxima.textContent = 'Próxima →';
+                proxima.disabled = resultado.pagina >= resultado.total_paginas;
+                proxima.onclick = () => atualizarVendasRegistradas(resultado.pagina + 1);
+                navegacao.append(anterior, texto, proxima);
             } catch (error) {
                 console.error('Erro ao carregar vendas registradas:', error);
-                const container = document.getElementById('vendas-registradas-lista');
-                container.innerHTML = '<p style="text-align: center; color: #ff6b6b; padding: 20px;"><i class="fas fa-exclamation-triangle"></i> Erro ao carregar vendas</p>';
+                container.textContent = 'Não foi possível carregar as vendas.';
+                navegacao.replaceChildren();
             }
         }
 
-        // Filtrar vendas por data
-        async function filtrarVendas() {
-            const dataInicial = document.getElementById('filtro-data-inicial').value;
-            const dataFinal = document.getElementById('filtro-data-final').value;
-            
-            if (!dataInicial || !dataFinal) {
-                mostrarModalErro('❌ Erro', 'Selecione data inicial e final');
+        function filtrarVendas() {
+            const inicio = document.getElementById('filtro-data-inicial').value;
+            const fim = document.getElementById('filtro-data-final').value;
+            if (!inicio || !fim || inicio > fim) {
+                mostrarModalErro('Período inválido', 'Informe as datas inicial e final corretamente.');
                 return;
             }
-            
-            try {
-                const response = await fetch('/api/vendas/todas');
-                const vendas = await response.json();
-                
-                // Filtrar por data
-                const vendasFiltradas = vendas.filter(venda => {
-                    const dataVenda = venda.data.split(' ')[0]; // dd/mm/yyyy
-                    const [dia, mes, ano] = dataVenda.split('/');
-                    const dataFormatada = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
-                    
-                    return dataFormatada >= dataInicial && dataFormatada <= dataFinal;
-                });
-                
-                const container = document.getElementById('vendas-registradas-lista');
-                
-                if (vendasFiltradas.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; color: #b0b0b0; padding: 20px;"><i class="fas fa-info-circle"></i> Nenhuma venda encontrada no período</p>';
-                    return;
-                }
-                
-                container.innerHTML = vendasFiltradas.map((venda, index) => `
-                    <div class="venda-item fade-in">
-                        <div class="venda-info">
-                            <div class="venda-espetinho">${venda.espetinho}</div>
-                            <div class="venda-detalhes">
-                                ${venda.quantidade}x - R$ ${venda.valor_unitario.toFixed(2)} cada | ${venda.data}
-                                ${venda.alterou_estoque ? ' | <span style="color: #00d4aa;">✓ Estoque</span>' : ' | <span style="color: #ffa726;">Sem estoque</span>'}
-                            </div>
-                        </div>
-                        <div class="venda-actions">
-                            <div class="venda-total">R$ ${venda.total.toFixed(2)}</div>
-                            <button class="btn-excluir" onclick="excluirVendaRegistrada(${index})" title="Excluir venda">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
-                
-            } catch (error) {
-                console.error('Erro ao filtrar vendas:', error);
-                mostrarModalErro('❌ Erro', 'Erro ao filtrar vendas');
-            }
+            filtroVendasAtivo = true;
+            atualizarVendasRegistradas(1);
         }
 
-        // Limpar filtros de vendas
         function limparFiltrosVendas() {
             document.getElementById('filtro-data-inicial').value = '';
             document.getElementById('filtro-data-final').value = '';
-            atualizarVendasRegistradas();
+            filtroVendasAtivo = false;
+            atualizarVendasRegistradas(1);
         }
 
         // Excluir venda registrada
@@ -5337,6 +5532,65 @@
             }
         }
 
+        async function atualizarHistoricoEstoque() {
+            const container = document.getElementById('historico-estoque-lista');
+            if (!container) return;
+            try {
+                const resposta = await fetch('/api/estoque/movimentacoes');
+                if (!resposta.ok) throw new Error('Falha na consulta');
+                const dados = await resposta.json();
+                container.replaceChildren();
+                if (!dados.movimentacoes.length) {
+                    container.textContent = 'Nenhuma movimentação nova registrada até agora.';
+                    return;
+                }
+                dados.movimentacoes.forEach(m => {
+                    const linha = document.createElement('div');
+                    linha.className = 'historico-estoque-item';
+                    const dados = document.createElement('span');
+                    dados.textContent = m.data + ' · ' + m.produto + ' · ' + m.tipo;
+                    const valores = document.createElement('strong');
+                    valores.textContent = m.anterior + ' → ' + m.posterior + ' (' + (m.quantidade > 0 ? '+' : '') + m.quantidade + ')';
+                    linha.append(dados, valores);
+                    container.appendChild(linha);
+                });
+            } catch (e) { container.textContent = 'Não foi possível carregar o histórico.'; }
+        }
+
+        // Indicadores de estoque minimo para o cadastro existente.
+        async function atualizarAvisosEstoque() {
+            const aviso = document.getElementById('alerta-estoque-minimo');
+            if (!aviso) return;
+            try {
+                const resposta = await fetch('/api/espetinhos');
+                if (!resposta.ok) return;
+                const produtos = await resposta.json();
+                const configurados = Object.entries(produtos).filter(([,p]) => Number(p.estoque_minimo || 0) > 0);
+                const baixos = configurados.filter(([,p]) => Number(p.estoque) <= Number(p.estoque_minimo));
+                aviso.replaceChildren();
+                if (!configurados.length) {
+                    aviso.textContent = 'Configure o Estoque mínimo de cada espetinho no Gerenciamento (valor acima de zero) para ativar os alertas.';
+                } else if (!baixos.length) {
+                    aviso.textContent = '✓ Estoques acima do mínimo — ' + configurados.length + ' produto(s) monitorado(s).';
+                } else {
+                    const titulo = document.createElement('strong');
+                    titulo.textContent = '⚠ ' + baixos.length + ' espetinho(s) no estoque mínimo';
+                    aviso.appendChild(titulo);
+                    const lista = document.createElement('ul');
+                    baixos.forEach(([nome, p]) => {
+                        const item = document.createElement('li');
+                        item.textContent = nome + ': ' + p.estoque + ' disponíveis (mínimo: ' + p.estoque_minimo + ')';
+                        lista.appendChild(item);
+                    });
+                    aviso.appendChild(lista);
+                }
+            } catch(e) { aviso.textContent = 'Não foi possível consultar alertas de estoque.'; }
+        }
+        document.addEventListener('click', e => {
+            if (e.target.closest('[onclick*="atualizarEstoque"]') || e.target.closest('[onclick*="mostrarAba"]')) {
+                setTimeout(atualizarAvisosEstoque, 400);
+            }
+        });
         // ESTOQUE
         async function atualizarEstoque() {
             try {
