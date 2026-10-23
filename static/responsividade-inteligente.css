@@ -1,0 +1,183 @@
+/* Responsividade inteligente adaptada ao Espetinho (Flask): sem dependencias PHP. */
+:root { color-scheme: dark; }
+*, *::before, *::after { box-sizing: border-box; }
+html { max-width: 100%; overflow-x: clip; -webkit-text-size-adjust: 100%; }
+body { max-width: 100%; min-height: 100dvh; overflow-x: clip; }
+img, video, svg, canvas { max-width: 100%; height: auto; }
+button, input, select, textarea { max-width: 100%; font: inherit; }
+button, a, select, input[type="checkbox"] { touch-action: manipulation; }
+:where(input,select,textarea,button,a):focus-visible { outline: 2px solid #ffdf37; outline-offset: 3px; }
+:where(.container,.login-container,.card,.tab-content,.modal-content,.carrinho,.whatsapp-form) { min-width: 0; }
+:where(.modal,.modal-content,.carrinho-modal) { max-height: 100dvh; }
+:where(.modal-content,.carrinho-content) { overflow-y: auto; overscroll-behavior: contain; }
+:where(.tabs) { display: flex; overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; scrollbar-width: thin; scroll-snap-type: x proximity; }
+:where(.tabs .tab) { flex: 0 0 auto; scroll-snap-align: start; }
+:where(.venda-item,.backup-item,.whatsapp-item) { min-width: 0; overflow-wrap: anywhere; }
+:where(table) { max-width: 100%; }
+:where(.table-responsive,.tabela-container) { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+@media (max-width: 768px) {
+ body { width: 100%; }
+ :where(.container) { width: 100%; max-width: 100%; padding-inline: clamp(10px, 3vw, 18px); }
+ :where(.login-container) { width: min(100% - 24px, 420px); max-width: 420px; margin: 20px auto; padding: clamp(18px, 5vw, 32px); }
+ :where(.card,.tab-content,.venda-form,.whatsapp-form) { max-width: 100%; }
+ :where(.stats-grid,.relatorio-stats-grid) { grid-template-columns: repeat(2, minmax(0,1fr)); }
+ :where(.modal-content) { width: calc(100vw - 24px); max-width: calc(100vw - 24px); max-height: calc(100dvh - 24px); margin: 12px auto; }
+ :where(input, select, textarea) { font-size: 16px; }
+ :where(.btn,.btn-primary,.btn-secondary,.relatorio-btn) { min-height: 44px; }
+ :where(.whatsapp-item) { grid-template-columns: minmax(0,1fr); }
+}
+@media (max-width: 480px) {
+ :where(.stats-grid,.relatorio-stats-grid) { grid-template-columns: repeat(2,minmax(0,1fr)); }
+ :where(.login-container) { width: calc(100% - 20px); }
+ :where(.tabs .tab) { min-width: max-content; padding: 12px 14px; }
+ :where(.modal-content) { border-radius: 12px; }
+}
+@media (max-width: 360px) {
+ :where(.stats-grid,.relatorio-stats-grid) { grid-template-columns: minmax(0,1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+ *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+/* Relatorios: corrigir efetivamente grids inline, rankings, datas e grafico em telas estreitas. */
+#aba-gerenciais, #aba-relatorios, #conteudo-relatorios-gerenciais,
+#conteudo-relatorios-gerenciais .relatorio-detalhado { width:100%; min-width:0; max-width:100%; }
+#conteudo-relatorios-gerenciais .relatorio-detalhado { overflow-wrap:anywhere; }
+#conteudo-relatorios-gerenciais :is(.relatorio-stats-grid,.grafico-stats) { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+#conteudo-relatorios-gerenciais :is(.relatorio-stat-item,.stat-item) { min-width:0; padding:12px 8px; }
+#conteudo-relatorios-gerenciais :is(.relatorio-stat-value,.stat-valor) { overflow-wrap:anywhere; font-size:clamp(.95rem,4vw,1.25rem); }
+#conteudo-relatorios-gerenciais .espetinho-ranking { display:grid; grid-template-columns:40px minmax(0,1fr); gap:8px 10px; align-items:center; }
+#conteudo-relatorios-gerenciais .espetinho-posicao { grid-row:span 2; min-width:0; }
+#conteudo-relatorios-gerenciais .espetinho-nome-ranking { margin:0; min-width:0; overflow-wrap:anywhere; }
+#conteudo-relatorios-gerenciais .espetinho-valores-ranking { grid-column:2; min-width:0; text-align:left; overflow-wrap:anywhere; }
+#conteudo-relatorios-gerenciais .grafico-container { min-width:0; max-width:100%; overflow:hidden; padding:12px; }
+#conteudo-relatorios-gerenciais .grafico-barras { justify-content:flex-start; gap:8px; overflow-x:auto; overflow-y:visible; min-width:0; max-width:100%; padding-bottom:38px; }
+#conteudo-relatorios-gerenciais .barra-container { flex:0 0 48px; min-width:48px; margin:0; }
+#conteudo-relatorios-gerenciais .barra-hora { white-space:nowrap; font-size:.7rem; }
+#conteudo-relatorios-gerenciais .barra-valor { font-size:.65rem; }
+#conteudo-relatorios-gerenciais :is(.grafico-legenda,.grafico-stats) { max-width:100%; }
+@media(max-width:768px) {
+ #conteudo-relatorios-gerenciais, #aba-gerenciais .conteudo-relatorios { padding:10px; }
+ #conteudo-relatorios-gerenciais .relatorio-detalhado { padding:12px; }
+ #conteudo-relatorios-gerenciais .relatorio-detalhado h4 { font-size:clamp(1rem,4.2vw,1.2rem); }
+ #conteudo-relatorios-gerenciais .relatorio-detalhado [style*="grid-template-columns: 1fr 1fr"] { grid-template-columns:minmax(0,1fr) !important; }
+ #conteudo-relatorios-gerenciais .form-group { min-width:0; }
+ #conteudo-relatorios-gerenciais input[type=date] { display:block; width:100%; min-width:0; max-width:100%; }
+ #conteudo-relatorios-gerenciais .relatorio-detalhado > div[style*="text-align: center"] { display:flex; flex-direction:column; gap:10px; align-items:stretch; }
+ #conteudo-relatorios-gerenciais .relatorio-detalhado > div[style*="text-align: center"] button { width:100%; min-width:0; margin:0 !important; white-space:normal; }
+ #aba-gerenciais .relatorios-botoes { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+ #aba-gerenciais .relatorio-btn { min-width:0; padding:14px 8px; overflow-wrap:anywhere; }
+}
+@media(max-width:380px) {
+ #conteudo-relatorios-gerenciais :is(.relatorio-stats-grid,.grafico-stats) { grid-template-columns:minmax(0,1fr); }
+}
+
+
+/* Cabeçalho amarelo: contraste e legibilidade das ações. */
+.header { color:#171717; }
+.header h1, .header p { color:#171717 !important; text-shadow:none !important; }
+.header a.btn, .header button.btn { background:#262626 !important; color:#fff !important; border:2px solid #262626 !important; box-shadow:0 2px 8px rgba(0,0,0,.14); opacity:1 !important; font-weight:700; }
+.header a.btn i, .header button.btn i { color:#fff !important; }
+.header a.btn:hover, .header button.btn:hover { background:#111 !important; border-color:#111 !important; color:#fff !important; }
+.header a.btn:focus-visible, .header button.btn:focus-visible { outline:3px solid #111; outline-offset:3px; }
+@media(max-width:480px) {
+ .header { padding:18px 12px; }
+ .header > div { gap:8px !important; }
+ .header a.btn, .header button.btn { width:100%; min-width:0; justify-content:center; font-size:.88rem !important; padding:12px 10px !important; }
+}
+
+/* Venda rapida: controle de estoque e selecao em cards. */
+#aba-vendas .venda-estoque-box { width:100%; min-width:0; padding:12px 14px; background:rgba(255,215,0,.08); border:1px solid rgba(255,215,0,.35); border-radius:12px; }
+#aba-vendas .venda-estoque-box .checkbox-label { display:flex; gap:10px; align-items:center; width:100%; min-width:0; line-height:1.45; font-size:clamp(12px,3.3vw,15px); white-space:normal; overflow-wrap:anywhere; }
+#aba-vendas .venda-estoque-box .checkbox-label .checkmark { margin:0; width:25px; height:25px; flex:0 0 25px; }
+#aba-vendas .venda-estoque-box .checkbox-label > i { flex:0 0 auto; }
+#aba-vendas .venda-estoque-box .estoque-descricao { flex:1 1 auto; min-width:0; }
+#aba-vendas .venda-tipos-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:12px; }
+#aba-vendas .venda-tipos-grid .form-group { min-width:0; margin-bottom:0; }
+#aba-vendas .venda-tipos-grid label { display:block; min-width:0; font-size:clamp(11px,3vw,14px); white-space:normal; }
+#aba-vendas .venda-tipos-grid select { min-width:0; width:100%; }
+#aba-vendas .venda-select-card { display:none; width:100%; min-width:0; min-height:48px; padding:10px; border-radius:10px; border:1px solid #c1a332; color:#fff; background:#414141; text-align:left; justify-content:space-between; align-items:center; gap:6px; font-size:13px; cursor:pointer; }
+#aba-vendas .venda-select-card i { color:#ffde23; flex-shrink:0; }
+.seletor-venda-overlay { position:fixed; inset:0; z-index:10050; display:flex; align-items:flex-end; justify-content:center; background:rgba(0,0,0,.72); padding:12px; }
+.seletor-venda-painel { width:min(100%,460px); max-height:calc(100dvh - 24px); overflow-y:auto; background:#292929; border:1px solid #dfbd2b; border-radius:20px; padding:18px; box-shadow:0 18px 55px #0009; }
+.seletor-venda-painel h3 { color:#ffdf31; font-size:18px; text-align:center; margin:0 0 16px; }
+.opcao-venda-card { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:64px; padding:14px; margin:9px 0; border-radius:12px; border:1px solid #666; background:#414141; color:#fff; font-size:14px; text-align:left; white-space:normal; cursor:pointer; }
+.opcao-venda-card.selecionada { background:#443d21; border:2px solid #ffdf31; }
+.opcao-venda-card i { color:#ffdf31; flex:0 0 auto; }
+.cancelar-seletor-venda { width:100%; min-height:44px; border:1px solid #777; border-radius:10px; color:#fff; background:#373737; margin-top:12px; }
+@media(max-width:768px) {
+ #aba-vendas .venda-tipos-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:10px; }
+ #aba-vendas .venda-tipos-grid select { display:none; }
+ #aba-vendas .venda-select-card { display:flex; }
+ #aba-vendas .venda-estoque-box .checkbox-label { font-size:13px; }
+}
+@media(min-width:769px) { .seletor-venda-overlay { align-items:center; } }
+
+/* Revisao de alinhamentos: componentes operacionais */
+#aba-vendas .venda-acoes { display:flex; justify-content:center; align-items:stretch; flex-wrap:wrap; gap:12px; margin-top:24px; width:100%; }
+#aba-vendas .venda-acoes > .btn { display:inline-flex; justify-content:center; align-items:center; gap:8px; flex:1 1 170px; max-width:270px; min-height:48px; margin:0 !important; text-align:center; white-space:normal; }
+:where(.tab-content,.conteudo-relatorios,.relatorio-detalhado,.form-group,.venda-item,.estoque-controls,.venda-actions) { min-width:0; }
+:where(.tab-content,.conteudo-relatorios,.relatorio-detalhado) :where(input,select,textarea) { max-width:100%; min-width:0; }
+:where(.modal-overlay .modal) { width:min(94vw,650px); max-width:94vw; max-height:calc(100dvh - 28px); overflow-y:auto; }
+:where(.modal-body,.modal-footer) { min-width:0; overflow-wrap:anywhere; }
+:where(.venda-item,.espetinho-ranking) :where(.venda-info,.venda-detalhes,.venda-espetinho,.venda-actions) { min-width:0; overflow-wrap:anywhere; }
+@media(max-width:768px) {
+ #aba-vendas .venda-acoes { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; }
+ #aba-vendas .venda-acoes > .btn { width:100%; min-width:0; max-width:none; margin:0 !important; padding:10px 8px !important; font-size:clamp(11px,3.1vw,14px); }
+ :where(.tab-content,.conteudo-relatorios,.relatorio-detalhado) { max-width:100%; }
+ :where(.venda-item) { gap:8px; }
+}
+@media(max-width:360px) {
+ #aba-vendas .venda-acoes { grid-template-columns:minmax(0,1fr); }
+}
+
+/* Filtros de Resumo de Vendas e Vendas Registradas, sem larguras fixas. */
+#aba-relatorios .relatorio-header { display:flex; flex-wrap:wrap; align-items:center; gap:10px; min-width:0; }
+#aba-relatorios .relatorio-header > .relatorio-title { flex:1 1 100%; min-width:0; }
+#aba-relatorios .filtros-resumo-vendas { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto; gap:10px; align-items:center; width:100%; min-width:0; }
+#aba-relatorios .filtros-resumo-vendas .form-control { width:100%; min-width:0; max-width:100%; min-height:44px; }
+#aba-relatorios .relatorio-header > .btn-atualizar { flex:1 1 130px; margin:0 !important; min-height:44px; }
+#aba-relatorios .filtros-resumo-vendas .btn-atualizar { min-height:44px; margin:0 !important; }
+#aba-vendas-registradas .filtros-vendas-registradas { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-bottom:12px; align-items:end; }
+#aba-vendas-registradas .filtros-vendas-registradas .form-group { min-width:0; margin:0; }
+#aba-vendas-registradas .filtros-vendas-registradas input[type="date"] { width:100%; min-width:0; max-width:100%; }
+#aba-vendas-registradas .filtros-vendas-registradas button { width:100%; min-height:44px; white-space:normal; }
+@media(max-width:768px) {
+ #aba-relatorios .relatorio-header { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+ #aba-relatorios .relatorio-header > .relatorio-title { grid-column:1/-1; }
+ #aba-relatorios .filtros-resumo-vendas { grid-column:1/-1; grid-template-columns:minmax(0,1fr); }
+ #aba-relatorios .filtros-resumo-vendas input[type="date"] { min-height:46px; font-size:16px; padding:9px; }
+ #aba-relatorios .filtros-resumo-vendas .btn-atualizar { width:100%; }
+ #aba-relatorios .relatorio-header > .btn-atualizar { width:100%; flex:none; font-size:13px; padding:10px 7px; }
+ #aba-vendas-registradas .filtros-vendas-registradas { grid-template-columns:minmax(0,1fr); gap:10px; }
+ #aba-vendas-registradas .filtros-vendas-registradas label { display:block; margin-bottom:5px; }
+ #aba-vendas-registradas .filtros-vendas-registradas label[style*="transparent"] { display:none; }
+ #aba-vendas-registradas .filtros-vendas-registradas input[type="date"] { min-height:46px; font-size:16px; padding:8px; }
+ #aba-vendas-registradas .filtros-vendas-registradas button, #aba-vendas-registradas .venda-form > div > .btn { min-height:44px; width:100%; margin:0; }
+ #aba-vendas-registradas .venda-form { max-width:100%; padding:12px; }
+}
+
+.paginacao-vendas{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px;padding:16px 8px;color:#f6e7a5;text-align:center}.paginacao-vendas button{min-height:42px;padding:10px 14px}.paginacao-vendas button:disabled{opacity:.4;cursor:not-allowed}.paginacao-vendas span{font-size:.9rem;flex:1 1 100%}@media(max-width:480px){.paginacao-vendas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.paginacao-vendas span{grid-column:1/-1;grid-row:1}.paginacao-vendas button{min-width:0;width:100%}}
+.carrinho-espetinho{margin-top:18px;border:1px solid #9d8626;background:#272727;border-radius:14px;padding:15px;min-width:0}
+.carrinho-espetinho h3{color:#ffdb26;margin-bottom:12px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.carrinho-espetinho h3 span{font-size:14px;color:#ddd}
+.carrinho-espetinho-item{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1px solid #59513a;padding:10px 0}
+.carrinho-espetinho-item span{overflow-wrap:anywhere;min-width:0;flex:1}
+.carrinho-espetinho-item .btn{font-size:12px;padding:8px 12px;min-height:38px}
+.carrinho-rodape{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:14px}
+.carrinho-rodape .btn{min-height:44px}
+.carrinho-rodape strong{color:#ffdf37}
+@media(max-width:600px){.carrinho-rodape{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.carrinho-rodape strong{grid-column:1/-1}.carrinho-rodape .btn{width:100%;min-width:0;padding:10px 6px;font-size:12px}}
+@media(max-width:768px){#aba-vendas .venda-acoes>.btn:nth-child(3){grid-column:1/-1}}
+
+
+.alerta-estoque-minimo{margin:12px 0;padding:12px;border:1px solid #aa8b29;border-radius:10px;background:#3a3421;color:#ffe38a;font-size:14px;overflow-wrap:anywhere}
+.historico-estoque-painel{border:1px solid #625325;border-radius:12px;margin:16px 0;padding:14px;background:#2e2e2e;min-width:0}
+.historico-estoque-item{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;padding:10px 4px;border-bottom:1px solid #4a4a4a;font-size:13px;overflow-wrap:anywhere}
+.historico-estoque-item strong{color:#ffdf37}
+@media(max-width:650px){.historico-estoque-item{flex-direction:column}.historico-estoque-painel .relatorio-header{gap:10px}}
+
+.resumo-gerencial-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}
+.resumo-gerencial-grid>div{min-width:0;background:#343434;border-left:3px solid #ffdc20;border-radius:9px;padding:14px}
+.resumo-gerencial-grid small{display:block;color:#ddd;margin-bottom:8px}
+.resumo-gerencial-grid strong{color:#ffe22c;font-size:clamp(15px,2vw,22px);overflow-wrap:anywhere}
+@media(max-width:480px){.resumo-gerencial-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.resumo-gerencial-grid>div{padding:10px}.resumo-gerencial-grid strong{font-size:16px}}
