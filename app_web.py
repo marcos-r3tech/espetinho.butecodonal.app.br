@@ -5,7 +5,11 @@
 Sistema web para lançamento de vendas via celular
 """
 
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, send_file, session, g, has_request_context
+from werkzeug.security import check_password_hash, generate_password_hash
+import secrets
+import copy
+import math
 import json
 import os
 import threading
@@ -18,14 +22,68 @@ import shutil
 class ButecoWebApp:
     def __init__(self):
         self.app = Flask(__name__, static_folder='static')
-        self.app.secret_key = 'buteco_do_nal_2024'
-        self.arquivo_dados = "dados_espetinho.json"
+        # Nunca gravar dados de producao no filesystem descartavel do deploy.
+        self.em_railway = bool(os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('RAILWAY_PROJECT_ID') or os.environ.get('RAILWAY_SERVICE_ID'))
+        self.diretorio_projeto = os.path.dirname(os.path.abspath(__file__))
+        if self.em_railway:
+            self.diretorio_dados = '/data'
+            if not os.path.isdir(self.diretorio_dados) or not os.path.ismount(self.diretorio_dados):
+                raise RuntimeError('SEGURANCA: Railway sem volume persistente montado em /data; inicializacao bloqueada para proteger vendas e senhas.')
+            if not os.path.isfile(os.path.join(self.diretorio_dados, 'dados_espetinho.json')):
+                raise RuntimeError('SEGURANCA: volume /data sem dados_espetinho.json; migre e valide o historico existente antes do deploy. Nao sera criado banco vazio.')
+            if not os.path.isfile(os.path.join(self.diretorio_dados, '.seguranca-local', 'admin_password.hash')) and not (os.environ.get('BUTECO_ADMIN_PASSWORD') or os.environ.get('BUTECO_ADMIN_PASSWORD_HASH')):
+                raise RuntimeError('SEGURANCA: credencial existente ausente no volume. Migre .seguranca-local antes de iniciar.')
+        else:
+            self.diretorio_dados = self.diretorio_projeto
+        # Credenciais sempre ficam no mesmo armazenamento persistente das vendas.
+        self.pasta_seguranca = os.path.join(self.diretorio_dados, '.seguranca-local')
+        os.makedirs(self.pasta_seguranca, exist_ok=True)
+        caminho_segredo = os.path.join(self.pasta_seguranca, 'session.key')
+        segredo_ambiente = os.environ.get('BUTECO_SECRET_KEY')
+        if segredo_ambiente:
+            self.app.secret_key = segredo_ambiente
+        else:
+            try:
+                with open(caminho_segredo, 'x', encoding='utf-8') as arquivo:
+                    arquivo.write(secrets.token_hex(32))
+            except FileExistsError:
+                pass
+            with open(caminho_segredo, 'r', encoding='utf-8') as arquivo:
+                self.app.secret_key = arquivo.read().strip()
+        self.app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE='Lax')
+        senha_configurada = os.environ.get('BUTECO_ADMIN_PASSWORD')
+        hash_configurado = os.environ.get('BUTECO_ADMIN_PASSWORD_HASH')
+        caminho_senha = os.path.join(self.pasta_seguranca, 'admin_password.hash')
+        if hash_configurado:
+            self.admin_password_hash = hash_configurado
+        elif senha_configurada:
+            self.admin_password_hash = generate_password_hash(senha_configurada)
+        else:
+            try:
+                with open(caminho_senha, 'r', encoding='utf-8') as arquivo:
+                    self.admin_password_hash = arquivo.read().strip()
+            except FileNotFoundError:
+                senha_inicial = secrets.token_urlsafe(15)
+                hash_inicial = generate_password_hash(senha_inicial)
+                try:
+                    with open(caminho_senha, 'x', encoding='utf-8') as arquivo:
+                        arquivo.write(hash_inicial)
+                    self.admin_password_hash = hash_inicial
+                    print('BUTECO - SENHA INICIAL PERMANENTE:', senha_inicial)
+                    print('Anote a senha. Ela nao muda ao reiniciar; depois altere-a no sistema.')
+                except FileExistsError:
+                    with open(caminho_senha, 'r', encoding='utf-8') as arquivo:
+                        self.admin_password_hash = arquivo.read().strip()
+        self.configuracao_inicial_pendente = not bool(self.admin_password_hash)
+        self.senha_definida_pelo_usuario = bool(hash_configurado or senha_configurada or os.path.exists(os.path.join(self.pasta_seguranca, 'senha_definida.flag')))
+        self.dados_lock = threading.RLock()
+        self.login_tentativas = {}
+        self.arquivo_dados = os.path.join(self.diretorio_dados, 'dados_espetinho.json')
+        self.pasta_backups = os.path.join(self.diretorio_dados, 'backups')
         self.dados = self.carregar_dados()
         self.configurar_rotas()
         
-        # Inicializar Git se estivermos no Railway
-        if os.environ.get('PORT'):
-            self.inicializar_git()
+        # Git nunca sera alterado automaticamente pela aplicacao.
         
     def carregar_dados(self):
         """Carrega os dados do arquivo JSON"""
@@ -42,10 +100,11 @@ class ButecoWebApp:
                         dados['espetinhos'] = {}
                     return dados
             else:
+                if self.em_railway:
+                    raise RuntimeError('Arquivo de dados de producao ausente. Restauracao obrigatoria.')
                 return {"vendas": [], "despesas": [], "espetinhos": {}}
         except Exception as e:
-            print(f"Erro ao carregar dados: {e}")
-            return {"vendas": [], "despesas": [], "espetinhos": {}}
+            raise RuntimeError(f'Nao foi possivel carregar os dados existentes; inicializacao interrompida para evitar perda de historico: {e}') from e
     
     def obter_data_hora_brasil(self):
         """Obtém data e hora no fuso horário do Brasil (UTC-3) formatada."""
@@ -60,13 +119,29 @@ class ButecoWebApp:
     def salvar_dados(self):
         """Salva os dados no arquivo JSON"""
         try:
-            with open(self.arquivo_dados, 'w', encoding='utf-8') as f:
-                json.dump(self.dados, f, ensure_ascii=False, indent=2)
+            import tempfile
+            pasta = os.path.dirname(os.path.abspath(self.arquivo_dados))
+            fd, temp = tempfile.mkstemp(prefix='.espetinho-', suffix='.tmp', dir=pasta)
+            try:
+                with os.fdopen(fd, 'w', encoding='utf-8') as f:
+                    json.dump(self.dados, f, ensure_ascii=False, indent=2, allow_nan=False)
+                    f.flush()
+                    os.fsync(f.fileno())
+                if os.path.isfile(self.arquivo_dados):
+                    os.makedirs(self.pasta_backups, exist_ok=True)
+                    nome_backup = os.path.join(self.pasta_backups, 'pre_gravacao_' + datetime.now().strftime('%Y%m%d_%H%M%S_%f') + '.json')
+                    shutil.copy2(self.arquivo_dados, nome_backup)
+                os.replace(temp, self.arquivo_dados)
+            finally:
+                if os.path.exists(temp):
+                    os.unlink(temp)
             
             # Log de salvamento
             print(f"💾 Dados salvos em {self.arquivo_dados}")
             return True
         except Exception as e:
+            if has_request_context() and hasattr(g, 'espetinho_salvamento_falhou'):
+                g.espetinho_salvamento_falhou = True
             print(f"Erro ao salvar dados: {e}")
             return False
     
@@ -77,10 +152,10 @@ class ButecoWebApp:
             if self.salvar_dados():
                 # Criar arquivo de backup com timestamp no fuso do Brasil
                 timestamp = self.agora_brasil().strftime('%Y%m%d_%H%M%S')
-                backup_file = f"backups/backup_{operacao}_{timestamp}.json"
+                backup_file = os.path.join(self.pasta_backups, f"backup_{operacao}_{timestamp}_{secrets.token_hex(3)}.json")
                 
                 # Criar pasta de backups se não existir
-                os.makedirs('backups', exist_ok=True)
+                os.makedirs(self.pasta_backups, exist_ok=True)
                 
                 # Copiar arquivo para backup
                 with open(self.arquivo_dados, 'r', encoding='utf-8') as source:
@@ -207,6 +282,113 @@ class ButecoWebApp:
     
     def configurar_rotas(self):
         """Configura as rotas da aplicação"""
+        @self.app.before_request
+        def exigir_sessao():
+            self.dados_lock.acquire()
+            g.espetinho_lock = True
+            g.espetinho_backup_memoria = copy.deepcopy(self.dados) if request.method in ('POST', 'PUT', 'PATCH', 'DELETE') else None
+            g.espetinho_salvamento_falhou = False
+            rota = request.path
+            if request.method in ('POST', 'PUT', 'PATCH', 'DELETE'):
+                origem = request.headers.get('Origin')
+                if origem and origem.rstrip('/') != request.host_url.rstrip('/'):
+                    return jsonify({'success': False, 'message': 'Origem nao autorizada'}), 403
+            if rota == '/':
+                if not session.get('admin'):
+                    return render_template('login.html', primeiro_acesso=not self.senha_definida_pelo_usuario, configuracao_local=request.remote_addr in ('127.0.0.1', '::1'))
+                return render_template('index.html', espetinhos=self.dados.get('espetinhos', {}), vendas_hoje=self.obter_vendas_hoje())
+            if rota.startswith('/api/') and rota not in ('/api/info', '/api/login', '/api/primeira-senha'):
+                publico = (rota == '/api/espetinhos' and request.method == 'GET') or (rota == '/api/pedidos' and request.method == 'POST') or (rota == '/api/whatsapp/next' and request.method == 'GET')
+                if not publico and not session.get('admin'):
+                    return jsonify({'success': False, 'message': 'Acesso nao autorizado'}), 401
+
+        @self.app.teardown_request
+        def liberar_lock(_erro):
+            if getattr(g, 'espetinho_lock', False):
+                if getattr(g, 'espetinho_salvamento_falhou', False) and g.espetinho_backup_memoria is not None:
+                    self.dados = g.espetinho_backup_memoria
+                self.dados_lock.release()
+
+        @self.app.route('/api/alterar-senha', methods=['POST'])
+        def alterar_senha():
+            if not session.get('admin'):
+                return jsonify({'success': False, 'message': 'Nao autorizado'}), 401
+            payload = request.get_json(silent=True) or {}
+            atual = str(payload.get('senha_atual', ''))
+            nova = str(payload.get('nova_senha', ''))
+            if not self.admin_password_hash or not check_password_hash(self.admin_password_hash, atual):
+                return jsonify({'success': False, 'message': 'Senha atual incorreta'}), 403
+            if len(nova) < 10 or len(nova) > 128 or nova == atual:
+                return jsonify({'success': False, 'message': 'Use uma nova senha com 10 a 128 caracteres'}), 400
+            import tempfile
+            caminho = os.path.join(self.pasta_seguranca, 'admin_password.hash')
+            fd, temporario = tempfile.mkstemp(prefix='.senha-', dir=self.pasta_seguranca)
+            try:
+                novo_hash = generate_password_hash(nova)
+                with os.fdopen(fd, 'w', encoding='utf-8') as arquivo:
+                    arquivo.write(novo_hash)
+                    arquivo.flush()
+                    os.fsync(arquivo.fileno())
+                os.replace(temporario, caminho)
+                self.admin_password_hash = novo_hash
+                with open(os.path.join(self.pasta_seguranca, 'senha_definida.flag'), 'w', encoding='utf-8') as marcador:
+                    marcador.write('1')
+                self.senha_definida_pelo_usuario = True
+                return jsonify({'success': True, 'message': 'Senha alterada com sucesso'})
+            finally:
+                if os.path.exists(temporario):
+                    os.unlink(temporario)
+
+        @self.app.route('/api/primeira-senha', methods=['POST'])
+        def primeira_senha():
+            if self.senha_definida_pelo_usuario:
+                return jsonify({'success': False, 'message': 'Configuracao inicial ja concluida'}), 409
+            payload = request.get_json(silent=True) or {}
+            atual = str(payload.get('senha_inicial', ''))
+            nova = str(payload.get('nova_senha', ''))
+            if request.remote_addr not in ('127.0.0.1', '::1'):
+                return jsonify({'success': False, 'message': 'Para cadastrar sem senha inicial, abra http://localhost:5000 no computador do servidor.'}), 403
+            if len(nova) < 10 or len(nova) > 128:
+                return jsonify({'success': False, 'message': 'Nova senha deve ter entre 10 e 128 caracteres'}), 400
+            import tempfile
+            fd, temporario = tempfile.mkstemp(prefix='.senha-', dir=self.pasta_seguranca)
+            try:
+                novo_hash = generate_password_hash(nova)
+                with os.fdopen(fd, 'w', encoding='utf-8') as arquivo:
+                    arquivo.write(novo_hash)
+                    arquivo.flush()
+                    os.fsync(arquivo.fileno())
+                os.replace(temporario, os.path.join(self.pasta_seguranca, 'admin_password.hash'))
+                with open(os.path.join(self.pasta_seguranca, 'senha_definida.flag'), 'w', encoding='utf-8') as marcador:
+                    marcador.write('1')
+                self.admin_password_hash = novo_hash
+                self.senha_definida_pelo_usuario = True
+                session.clear()
+                session['admin'] = True
+                return jsonify({'success': True})
+            finally:
+                if os.path.exists(temporario):
+                    os.unlink(temporario)
+
+        @self.app.route('/api/login', methods=['POST'])
+        def api_login():
+            payload = request.get_json(silent=True) or {}
+            ip = request.remote_addr or 'desconhecido'
+            agora = time.monotonic()
+            tentativas = [t for t in self.login_tentativas.get(ip, []) if agora - t < 900]
+            if len(tentativas) >= 10:
+                return jsonify({'success': False, 'message': 'Muitas tentativas; tente novamente mais tarde'}), 429
+            if self.admin_password_hash and check_password_hash(self.admin_password_hash, str(payload.get('senha', ''))):
+                self.login_tentativas.pop(ip, None)
+                if not self.senha_definida_pelo_usuario:
+                    return jsonify({'success': True, 'definir_senha': True, 'message': 'Cadastre sua nova senha permanente.'})
+                session.clear()
+                session['admin'] = True
+                return jsonify({'success': True})
+            tentativas.append(agora)
+            self.login_tentativas[ip] = tentativas
+            return jsonify({'success': False, 'message': 'Credenciais invalidas'}), 401
+
         
         @self.app.route('/')
         def index():
@@ -226,7 +408,7 @@ class ButecoWebApp:
             # Filtrar apenas espetinhos com estoque > 0
             espetinhos_disponiveis = {}
             for nome, dados in self.dados.get('espetinhos', {}).items():
-                if dados.get('estoque', 0) > 0:
+                if dados.get('estoque', 0) > 0 and dados.get('ativo', True):
                     espetinhos_disponiveis[nome] = dados
             
             return render_template('cardapio.html', 
@@ -261,7 +443,9 @@ class ButecoWebApp:
         @self.app.route('/api/espetinhos')
         def api_espetinhos():
             """API para obter espetinhos disponíveis"""
-            return jsonify(self.dados.get('espetinhos', {}))
+            if session.get('admin') and request.args.get('incluir_inativos') == '1':
+                return jsonify(self.dados.get('espetinhos', {}))
+            return jsonify({nome: item if session.get('admin') else {'valor': item.get('valor', 0), 'estoque': item.get('estoque', 0)} for nome, item in self.dados.get('espetinhos', {}).items() if item.get('ativo', True)})
         
         @self.app.route('/api/vendas', methods=['POST'])
         def api_adicionar_venda():
@@ -275,6 +459,8 @@ class ButecoWebApp:
 
                 espetinho = data['espetinho']
                 quantidade = int(data['quantidade'])
+                if quantidade <= 0:
+                    return jsonify({'success': False, 'message': 'Quantidade deve ser positiva'}), 400
 
                 # Verificar se espetinho existe
                 if espetinho not in self.dados.get('espetinhos', {}):
@@ -282,8 +468,17 @@ class ButecoWebApp:
 
                 # Obter dados do espetinho
                 dados_espetinho = self.dados['espetinhos'][espetinho]
-                valor_unitario = dados_espetinho['valor']
-                total = valor_unitario * quantidade
+                if not dados_espetinho.get('ativo', True):
+                    return jsonify({'success': False, 'message': 'Espetinho inativo'}), 409
+                from decimal import Decimal, InvalidOperation
+                try:
+                    valor_unitario_decimal = Decimal(str(data.get('valor_unitario', dados_espetinho['valor'])))
+                    if not valor_unitario_decimal.is_finite() or valor_unitario_decimal < 0 or valor_unitario_decimal.as_tuple().exponent < -2:
+                        raise ValueError('Valor unitario invalido')
+                    valor_unitario = float(valor_unitario_decimal)
+                except (ValueError, TypeError, InvalidOperation):
+                    return jsonify({'success': False, 'message': 'Valor unitario invalido'}), 400
+                total = round(valor_unitario * quantidade, 2)
 
                 # Tipo de venda: normal ou bonificação (sem cobrança)
                 tipo_venda = data.get('tipo_venda', 'normal')
@@ -333,7 +528,9 @@ class ButecoWebApp:
 
                 # Atualizar estoque apenas se necessário
                 if alterar_estoque:
+                    anterior = self.dados['espetinhos'][espetinho]['estoque']
                     self.dados['espetinhos'][espetinho]['estoque'] -= quantidade
+                    self.dados.setdefault('movimentacoes_estoque', []).append({'data': data_venda, 'produto': espetinho, 'tipo': 'venda', 'quantidade': -quantidade, 'anterior': anterior, 'posterior': anterior - quantidade})
 
                 # Salvar dados e fazer backup
                 if self.salvar_dados():
@@ -345,6 +542,65 @@ class ButecoWebApp:
             except Exception as e:
                 return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
         
+        @self.app.route('/api/vendas/lote', methods=['POST'])
+        def api_vendas_lote():
+            """Registra um carrinho de produtos em uma unica gravacao atomica."""
+            from decimal import Decimal, InvalidOperation
+            dados = request.get_json(silent=True) or {}
+            itens = dados.get('itens')
+            if not isinstance(itens, list) or not 1 <= len(itens) <= 100:
+                return jsonify({'success': False, 'message': 'Informe entre 1 e 100 itens'}), 400
+            tipo = dados.get('tipo_venda', 'normal')
+            consumo = dados.get('tipo_consumo', 'local')
+            if tipo not in ('normal', 'bonificacao') or consumo not in ('local', 'entrega', 'interno'):
+                return jsonify({'success': False, 'message': 'Tipo de venda ou consumo invalido'}), 400
+            produtos = self.dados.get('espetinhos', {})
+            preparados = []
+            baixas = {}
+            try:
+                for item in itens:
+                    nome = item.get('espetinho')
+                    if nome not in produtos or not produtos[nome].get('ativo', True):
+                        return jsonify({'success': False, 'message': 'Produto inexistente ou inativo'}), 400
+                    qtd = int(item.get('quantidade', 0))
+                    if qtd < 1 or str(qtd) != str(item.get('quantidade')):
+                        return jsonify({'success': False, 'message': 'Quantidade invalida'}), 400
+                    preco = Decimal(str(item.get('valor_unitario', produtos[nome]['valor'])))
+                    if not preco.is_finite() or preco < 0 or preco.as_tuple().exponent < -2:
+                        return jsonify({'success': False, 'message': 'Preco invalido'}), 400
+                    baixar = item.get('alterar_estoque', True)
+                    if not isinstance(baixar, bool):
+                        return jsonify({'success': False, 'message': 'Opcao de estoque invalida'}), 400
+                    if baixar:
+                        baixas[nome] = baixas.get(nome, 0) + qtd
+                    preparados.append((nome, qtd, float(preco), baixar))
+                for nome, qtd in baixas.items():
+                    if produtos[nome].get('estoque', 0) < qtd:
+                        return jsonify({'success': False, 'message': f'Estoque insuficiente de {nome}'}), 409
+            except (ValueError, TypeError, InvalidOperation, AttributeError):
+                return jsonify({'success': False, 'message': 'Dados invalidos no carrinho'}), 400
+            momento = self.obter_data_hora_brasil()
+            competencia = self.agora_brasil().strftime('%Y-%m')
+            identificador = secrets.token_hex(8)
+            novas = []
+            for nome, qtd, preco, baixar in preparados:
+                total = round(preco * qtd, 2)
+                novas.append({'data': momento, 'espetinho': nome, 'quantidade': qtd,
+                              'valor_unitario': preco, 'total': total, 'alterou_estoque': baixar,
+                              'origem': 'web_carrinho', 'tipo_venda': tipo,
+                              'valor_cobrado': 0.0 if tipo == 'bonificacao' else total,
+                              'tipo_consumo': consumo, 'competencia': competencia, 'grupo_venda': identificador})
+            self.dados.setdefault('vendas', []).extend(novas)
+            for nome, qtd in baixas.items():
+                anterior = produtos[nome]['estoque']
+                produtos[nome]['estoque'] -= qtd
+                self.dados.setdefault('movimentacoes_estoque', []).append({'data': momento, 'produto': nome, 'tipo': 'venda carrinho', 'quantidade': -qtd, 'anterior': anterior, 'posterior': anterior-qtd})
+            if not self.salvar_dados():
+                return jsonify({'success': False, 'message': 'Nao foi possivel salvar a venda'}), 500
+            return jsonify({'success': True, 'message': f'Venda de {len(novas)} itens registrada',
+                            'grupo_venda': identificador,
+                            'total': round(sum(v['valor_cobrado'] for v in novas), 2)})
+
         @self.app.route('/api/vendas/hoje')
         def api_vendas_hoje():
             """API para obter vendas do dia"""
@@ -355,6 +611,38 @@ class ButecoWebApp:
             """API para obter todas as vendas do histórico"""
             return jsonify(self.dados.get('vendas', []))
         
+        @self.app.route('/api/vendas/paginadas')
+        def api_vendas_paginadas():
+            """Historico paginado, sem transmitir toda a lista ao navegador."""
+            try:
+                pagina = max(1, int(request.args.get('pagina', 1)))
+                limite = 100
+                inicio = request.args.get('inicio', '')
+                fim = request.args.get('fim', '')
+                if inicio and fim and inicio > fim:
+                    return jsonify({'success': False, 'message': 'Periodo invalido'}), 400
+                def chave_data(venda):
+                    try:
+                        texto = venda.get('data', '')
+                        return datetime.strptime(texto[:16], '%d/%m/%Y %H:%M')
+                    except (ValueError, TypeError):
+                        return datetime.min
+                registros = []
+                for indice, venda in enumerate(self.dados.get('vendas', [])):
+                    if inicio or fim:
+                        data = chave_data(venda).strftime('%Y-%m-%d')
+                        if (inicio and data < inicio) or (fim and data > fim):
+                            continue
+                    registros.append((indice, venda))
+                registros.sort(key=lambda par: (chave_data(par[1]), par[0]), reverse=True)
+                total = len(registros)
+                paginas = max(1, (total + limite - 1) // limite)
+                pagina = min(pagina, paginas)
+                resultado = [dict(venda, indice_original=indice) for indice, venda in registros[(pagina - 1) * limite:pagina * limite]]
+                return jsonify({'success': True, 'vendas': resultado, 'pagina': pagina, 'total_paginas': paginas, 'total': total, 'por_pagina': limite})
+            except (ValueError, TypeError):
+                return jsonify({'success': False, 'message': 'Pagina invalida'}), 400
+
         @self.app.route('/api/despesas')
         def api_despesas():
             """API para obter despesas"""
@@ -371,12 +659,15 @@ class ButecoWebApp:
                 
                 descricao = data['descricao']
                 valor = float(data['valor'])
+                if not math.isfinite(valor) or valor <= 0:
+                    return jsonify({'success': False, 'message': 'Valor invalido'}), 400
                 data_despesa = data.get('data', self.obter_data_hora_brasil())
                 
                 # Criar despesa
                 despesa = {
                     'data': data_despesa,
                     'descricao': descricao,
+                    'categoria': str(data.get('categoria') or 'Outras')[:40],
                     'valor': valor
                 }
                 
@@ -409,6 +700,8 @@ class ButecoWebApp:
                     self.dados['despesas'][indice]['valor'] = float(data['valor'])
                 if 'data' in data:
                     self.dados['despesas'][indice]['data'] = data['data']
+                if 'categoria' in data:
+                    self.dados['despesas'][indice]['categoria'] = str(data['categoria'] or 'Outras')[:40]
                 
                 if self.salvar_dados():
                     self.fazer_backup_automatico('edicao_despesa')
@@ -516,6 +809,11 @@ class ButecoWebApp:
                 valor = float(data['valor'])
                 custo = float(data.get('custo', 0))
                 estoque = int(data.get('estoque', 0))
+                estoque_minimo = int(data.get('estoque_minimo', 0))
+                if estoque_minimo < 0:
+                    return jsonify({'success': False, 'message': 'Estoque minimo invalido'}), 400
+                if not math.isfinite(valor) or not math.isfinite(custo) or valor <= 0 or custo < 0 or estoque < 0:
+                    return jsonify({'success': False, 'message': 'Preco, custo ou estoque invalido'}), 400
                 
                 # Verificar se já existe
                 if nome in self.dados.get('espetinhos', {}):
@@ -525,7 +823,9 @@ class ButecoWebApp:
                 self.dados['espetinhos'][nome] = {
                     'valor': valor,
                     'custo': custo,
-                    'estoque': estoque
+                    'estoque': estoque,
+                    'estoque_minimo': estoque_minimo,
+                    'ativo': True
                 }
                 
                 if self.salvar_dados():
@@ -552,6 +852,11 @@ class ButecoWebApp:
                     self.dados['espetinhos'][nome]['custo'] = float(data['custo'])
                 if 'estoque' in data:
                     self.dados['espetinhos'][nome]['estoque'] = int(data['estoque'])
+                if 'estoque_minimo' in data:
+                    minimo = int(data['estoque_minimo'])
+                    if minimo < 0:
+                        return jsonify({'success': False, 'message': 'Estoque minimo invalido'}), 400
+                    self.dados['espetinhos'][nome]['estoque_minimo'] = minimo
                 
                 if self.salvar_dados():
                     self.fazer_backup_automatico('edicao_espetinho')
@@ -569,17 +874,31 @@ class ButecoWebApp:
                 if nome not in self.dados.get('espetinhos', {}):
                     return jsonify({'success': False, 'message': 'Espetinho não encontrado'}), 404
                 
-                del self.dados['espetinhos'][nome]
+                historico = any(v.get('espetinho') == nome for v in self.dados.get('vendas', [])) or any(any(item.get('nome') == nome for item in p.get('itens', [])) for p in self.dados.get('pedidos', []))
+                if historico:
+                    self.dados['espetinhos'][nome]['ativo'] = False
+                else:
+                    del self.dados['espetinhos'][nome]
                 
                 if self.salvar_dados():
                     self.fazer_backup_automatico('exclusao_espetinho')
-                    return jsonify({'success': True, 'message': 'Espetinho excluído com sucesso!'})
+                    return jsonify({'success': True, 'message': 'Espetinho inativado; historico preservado.' if historico else 'Espetinho sem movimentacoes excluido.'})
                 else:
                     return jsonify({'success': False, 'message': 'Erro ao salvar'}), 500
                     
             except Exception as e:
                 return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
         
+        @self.app.route('/api/espetinhos/<nome>/reativar', methods=['POST'])
+        def api_reativar_espetinho(nome):
+            produto = self.dados.get('espetinhos', {}).get(nome)
+            if produto is None:
+                return jsonify({'success': False, 'message': 'Espetinho nao encontrado'}), 404
+            produto['ativo'] = True
+            if self.salvar_dados():
+                return jsonify({'success': True, 'message': 'Espetinho reativado com sucesso'})
+            return jsonify({'success': False, 'message': 'Erro ao salvar'}), 500
+
         @self.app.route('/api/estoque/adicionar', methods=['POST'])
         def api_adicionar_estoque():
             """API para adicionar estoque a um espetinho"""
@@ -591,11 +910,15 @@ class ButecoWebApp:
                 
                 espetinho = data['espetinho']
                 quantidade = int(data['quantidade'])
+                if quantidade <= 0:
+                    return jsonify({'success': False, 'message': 'Quantidade deve ser positiva'}), 400
                 
                 if espetinho not in self.dados.get('espetinhos', {}):
                     return jsonify({'success': False, 'message': 'Espetinho não encontrado'}), 404
                 
+                anterior = self.dados['espetinhos'][espetinho]['estoque']
                 self.dados['espetinhos'][espetinho]['estoque'] += quantidade
+                self.dados.setdefault('movimentacoes_estoque', []).append({'data': self.obter_data_hora_brasil(), 'produto': espetinho, 'tipo': 'entrada', 'quantidade': quantidade, 'anterior': anterior, 'posterior': anterior + quantidade})
                 
                 if self.salvar_dados():
                     self.fazer_backup_automatico('alteracao_estoque')
@@ -620,7 +943,9 @@ class ButecoWebApp:
                 if espetinho not in self.dados.get('espetinhos', {}):
                     return jsonify({'success': False, 'message': 'Espetinho não encontrado'}), 404
                 
+                anterior = self.dados['espetinhos'][espetinho]['estoque']
                 self.dados['espetinhos'][espetinho]['estoque'] = 0
+                self.dados.setdefault('movimentacoes_estoque', []).append({'data': self.obter_data_hora_brasil(), 'produto': espetinho, 'tipo': 'zeramento', 'quantidade': -anterior, 'anterior': anterior, 'posterior': 0})
                 
                 if self.salvar_dados():
                     self.fazer_backup_automatico('zerar_estoque')
@@ -636,6 +961,9 @@ class ButecoWebApp:
             """API para zerar estoque de todos os espetinhos"""
             try:
                 for espetinho in self.dados.get('espetinhos', {}):
+                    anterior = self.dados['espetinhos'][espetinho]['estoque']
+                    if anterior:
+                        self.dados.setdefault('movimentacoes_estoque', []).append({'data': self.obter_data_hora_brasil(), 'produto': espetinho, 'tipo': 'zeramento geral', 'quantidade': -anterior, 'anterior': anterior, 'posterior': 0})
                     self.dados['espetinhos'][espetinho]['estoque'] = 0
                 
                 if self.salvar_dados():
@@ -647,6 +975,24 @@ class ButecoWebApp:
             except Exception as e:
                 return jsonify({'success': False, 'message': f'Erro: {str(e)}'}), 500
         
+        @self.app.route('/api/estoque/movimentacoes')
+        def api_movimentacoes_estoque():
+            """Ultimas movimentacoes; historico passa a existir para novas operacoes."""
+            movimentos = self.dados.get('movimentacoes_estoque', [])
+            return jsonify({'total': len(movimentos), 'movimentacoes': list(reversed(movimentos[-100:]))})
+
+        @self.app.route('/api/dashboard/resumo')
+        def api_dashboard_resumo():
+            hoje = self.agora_brasil().strftime('%d/%m/%Y')
+            vendas = [v for v in self.dados.get('vendas', []) if str(v.get('data', '')).startswith(hoje)]
+            faturamento = sum(float(v.get('valor_cobrado', v.get('total', 0)) or 0) for v in vendas)
+            quantidade = sum(int(v.get('quantidade', 0) or 0) for v in vendas)
+            despesas = sum(float(d.get('valor', 0) or 0) for d in self.dados.get('despesas', []) if str(d.get('data', '')).startswith(hoje))
+            baixos = [nome for nome,p in self.dados.get('espetinhos', {}).items() if p.get('ativo', True) and p.get('estoque_minimo', 0)>0 and p.get('estoque', 0)<=p['estoque_minimo']]
+            return jsonify({'faturamento_hoje': round(faturamento, 2), 'registros_vendas':len(vendas),
+                           'quantidade_vendida': quantidade, 'despesas_hoje':round(despesas,2),
+                           'estoque_baixo':len(baixos), 'ticket_medio_registro': round(faturamento/len(vendas),2) if vendas else 0})
+
         @self.app.route('/api/status')
         def api_status():
             """API para verificar status do sistema"""
@@ -697,10 +1043,10 @@ class ButecoWebApp:
             """API para listar todos os backups"""
             try:
                 backups = []
-                if os.path.exists('backups'):
-                    for arquivo in os.listdir('backups'):
+                if os.path.exists(self.pasta_backups):
+                    for arquivo in os.listdir(self.pasta_backups):
                         if arquivo.endswith('.json'):
-                            caminho = os.path.join('backups', arquivo)
+                            caminho = os.path.join(self.pasta_backups, arquivo)
                             stat = os.stat(caminho)
                             brasil_tz = timezone(timedelta(hours=-3))
                             backups.append({
@@ -720,8 +1066,10 @@ class ButecoWebApp:
         def api_download_backup(nome_arquivo):
             """API para baixar um backup específico"""
             try:
-                caminho = os.path.join('backups', nome_arquivo)
-                if os.path.exists(caminho):
+                if nome_arquivo != os.path.basename(nome_arquivo.replace('\\', '/')) or not nome_arquivo.endswith('.json') or '..' in nome_arquivo:
+                    return jsonify({'success': False, 'message': 'Nome de backup invalido'}), 400
+                caminho = os.path.join(self.pasta_backups, nome_arquivo)
+                if os.path.isfile(caminho):
                     return send_file(
                         caminho,
                         as_attachment=True,
@@ -738,7 +1086,8 @@ class ButecoWebApp:
             """API para consolidar múltiplos arquivos JSON em um único banco"""
             try:
                 # Fazer backup antes
-                backup_nome = f"backup_antes_consolidacao_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                backup_nome = os.path.join(self.pasta_backups, f"backup_antes_consolidacao_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}.json")
+                os.makedirs(self.pasta_backups, exist_ok=True)
                 try:
                     with open(backup_nome, 'w', encoding='utf-8') as f:
                         json.dump(self.dados, f, ensure_ascii=False, indent=2)
@@ -914,8 +1263,8 @@ class ButecoWebApp:
                 
                 # Salvar dados consolidados
                 self.dados = dados_consolidados
-                with open(self.arquivo_dados, 'w', encoding='utf-8') as f:
-                    json.dump(self.dados, f, ensure_ascii=False, indent=2)
+                if not self.salvar_dados():
+                    return jsonify({'success': False, 'message': 'Falha ao gravar consolidacao; historico original preservado.'}), 500
                 
                 return jsonify({
                     'success': True,
@@ -960,18 +1309,33 @@ class ButecoWebApp:
                 data = request.get_json()
                 
                 # Validar dados básicos
-                if not data or 'itens' not in data:
+                if not data or not isinstance(data.get('itens'), list):
                     return jsonify({'success': False, 'message': 'Dados inválidos'}), 400
                 
+                # Recalcular os valores no servidor para evitar precos adulterados.
+                itens_validados = []
+                for item in data['itens']:
+                    nome = item.get('nome')
+                    if nome not in self.dados.get('espetinhos', {}):
+                        return jsonify({'success': False, 'message': 'Produto invalido'}), 400
+                    quantidade_item = int(item.get('quantidade', 0))
+                    if quantidade_item <= 0:
+                        return jsonify({'success': False, 'message': 'Quantidade invalida'}), 400
+                    produto = self.dados['espetinhos'][nome]
+                    if not produto.get('ativo', True):
+                        return jsonify({'success': False, 'message': 'Produto inativo'}), 409
+                    itens_validados.append(dict(item, quantidade=quantidade_item, preco=produto['valor']))
+                if not itens_validados:
+                    return jsonify({'success': False, 'message': 'Pedido sem itens'}), 400
                 # Criar pedido
                 pedido = {
-                    'id': len(self.dados.get('pedidos', [])) + 1,
+                    'id': max(int(self.dados.get('ultimo_pedido_id', 0)), max((int(p.get('id', 0)) for p in self.dados.get('pedidos', [])), default=0), max((int(v.get('pedido_id', 0)) for v in self.dados.get('vendas', []) if v.get('pedido_id')), default=0)) + 1,
                     'data': self.obter_data_hora_brasil(),
                     'nome_cliente': data.get('nome_cliente', 'Cliente'),
                     'telefone': data.get('telefone', ''),
                     'endereco': data.get('endereco', ''),
                     'observacoes': data.get('observacoes', ''),
-                    'itens': data['itens'],
+                    'itens': itens_validados,
                     'status': 'pendente',
                     'tempo_status': {
                         'pendente': self.obter_data_hora_brasil(),
@@ -979,7 +1343,7 @@ class ButecoWebApp:
                         'preparando': None,
                         'pronto': None
                     },
-                    'total': data.get('total', 0)
+                    'total': sum(item['preco'] * item['quantidade'] for item in itens_validados)
                 }
                 
                 # Adicionar pedido
@@ -987,6 +1351,7 @@ class ButecoWebApp:
                     self.dados['pedidos'] = []
                 
                 self.dados['pedidos'].append(pedido)
+                self.dados['ultimo_pedido_id'] = pedido['id']
                 
                 # Salvar dados
                 if self.salvar_dados():
@@ -1023,6 +1388,18 @@ class ButecoWebApp:
                 if not pedido:
                     return jsonify({'success': False, 'message': 'Pedido não encontrado'}), 404
                 
+                # Nao concluir novamente um pedido ja finalizado.
+                if pedido.get('status') == 'pronto':
+                    return jsonify({'success': False, 'message': 'Pedido ja finalizado'}), 409
+                if novo_status == 'pronto':
+                    totais_estoque = {}
+                    for item in pedido.get('itens', []):
+                        nome = item.get('nome')
+                        totais_estoque[nome] = totais_estoque.get(nome, 0) + int(item.get('quantidade', 0))
+                    for nome, qtd in totais_estoque.items():
+                        produto = self.dados.get('espetinhos', {}).get(nome)
+                        if produto is None or qtd <= 0 or produto.get('estoque', 0) < qtd:
+                            return jsonify({'success': False, 'message': f'Estoque insuficiente para {nome}'}), 409
                 # Atualizar status e tempo
                 pedido['status'] = novo_status
                 pedido['tempo_status'][novo_status] = self.obter_data_hora_brasil()
@@ -1287,7 +1664,9 @@ class ButecoWebApp:
         
         self.app.run(host='0.0.0.0', port=porta, debug=False, threaded=True)
 
+web_app = ButecoWebApp()
+app = web_app.app
+
 if __name__ == '__main__':
-    app = ButecoWebApp()
-    app.iniciar_servidor()
+    web_app.iniciar_servidor()
 
